@@ -19,7 +19,7 @@ fn solve_a() -> isize {
 }
 
 fn solve_b() -> isize {
-    let vals: HashSet<isize> = load_input().into_iter().collect();
+    let vals: HashSet<isize> = load_input();
     for a in &vals {
         for b in &vals {
             let c = 2020 - a - b;
@@ -31,7 +31,7 @@ fn solve_b() -> isize {
     panic!("no combination found");
 }
 
-fn load_input() -> Vec<isize> {
+fn load_input() -> HashSet<isize> {
     std::fs::read_to_string("input/dec01.txt")
         .unwrap()
         .lines()
