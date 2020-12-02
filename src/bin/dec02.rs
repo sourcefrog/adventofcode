@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Solution to https://adventofcode.com/2020/day/2.
+
 pub fn main() {
     println!("02a: {}", solve_a());
     println!("02b: {}", solve_b());
@@ -25,7 +27,7 @@ fn solve_type_a(s: &str) -> usize {
     parse(s)
         .iter()
         .filter(|p| {
-            let a = p.password.chars().filter(|c| *c == p.char).count();
+            let a = p.p.iter().filter(|c| **c == p.c).count();
             a >= p.a && a <= p.b
         })
         .count()
@@ -35,10 +37,10 @@ fn solve_b() -> usize {
     parse(&load_input())
         .iter()
         .filter(|p| {
-            let ca = p.password.chars().nth(p.a - 1).unwrap();
-            let cb = p.password.chars().nth(p.b - 1).unwrap();
+            let ca = p.p[p.a - 1];
+            let cb = p.p[p.b - 1];
             // Valid if exactly one position is this character
-            (p.char == ca) != (p.char == cb)
+            (p.c == ca) != (p.c == cb)
         })
         .count()
 }
@@ -47,8 +49,8 @@ fn solve_b() -> usize {
 struct Password {
     a: usize,
     b: usize,
-    char: char,
-    password: String,
+    c: char,
+    p: Vec<char>,
 }
 
 fn load_input() -> String {
@@ -56,16 +58,15 @@ fn load_input() -> String {
 }
 
 fn parse(s: &str) -> Vec<Password> {
-    let re = regex::Regex::new(r"^(\d+)-(\d+) (\w): (\w+)$").unwrap();
     let mut v = Vec::new();
     for line in s.lines() {
-        let caps = re.captures(line).expect("failed to parse");
-        let p = Password {
-            a: caps.get(1).unwrap().as_str().parse().unwrap(),
-            b: caps.get(2).unwrap().as_str().parse().unwrap(),
-            char: caps.get(3).unwrap().as_str().chars().next().unwrap(),
-            password: caps.get(4).unwrap().as_str().to_owned(),
-        };
+        let mut fields = line.split(&['-', ' ', ':'][..]);
+        let a: usize = fields.next().unwrap().parse().unwrap();
+        let b: usize = fields.next().unwrap().parse().unwrap();
+        let c: char = fields.next().unwrap().chars().next().unwrap();
+        assert_eq!(fields.next().unwrap(), "");
+        let p = fields.next().unwrap().chars().collect();
+        let p = Password { a, b, c, p };
         v.push(p);
     }
     v
