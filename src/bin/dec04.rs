@@ -20,19 +20,17 @@ pub fn main() {
 }
 
 fn solve_a() -> usize {
-    let input = std::fs::read_to_string("input/dec04.txt").unwrap();
-    let mut valid = 0;
-    for para in input.split("\n\n") {
-        let fields: Vec<String> = para
-            .split_whitespace()
-            .map(|s| s.split(':').take(1).next().unwrap().to_owned())
-            .collect();
-        println!("{:#?}", fields);
-        if fields.len() == 8 || (fields.len() == 7 && !fields.contains(&"cid".to_owned())) {
-            valid += 1;
-        }
-    }
-    valid
+    std::fs::read_to_string("input/dec04.txt")
+        .unwrap()
+        .split("\n\n")
+        .filter(|para| {
+            let fields: Vec<&str> = para
+                .split_whitespace()
+                .map(|s| s.split(':').take(1).next().unwrap())
+                .collect();
+            fields.len() == 8 || (fields.len() == 7 && !fields.contains(&"cid"))
+        })
+        .count()
 }
 
 fn solve_b() -> usize {
@@ -53,26 +51,17 @@ fn is_valid(para: &str) -> bool {
             (k, v)
         })
         .collect();
-    println!("{:?}", kv);
-    match kv.len() {
-        0..=6 => {
-            println!("too short");
-            return false;
-        }
-        7 if kv.iter().any(|(k, _)| *k == "cid") => {
-            println!("len 7 and has cid");
-            return false;
-        }
-        7 => (),
-        8 => (),
-        _more => {
-            println!("too long");
-            return false;
-        }
-    };
-    println!("length ok");
+    if !match kv.len() {
+        0..=6 => false,
+        7 => !kv.iter().any(|(k, _)| *k == "cid"),
+        8 => true,
+        _more => false,
+    } {
+        return false;
+    }
+    // println!("length ok");
     for (k, v) in kv {
-        println!("check {:?} {:?}", k, v);
+        // println!("check {:?} {:?}", k, v);
         let ok = match k {
             "byr" => v.len() == 4 && v >= "1920" && v <= "2002",
             "iyr" => v.len() == 4 && v >= "2010" && v <= "2020",
@@ -81,7 +70,6 @@ fn is_valid(para: &str) -> bool {
                 if let Some(cm) = v.strip_suffix("cm") {
                     cm >= "150" && cm <= "193"
                 } else if let Some(inch) = v.strip_suffix("in") {
-                    dbg!(&inch);
                     inch >= "59" && inch <= "76"
                 } else {
                     false
@@ -96,7 +84,7 @@ fn is_valid(para: &str) -> bool {
             "ecl" => match v {
                 "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => true,
                 _ => {
-                    println!("bad ecl");
+                    // println!("bad ecl");
                     false
                 }
             },
@@ -104,9 +92,9 @@ fn is_valid(para: &str) -> bool {
             _ => true,
         };
         if ok {
-            println!("field is ok");
+            // println!("field is ok");
         } else {
-            println!("field validation failed");
+            // println!("field validation failed");
             return false;
         }
     }
@@ -118,10 +106,14 @@ mod test {
     use super::*;
 
     #[test]
-    fn solution_a() {}
+    fn solution_a() {
+        assert_eq!(solve_a(), 256);
+    }
 
     #[test]
-    fn solution_b() {}
+    fn solution_b() {
+        assert_eq!(solve_b(), 198);
+    }
 
     #[test]
     fn invalid_examples() {
