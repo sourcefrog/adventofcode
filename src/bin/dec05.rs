@@ -33,21 +33,17 @@ fn all_ids() -> Vec<usize> {
 
 fn decode(l: &str) -> usize {
     assert_eq!(l.len(), 10);
-    let mut row = 0;
-    for c in l.chars().take(7) {
-        row *= 2;
-        if c == 'B' {
-            row |= 1;
+    // In fact, we never really care about the position, only
+    // about the seat ID, and that can be extracted as a single
+    // binary number.
+    let mut id = 0;
+    for c in l.chars() {
+        id *= 2;
+        if c == 'B' || c == 'R' {
+            id |= 1;
         }
     }
-    let mut col = 0;
-    for c in l.chars().skip(7) {
-        col *= 2;
-        if c == 'R' {
-            col |= 1;
-        }
-    }
-    row * 8 + col
+    id
 }
 
 fn solve_b() -> usize {
