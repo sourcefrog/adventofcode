@@ -33,3 +33,7 @@ So to decode one line:
    Decode 'FBFBBFFRLR'
 357
 ```
+
+In fact, checking for the 1-bit values of `R` or `B` can be simpler using the
+[`e.` "member"](https://code.jsoftware.com/wiki/Vocabulary/edot#dyadic) verb (or
+more mnemonically maybe "exists").
