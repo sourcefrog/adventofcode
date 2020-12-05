@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Solution to https://adventofcode.com/2020/day/3.
+//! Solution to https://adventofcode.com/2020/day/4.
 
 pub fn main() {
     println!("04a: {}", solve_a());
