@@ -15,45 +15,42 @@
 //! Solution to https://adventofcode.com/2020/day/6.
 use std::collections::HashSet;
 
+use itertools::Itertools;
+
 pub fn main() {
     println!("06a: {}", solve_a());
     println!("06b: {}", solve_b());
 }
 
 fn solve_a() -> usize {
-    let mut total = 0;
-    for group in std::fs::read_to_string("input/dec06.txt")
+    std::fs::read_to_string("input/dec06.txt")
         .unwrap()
         .split("\n\n")
-    {
-        total += group
-            .split('\n')
-            .map(|s| s.chars())
-            .flatten()
-            .collect::<HashSet<char>>()
-            .len()
-    }
-    total
+        .map(|group| {
+            group
+                .split('\n')
+                .map(|s| s.chars())
+                .flatten()
+                .collect::<HashSet<char>>()
+                .len()
+        })
+        .sum()
 }
 
 fn solve_b() -> usize {
-    let mut total = 0;
-
-    for group in std::fs::read_to_string("input/dec06.txt")
+    std::fs::read_to_string("input/dec06.txt")
         .unwrap()
         .split("\n\n")
-    {
-        let mut common: Option<HashSet<char>> = None;
-        for line in group.split('\n').filter(|l| !l.is_empty()) {
-            if let Some(ref c) = common {
-                common = Some(c & &line.chars().collect());
-            } else {
-                common = Some(line.chars().collect());
-            }
-        }
-        total += common.unwrap().len();
-    }
-    total
+        .map(|group| {
+            group
+                .split('\n')
+                .filter(|l| !l.is_empty())
+                .map(|l| l.chars().collect::<HashSet<char>>())
+                .fold1(|ref a, ref b| a & b)
+                .expect("group had no lines")
+                .len()
+        })
+        .sum()
 }
 
 #[cfg(test)]
@@ -62,11 +59,11 @@ mod test {
 
     #[test]
     fn solution_a() {
-        assert_eq!(solve_a(), 919);
+        assert_eq!(solve_a(), 7128);
     }
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(), 642);
+        assert_eq!(solve_b(), 3640);
     }
 }
