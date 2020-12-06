@@ -15,8 +15,8 @@
 //! Solution to https://adventofcode.com/2020/day/5.
 
 pub fn main() {
-    println!("04a: {}", solve_a());
-    println!("04b: {}", solve_b());
+    println!("05a: {}", solve_a());
+    println!("05b: {}", solve_b());
 }
 
 fn solve_a() -> usize {
