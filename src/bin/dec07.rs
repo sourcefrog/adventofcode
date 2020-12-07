@@ -13,12 +13,10 @@
 // limitations under the License.
 
 //! Solution to https://adventofcode.com/2020/day/7.
-use regex::Regex;
+// use regex::Regex;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
-
-// use itertools::Itertools;
 
 const START: &'static str = "shiny gold";
 
@@ -52,34 +50,37 @@ fn solve_a() -> usize {
 }
 
 fn load() -> Vec<Rule> {
-    let mut v = Vec::new();
-    let outer_re = Regex::new(r"([a-z ]+) bags contain (.*)\.").unwrap();
-    let inner_re = Regex::new(r"(\d+) ([a-z ]+) bags?").unwrap();
+    // let outer_re = Regex::new(r"([a-z ]+) bags contain (.*)\.").unwrap();
+    // let inner_re = Regex::new(r"(\d+) ([a-z ]+) bags?").unwrap();
 
-    for l in std::fs::read_to_string("input/dec07.txt").unwrap().lines() {
-        let groups = outer_re.captures(l).unwrap();
-        let container = groups.get(1).unwrap().as_str().to_owned();
-        let mut contains = Vec::new();
-
-        let b = groups.get(2).unwrap().as_str();
-        if b != "no other bags" {
-            for j in b.split(", ") {
-                let caps = inner_re.captures(j).unwrap();
-                let n: usize = caps.get(1).unwrap().as_str().parse().unwrap();
-                let name = caps.get(2).unwrap().as_str().to_owned();
-                contains.push((n, name));
+    std::fs::read_to_string("input/dec07.txt")
+        .unwrap()
+        .lines()
+        .map(|l| {
+            let mut splits = l.split(" bags contain ");
+            let container = splits.next().unwrap().to_owned();
+            let mut contains = Vec::new();
+            let b = splits.next().unwrap();
+            if b != "no other bags." {
+                contains = b
+                    .split(", ")
+                    .map(|j| {
+                        let mut words = j.split(' ');
+                        let n = words.next().unwrap().parse().unwrap();
+                        let name = words.take(2).collect::<Vec<_>>().join(" ");
+                        (n, name)
+                    })
+                    .collect();
             }
-        }
-        v.push(Rule {
-            container,
-            contains,
+            Rule {
+                container,
+                contains,
+            }
         })
-    }
-    v
+        .collect()
 }
 
 fn solve_b() -> usize {
-    // let rules = load();
     let map: HashMap<String, Vec<(usize, String)>> = load()
         .into_iter()
         .map(|rule| (rule.container, rule.contains))
