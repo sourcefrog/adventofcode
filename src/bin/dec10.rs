@@ -21,19 +21,16 @@ pub fn main() {
 
 fn solve_a() -> usize {
     let mut input = load();
-    input.sort();
     // add the final device
-    input.push(input.last().unwrap() + 3);
-    input.reverse();
+    input.push(input.iter().max().unwrap() + 3);
+    input.sort();
     let mut last = 0;
     let mut steps = [0usize; 4];
-    while !input.is_empty() {
-        let next_j = input.pop().unwrap();
-        let diff = next_j - last;
-        assert!(next_j > last);
-        assert!(next_j - last <= 3);
+    for j in input {
+        let diff = j - last;
+        debug_assert!(diff >= 1 && diff <= 3);
         steps[diff] += 1;
-        last = next_j;
+        last = j;
     }
     steps[1] * steps[3]
 }
@@ -61,8 +58,6 @@ fn solve_type_b(mut jolt: Vec<usize>) -> usize {
     }
     *paths.last().unwrap()
 }
-
-// try 15790581481472
 
 fn load() -> Vec<usize> {
     std::fs::read_to_string("input/dec10.txt")
