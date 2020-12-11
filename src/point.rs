@@ -33,6 +33,17 @@ pub fn point(x: isize, y: isize) -> Point {
 }
 
 impl Point {
+    pub const DIRECTIONS_8: &'static [(isize, isize)] = &[
+        (1, 0),
+        (-1, 0),
+        (0, 1),
+        (0, -1),
+        (1, 1),
+        (1, -1),
+        (-1, 1),
+        (-1, -1),
+    ];
+
     pub fn down(&self) -> Point {
         point(self.x, self.y.checked_add(1).unwrap())
     }

@@ -20,44 +20,44 @@ pub fn main() {
 }
 
 fn solve_a() -> usize {
-    let mut map = Matrix::from_string_lines(&std::fs::read_to_string("input/dec11.txt").unwrap());
-    let mut newmap = map.clone();
-    let pts: Vec<Point> = map.iter_points().collect();
+    let mut map = Matrix::from_file("input/dec11.txt");
     loop {
+        let mut newmap = map.clone();
         let mut changed = false;
-        for p in pts.clone() {
-            if map[p] == 'L' {
-                if map.neighbor8_values(p).iter().all(|c| *c != '#') {
-                    newmap[p] = '#';
-                    changed = true;
-                }
-            } else if map[p] == '#' {
-                if map
+        for p in map.iter_points() {
+            if map[p] == 'L' && map.neighbor8_values(p).iter().all(|c| *c != '#') {
+                newmap[p] = '#';
+                changed = true;
+            } else if map[p] == '#'
+                && map
                     .neighbor8_values(p)
                     .iter()
-                    .filter(|c| **c == '#')
+                    .filter(|&&c| c == '#')
                     .count()
                     >= 4
-                {
-                    newmap[p] = 'L';
-                    changed = true;
-                }
+            {
+                newmap[p] = 'L';
+                changed = true;
             }
         }
         map = newmap.clone();
         if !changed {
-            return map.iter_points().filter(|p| map[*p] == '#').count();
+            return map.values().filter(|&&c| c == '#').count();
         }
     }
 }
 
 fn solve_b() -> usize {
-    let mut map = Matrix::from_string_lines(&std::fs::read_to_string("input/dec11.txt").unwrap());
-    let mut newmap = map.clone();
-    let pts: Vec<Point> = map.iter_points().collect();
+    // This takes about 31ms on my machine.
+    //
+    // It could probably be made faster by remembering the locations of the
+    // visible neighbors of each seat, rather than walking the whole map every
+    // time.
+    let mut map = Matrix::from_file("input/dec11.txt");
     loop {
+        let mut newmap = map.clone();
         let mut changed = false;
-        for p in pts.clone() {
+        for p in map.iter_points() {
             if map[p] == 'L' && visible_occupied_seats(&map, p) == 0 {
                 newmap[p] = '#';
                 changed = true;
@@ -76,26 +76,18 @@ fn solve_b() -> usize {
 
 fn visible_occupied_seats(map: &Matrix<char>, p: Point) -> usize {
     let mut count = 0;
-    for (dirx, diry) in &[
-        (1, 0),
-        (-1, 0),
-        (0, 1),
-        (0, -1),
-        (1, 1),
-        (1, -1),
-        (-1, 1),
-        (-1, -1),
-    ] {
+    for (dirx, diry) in Point::DIRECTIONS_8 {
         for i in 1.. {
             let pp = point(p.x + i * dirx, p.y + i * diry);
             match map.try_get(pp) {
-                None => break,
-                Some('.') => continue,
+                None => break,         // edge of map
+                Some('.') => continue, // not a seat
                 Some('#') => {
+                    // occupied - stop looking
                     count += 1;
                     break;
                 }
-                Some('L') => break,
+                Some('L') => break, // unoccupied - stop
                 _other => panic!(),
             }
         }

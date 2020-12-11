@@ -125,6 +125,11 @@ impl<T: Clone> Matrix<T> {
 }
 
 impl Matrix<char> {
+    /// Build a matrix of chars from a file containing a rectangle.
+    pub fn from_file<P: AsRef<std::path::Path>>(path: P) -> Self {
+        Matrix::from_string_lines(&std::fs::read_to_string(path).unwrap())
+    }
+
     /// Build a matrix from a string containing multiple lines.
     ///
     /// All non-empty lines must be the same length.
@@ -227,9 +232,16 @@ mod test {
 
     #[test]
     fn from_string() {
-        let input = std::fs::read_to_string("input/input20.txt").unwrap();
+        let input = std::fs::read_to_string("input/dec11.txt").unwrap();
         let matrix = Matrix::from_string_lines(&input);
-        assert_eq!(matrix.width(), 107);
-        assert_eq!(matrix.height(), 109);
+        assert_eq!(matrix.width(), 93);
+        assert_eq!(matrix.height(), 90);
+    }
+
+    #[test]
+    fn from_file() {
+        let matrix = Matrix::from_file("input/dec11.txt");
+        assert_eq!(matrix.width(), 93);
+        assert_eq!(matrix.height(), 90);
     }
 }
