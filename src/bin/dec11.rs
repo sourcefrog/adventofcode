@@ -40,7 +40,7 @@ fn solve_a() -> usize {
                 changed = true;
             }
         }
-        map = newmap.clone();
+        map = newmap;
         if !changed {
             return map.values().filter(|&&c| c == '#').count();
         }
@@ -66,12 +66,11 @@ fn solve_b() -> usize {
                 changed = true;
             }
         }
-        map = newmap.clone();
+        map = newmap;
         if !changed {
             return map.iter_points().filter(|p| map[*p] == '#').count();
         }
     }
-    // 2194 is right
 }
 
 fn visible_occupied_seats(map: &Matrix<char>, p: Point) -> usize {
