@@ -61,15 +61,18 @@ fn parse_store(s: &str) -> IResult<&str, Instruction> {
     )(s)
 }
 
+fn load() -> Vec<Instruction> {
+    let text = std::fs::read_to_string("input/dec14.txt").unwrap();
+    let (leftover, r) = parse_input(&text).unwrap();
+    assert!(leftover.is_empty());
+    r
+}
+
 fn solve_a() -> u64 {
     let mut maskbits: u64 = 0;
     let mut setbits: u64 = 0;
     let mut mem = vec![0u64; 100000];
-    for inst in parse_input(&std::fs::read_to_string("input/dec14.txt").unwrap())
-        .unwrap()
-        .1
-        .into_iter()
-    {
+    for inst in load() {
         match inst {
             Mask(mask) => {
                 // dbg!(&mask);
@@ -97,34 +100,33 @@ fn solve_b() -> u64 {
     let mut floatbits: Vec<u64> = Vec::new();
     let mut setbits: u64 = 0;
     let mut mem: HashMap<u64, u64> = HashMap::new();
-    for l in std::fs::read_to_string("input/dec14.txt").unwrap().lines() {
-        if let Some(mask) = l.strip_prefix("mask = ") {
-            floatbits.clear();
-            setbits = 0;
-            for (i, c) in mask.chars().enumerate() {
-                let b = 1 << (mask.len() - i - 1);
-                match c {
-                    'X' => floatbits.push(b),
-                    '1' => setbits |= b,
-                    _ => (),
-                }
-            }
-        } else {
-            let l = l.strip_prefix("mem[").unwrap();
-            let mut parts = l.split("] = ");
-            let mut addr: u64 = parts.next().unwrap().parse().unwrap();
-            let val: u64 = parts.next().unwrap().parse().unwrap();
-            addr |= setbits;
-            for i in 0..(1 << floatbits.len()) {
-                let mut thisaddr = addr;
-                for (j, float) in floatbits.iter().enumerate() {
-                    if i & (1 << j) != 0 {
-                        thisaddr |= float;
-                    } else {
-                        thisaddr &= !float;
+    for inst in load() {
+        match inst {
+            Mask(mask) => {
+                floatbits.clear();
+                setbits = 0;
+                for (i, c) in mask.chars().enumerate() {
+                    let b = 1 << (mask.len() - i - 1);
+                    match c {
+                        'X' => floatbits.push(b),
+                        '1' => setbits |= b,
+                        _ => (),
                     }
                 }
-                mem.insert(thisaddr, val);
+            }
+            Store(mut addr, val) => {
+                addr |= setbits;
+                for i in 0..(1 << floatbits.len()) {
+                    let mut thisaddr = addr;
+                    for (j, float) in floatbits.iter().enumerate() {
+                        if i & (1 << j) != 0 {
+                            thisaddr |= float;
+                        } else {
+                            thisaddr &= !float;
+                        }
+                    }
+                    mem.insert(thisaddr, val);
+                }
             }
         }
     }
