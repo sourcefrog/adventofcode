@@ -16,8 +16,6 @@
 //!
 //! Produces https://oeis.org/A181391.
 
-use std::collections::HashMap;
-
 const INPUT: &'static [usize] = &[1, 2, 16, 19, 18, 0];
 
 pub fn main() {
@@ -34,24 +32,20 @@ fn solve_b() -> usize {
 }
 
 fn solve(input: &[usize], n: usize) -> usize {
-    let mut last_pos: HashMap<usize, usize> = HashMap::new();
+    // 0 represents 'not seen yet'; n means 'seen at position n-1'
+    // The largest possible value is n.
+    let mut pos: Vec<usize> = vec![0; n];
     let mut a: usize;
     for (i, &a) in input[..input.len() - 1].iter().enumerate() {
-        // println!("{} {}", i, a);
-        last_pos.insert(a, i);
+        pos[a] = i + 1;
     }
     a = *input.last().unwrap();
-    // println!("~~~");
     for i in input.len() - 1.. {
-        // println!("{} {}", i, a);
-        let next_a = last_pos
-            .get(&a)
-            .and_then(|&j| {
-                debug_assert!(j < i);
-                Some(i - j)
-            })
-            .unwrap_or(0);
-        last_pos.insert(a, i);
+        let next_a = match pos[a] {
+            0 => 0,
+            l => i - (l - 1),
+        };
+        pos[a] = i + 1;
         if i == n - 1 {
             return a;
         }
