@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::cmp::{max, min};
 use std::collections::HashSet;
 
 // use adventofcode2020::*;
@@ -114,12 +115,21 @@ fn solve_b() -> usize {
         }
     }
 
-    for _i in 0..6 {
+    let mut minx = 0;
+    let mut maxx = active.iter().map(|p| p.0).max().unwrap();
+    let mut miny = 0;
+    let mut maxy = active.iter().map(|p| p.1).max().unwrap();
+    let mut minz = 0;
+    let mut maxz = 0;
+    let mut minw = 0;
+    let mut maxw = 0;
+
+    for i in 0..6 {
         let mut newmap: Map4 = Map4::new();
-        for x in -8..18 {
-            for y in -8..18 {
-                for z in -8..18 {
-                    for w in -8..18 {
+        for x in minx - 1..=maxx + 1 {
+            for y in miny - 1..=maxy + 1 {
+                for z in minz - 1..=maxz + 1 {
+                    for w in minw - 1..=maxw + 1 {
                         let p = (x, y, z, w);
                         let oldstate = active.contains(&p);
                         let c = litneigh4(&active, &p);
@@ -132,11 +142,23 @@ fn solve_b() -> usize {
                         };
                         if newstate {
                             newmap.insert(p);
+                            minx = min(minx, x);
+                            maxx = max(maxx, x);
+                            miny = min(miny, y);
+                            maxy = max(maxy, y);
+                            minz = min(minz, z);
+                            maxz = max(maxz, z);
+                            minw = min(minw, w);
+                            maxw = max(maxw, w);
                         }
                     }
                 }
             }
         }
+        println!(
+            "cycle {} x={}..{} y={}..{} z={}..{} w={}..{}",
+            i, minx, maxx, miny, maxy, minz, maxz, minw, maxw
+        );
         active = newmap.clone();
     }
 
@@ -144,11 +166,15 @@ fn solve_b() -> usize {
 }
 #[cfg(test)]
 mod test {
-    // use super::*;
+    use super::*;
 
     #[test]
-    fn solution_a() {}
+    fn solution_a() {
+        assert_eq!(solve_a(), 448);
+    }
 
     #[test]
-    fn solution_b() {}
+    fn solution_b() {
+        assert_eq!(solve_b(), 2400);
+    }
 }
