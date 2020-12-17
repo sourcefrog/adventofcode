@@ -14,7 +14,7 @@
 
 use std::collections::HashSet;
 
-use adventofcode2020::*;
+// use adventofcode2020::*;
 
 pub fn main() {
     println!("17a: {}", solve_a());
@@ -38,7 +38,7 @@ fn solve_a() -> usize {
         }
     }
 
-    for i in 0..6 {
+    for _i in 0..6 {
         let mut newmap: Map = HashSet::new();
         for x in -8..18 {
             for y in -8..18 {
@@ -79,13 +79,72 @@ fn litneigh(state: &Map, (x, y, z): &P3) -> usize {
     count
 }
 
-fn solve_b() -> usize {
-    0
+fn litneigh4(state: &Map4, (x, y, z, w): &P4) -> usize {
+    let mut count = 0;
+    for dx in -1..=1 {
+        for dy in -1..=1 {
+            for dz in -1..=1 {
+                for dw in -1..=1 {
+                    if (dx != 0 || dy != 0 || dz != 0 || dw != 0)
+                        && state.contains(&(x + dx, y + dy, z + dz, w + dw))
+                    {
+                        count += 1;
+                    }
+                }
+            }
+        }
+    }
+    count
 }
 
+type P4 = (isize, isize, isize, isize);
+type Map4 = HashSet<P4>;
+
+fn solve_b() -> usize {
+    let mut active: Map4 = Map4::new();
+    for (y, l) in std::fs::read_to_string("input/dec17.txt")
+        .unwrap()
+        .lines()
+        .enumerate()
+    {
+        for (x, c) in l.chars().enumerate() {
+            if c == '#' {
+                active.insert((x as isize, y as isize, 0, 0));
+            }
+        }
+    }
+
+    for _i in 0..6 {
+        let mut newmap: Map4 = Map4::new();
+        for x in -8..18 {
+            for y in -8..18 {
+                for z in -8..18 {
+                    for w in -8..18 {
+                        let p = (x, y, z, w);
+                        let oldstate = active.contains(&p);
+                        let c = litneigh4(&active, &p);
+                        let newstate = match (oldstate, c) {
+                            (true, 2) => true,
+                            (true, 3) => true,
+                            (true, _) => false,
+                            (false, 3) => true,
+                            (false, _) => false,
+                        };
+                        if newstate {
+                            newmap.insert(p);
+                        }
+                    }
+                }
+            }
+        }
+        active = newmap.clone();
+    }
+
+    active.len()
+}
 #[cfg(test)]
 mod test {
-    use super::*;
+    // use super::*;
 
     #[test]
     fn solution_a() {}
