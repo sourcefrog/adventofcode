@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #![allow(unused_imports)]
-#![allow(dead_code)]
 
 use nom::branch::*;
 use nom::bytes::complete::*;
@@ -39,11 +38,15 @@ enum Rule {
 }
 
 fn solve_a() -> usize {
-    solve_type_a(&std::fs::read_to_string("input/dec19.txt").unwrap())
+    solve_type_a(&input())
+}
+
+fn input() -> String {
+    std::fs::read_to_string("input/dec19.txt").unwrap()
 }
 
 fn solve_b() -> isize {
-    let (rules, vals) = read_input(&std::fs::read_to_string("input/dec19.txt").unwrap());
+    let (rules, vals) = parse_input(&input()).unwrap().1;
     // we have "0: 8 11" so this means x repeats of 42 followed by y repeats of 31, where x > y
     // and both are >1.
     let mut count = 0;
@@ -69,7 +72,7 @@ fn count_matches<'a>(rulenum: RuleNum, rules: &[Rule], input: &'a [char]) -> (us
 }
 
 fn solve_type_a(input: &str) -> usize {
-    let (ruleset, vals) = read_input(input);
+    let (ruleset, vals) = parse_input(input).unwrap().1;
     vals.iter()
         .filter(|v| match apply(0, &ruleset, v) {
             Some(rest) if rest.is_empty() => true,
@@ -78,27 +81,15 @@ fn solve_type_a(input: &str) -> usize {
         .count()
 }
 
-fn read_input(input: &str) -> (Vec<Rule>, Vec<Vec<char>>) {
-    let mut v = vec![Rule::Undef; 1000];
-    let mut maxnum = 0;
-    for l in input.lines() {
-        if l.is_empty() {
-            break;
-        }
-        let (num, rule) = parse_rule(l).unwrap().1;
-        v[num] = rule;
-        if num > maxnum {
-            maxnum = num
-        };
-    }
-    v.truncate(maxnum + 1);
-    let vals = input
-        .lines()
-        .skip_while(|l| !l.is_empty())
-        .skip(1)
-        .map(|s| s.chars().collect())
-        .collect();
-    (v, vals)
+fn parse_input(input: &str) -> IResult<&str, (Vec<Rule>, Vec<Vec<char>>)> {
+    all_consuming(separated_pair(
+        parse_rules,
+        newline,
+        many1(terminated(
+            map(alpha1, |s: &str| s.chars().collect::<Vec<char>>()),
+            newline,
+        )),
+    ))(input)
 }
 
 /// If rule r matches, return the unmatched portion of the string.
@@ -135,22 +126,35 @@ fn apply<'a>(num: RuleNum, ruleset: &[Rule], input: &'a [char]) -> Option<&'a [c
     }
 }
 
-fn parse_rule(l: &str) -> IResult<&str, (RuleNum, Rule)> {
-    separated_pair(
-        map_res(digit1, |s: &str| s.parse()),
-        tag(": "),
-        alt((
-            map(delimited(char('"'), anychar, char('"')), |c| {
-                Rule::Literal(c)
-            }),
-            map(
-                separated_list1(
-                    tuple((space0, char('|'), space0)),
-                    separated_list1(space1, map(digit1, |s: &str| s.parse().unwrap())),
-                ),
-                |l: Vec<Vec<usize>>| Rule::Alt(l),
+fn parse_rules(l: &str) -> IResult<&str, Vec<Rule>> {
+    map(
+        many1(terminated(
+            separated_pair(
+                map_res(digit1, |s: &str| s.parse()),
+                tag(": "),
+                alt((
+                    map(delimited(char('"'), anychar, char('"')), |c| {
+                        Rule::Literal(c)
+                    }),
+                    map(
+                        separated_list1(
+                            tuple((space0, char('|'), space0)),
+                            separated_list1(space1, map(digit1, |s: &str| s.parse().unwrap())),
+                        ),
+                        |l: Vec<Vec<usize>>| Rule::Alt(l),
+                    ),
+                )),
             ),
+            newline,
         )),
+        |numlist: Vec<(usize, Rule)>| {
+            let maxrule = numlist.iter().map(|a| a.0).max().unwrap();
+            let mut ruleset = vec![Rule::Undef; maxrule + 1];
+            for (i, r) in numlist {
+                ruleset[i] = r
+            }
+            ruleset
+        },
     )(l)
 }
 
