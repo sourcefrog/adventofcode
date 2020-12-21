@@ -44,6 +44,8 @@ use std::collections::BTreeSet;
 
 type Maps = BTreeMap<usize, Matrix<char>>;
 
+const MAPTILES: isize = 12;
+
 pub fn main() {
     //    println!("a: {}", solve_a());
     println!("b: {}", solve_b());
@@ -231,11 +233,12 @@ impl Puzzle {
     }
 
     /// Orient a tile constrained on the left and optionally above.
-    fn orient_tile(&self, tile: TileId, left: &str, above: Option<&str>) -> Orientation {
+    fn orient_tile(&self, tile: TileId, left: Option<&str>, above: Option<&str>) -> Orientation {
+        debug_assert!(left.is_some() || above.is_some());
         for ori in Orientation::all() {
             let rotsv = rotated_side_values(&self.maps[&tile], &ori);
-            println!("til {} ori {:?} rotsv {:?}", tile, ori, rotsv);
-            if rotsv[3] == left && above.map_or(true, |a| a == rotsv[0]) {
+            // println!("til {} ori {:?} rotsv {:?}", tile, ori, rotsv);
+            if left.map_or(true, |a| a == rotsv[3]) && above.map_or(true, |a| a == rotsv[0]) {
                 println!("found rotation {:?} for tile {}", ori, tile);
                 return ori;
             }
@@ -254,8 +257,14 @@ impl Puzzle {
     /// Return the 4 edges (N, E, S, W) of an already-placed tile.
     fn edge_values(&self, p: Point) -> Vec<String> {
         let tile = self.placement[p];
-        assert_ne!(tile, 0);
+        assert_ne!(tile, 0, "no tile at {:?}", p);
         rotated_side_values(&self.maps[&tile], &self.oris[p])
+    }
+
+    fn subpixel(&self, tilept: Point, subpt: Point) -> char {
+        let tile = self.placement[tilept];
+        let rotpt = rotate(subpt, &self.oris[tilept], TILESZ);
+        self.maps[&tile][rotpt]
     }
 
     fn find_corners(&self) -> Vec<TileId> {
@@ -300,7 +309,7 @@ impl Puzzle {
 
         let ori = self.orient_tile(
             top_corner,
-            &corner_outer_edges[0],
+            Some(&corner_outer_edges[0]),
             Some(&corner_outer_edges[1]),
         );
         self.place_tile(point(0, 0), top_corner, ori);
@@ -308,20 +317,35 @@ impl Puzzle {
         for x in 1..12 {
             let p = point(x, 0);
             let left = &self.edge_values(p.left())[1];
-            println!("look for match to {}", left);
+            // println!("look for match to {}", left);
             let tile = self.matching_tile(left);
-            println!("{} should match {}", tile, left);
-            let ori = self.orient_tile(tile, left, None);
+            // println!("{} should match {}", tile, left);
+            let ori = self.orient_tile(tile, Some(left), None);
             self.place_tile(p, tile, ori);
-
-            assert_eq!(left, &self.edge_values(p)[3]);
+            debug_assert_eq!(left, &self.edge_values(p)[3]);
+        }
+        for y in 1..MAPTILES {
+            for x in 0..MAPTILES {
+                let p = point(x, y);
+                let above = &self.edge_values(p.up())[2];
+                let tile = self.matching_tile(above);
+                let ori = self.orient_tile(tile, None, Some(above));
+                println!("at {:?} found {} orientation {:?}", p, tile, ori);
+                self.place_tile(p, tile, ori);
+                if x > 0 {
+                    debug_assert_eq!(self.edge_values(p.left())[1], self.edge_values(p)[3]);
+                }
+                debug_assert_eq!(above, &self.edge_values(p)[0]);
+            }
         }
 
         0
     }
 
     fn image(&self) -> Matrix<char> {
-        let mut _image = Matrix::new(12 * 10, 12 * 10, '.');
+        let sidelen = MAPTILES * (TILESZ - 1) + 1;
+        let mut _image = Matrix::new(sidelen as usize, sidelen as usize, '.');
+
         todo!();
     }
 }
