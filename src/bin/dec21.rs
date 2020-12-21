@@ -25,15 +25,16 @@ use nom::{IResult, Parser};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub fn main() {
-    println!("21a: {}", solve_a());
-    println!("21b: {}", solve_b());
+    let (a, b) = solve();
+    println!("21a: {}", a);
+    println!("21b: {}", b);
 }
 
-fn solve_a() -> usize {
-    solve_type_a(&load())
+fn solve() -> (usize, String) {
+    solve_on(&load())
 }
 
-fn solve_type_a(s: &str) -> usize {
+fn solve_on(s: &str) -> (usize, String) {
     let foods = parse(s);
 
     // each allergen is in exactly one ingredient.
@@ -75,7 +76,7 @@ fn solve_type_a(s: &str) -> usize {
                     .or_insert_with(|| ings);
                 if en.len() == 1 {
                     let final_ing = &en[0];
-                    println!("only one possibility for {}: {}", alg, final_ing);
+                    // println!("only one possibility for {}: {}", alg, final_ing);
                     alg_to_ingr.insert(alg.clone(), final_ing.clone());
                     ingr_to_alg.insert(final_ing.clone(), alg.clone());
                 } else if en.is_empty() {
@@ -88,7 +89,7 @@ fn solve_type_a(s: &str) -> usize {
         }
     }
 
-    all_ingr
+    let answer_a = all_ingr
         .iter()
         .filter(|i| !ingr_to_alg.contains_key(*i))
         .map(|i| {
@@ -97,11 +98,13 @@ fn solve_type_a(s: &str) -> usize {
                 .filter(|f| f.ingreds.iter().find(|fi| *i == **fi).is_some())
                 .count()
         })
-        .sum()
-}
-
-fn solve_b() -> isize {
-    0
+        .sum();
+    let answer_b = alg_to_ingr
+        .values()
+        .cloned()
+        .collect::<Vec<String>>()
+        .join(",");
+    (answer_a, answer_b)
 }
 
 #[derive(Debug)]
@@ -150,12 +153,17 @@ sqjhc mxmxvkd sbzzf (contains fish)
 
     #[test]
     fn example_a() {
-        assert_eq!(solve_type_a(EXAMPLE), 5);
+        assert_eq!(solve_on(EXAMPLE), (5, "mxmxvkd,sqjhc,fvjkl".to_owned()));
     }
 
     #[test]
-    fn solution_a() {}
-
-    #[test]
-    fn solution_b() {}
+    fn solution() {
+        assert_eq!(
+            solve(),
+            (
+                1685,
+                "ntft,nhx,kfxr,xmhsbd,rrjb,xzhxj,chbtp,cqvc".to_owned()
+            )
+        )
+    }
 }
