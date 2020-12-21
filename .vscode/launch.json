@@ -43,6 +43,24 @@
         "args": [],
         "cwd": "${workspaceFolder}"
     },
+    {
+        "type": "lldb",
+        "request": "launch",
+        "name": "Debug executable 'dec20'",
+        "cargo": {
+            "args": [
+                "build",
+                "--bin=dec20",
+                "--package=adventofcode2020"
+            ],
+            "filter": {
+                "name": "dec20",
+                "kind": "bin"
+            }
+        },
+        "args": [],
+        "cwd": "${workspaceFolder}"
+    },
         {
             "type": "lldb",
             "request": "launch",
