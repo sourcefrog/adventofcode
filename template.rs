@@ -25,11 +25,8 @@ fn solve_b() -> isize {
     0
 }
 
-fn load_input() -> Vec<String> {
-    std::fs::read_to_string("input/dec01.txt")
-        .unwrap()
-        .lines()
-        .collect()
+fn load() -> String {
+    std::fs::read_to_string("input/dec21.txt").unwrap()
 }
 
 #[cfg(test)]
