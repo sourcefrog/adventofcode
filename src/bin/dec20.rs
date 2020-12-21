@@ -44,8 +44,6 @@ use std::collections::BTreeSet;
 
 type Maps = BTreeMap<usize, Matrix<char>>;
 
-const MAPTILES: isize = 12;
-
 pub fn main() {
     //    println!("a: {}", solve_a());
     println!("b: {}", solve_b());
@@ -205,6 +203,7 @@ struct Puzzle {
     unplaced_tiles: BTreeSet<TileId>,
     by_side: BTreeMap<String, Vec<TileId>>,
     by_square: BTreeMap<TileId, Vec<String>>,
+    map_side: usize,
 }
 
 impl Puzzle {
@@ -213,6 +212,7 @@ impl Puzzle {
         let unplaced_tiles: BTreeSet<usize> = maps.keys().cloned().collect();
         let mut by_side: BTreeMap<String, Vec<usize>> = BTreeMap::new();
         let mut by_square: BTreeMap<usize, Vec<String>> = BTreeMap::new();
+        let map_side = (maps.len() as f64).sqrt() as usize;
 
         for (tile, mat) in maps.iter() {
             let svs = canonical_side_values(&mat);
@@ -222,13 +222,15 @@ impl Puzzle {
                 by_side.entry(sv).or_default().push(*tile);
             }
         }
+        assert_eq!(maps.len(), map_side * map_side);
         Puzzle {
             maps,
             by_side,
             by_square,
+            map_side,
             unplaced_tiles,
-            placement: Matrix::new(12, 12, 0),
-            oris: Matrix::new(12, 12, Default::default()),
+            placement: Matrix::new(map_side, map_side, 0),
+            oris: Matrix::new(map_side, map_side, Default::default()),
         }
     }
 
@@ -237,7 +239,7 @@ impl Puzzle {
         debug_assert!(left.is_some() || above.is_some());
         for ori in Orientation::all() {
             let rotsv = rotated_side_values(&self.maps[&tile], &ori);
-            // println!("til {} ori {:?} rotsv {:?}", tile, ori, rotsv);
+            println!("til {} ori {:?} rotsv {:?}", tile, ori, rotsv);
             if left.map_or(true, |a| a == rotsv[3]) && above.map_or(true, |a| a == rotsv[0]) {
                 println!("found rotation {:?} for tile {}", ori, tile);
                 return ori;
@@ -259,12 +261,6 @@ impl Puzzle {
         let tile = self.placement[p];
         assert_ne!(tile, 0, "no tile at {:?}", p);
         rotated_side_values(&self.maps[&tile], &self.oris[p])
-    }
-
-    fn subpixel(&self, tilept: Point, subpt: Point) -> char {
-        let tile = self.placement[tilept];
-        let rotpt = rotate(subpt, &self.oris[tilept], TILESZ);
-        self.maps[&tile][rotpt]
     }
 
     fn find_corners(&self) -> Vec<TileId> {
@@ -292,30 +288,45 @@ impl Puzzle {
         *tile
     }
 
-    fn solve_type_b(&mut self) -> usize {
-        println!("{:#?}", &self.by_side);
-
-        let top_corner: usize = self.find_corners()[0];
-        dbg!(top_corner);
+    fn place_top_corner(&mut self) {
+        let tile: usize = self.find_corners()[0];
+        dbg!(tile);
 
         // Place the top corner, so that the outer edges are outside.
-        let corner_outer_edges = self.by_square[&top_corner]
+        let corner_outer_edges = side_values(&self.maps[&tile])
             .iter()
-            .filter(|sv| self.by_side[*sv].len() == 1)
             .cloned()
+            .enumerate()
+            .filter(|(_i, sv)| self.by_side[&canonical(sv)].len() == 1)
             .collect_vec();
         assert_eq!(corner_outer_edges.len(), 2);
         dbg!(&corner_outer_edges);
 
-        let ori = self.orient_tile(
-            top_corner,
-            Some(&corner_outer_edges[0]),
-            Some(&corner_outer_edges[1]),
-        );
-        self.place_tile(point(0, 0), top_corner, ori);
+        let sides = corner_outer_edges.iter().map(|a| a.0).collect_vec();
+        // The side numbers tell us how to rotate the corner to get the edges
+        // that belong on the outside, in the outside.
+        // They must be adjacent, not opposite.
+        assert_eq!(sides[1] - sides[0], 1);
+        let mut ori = Orientation::default();
 
-        for x in 1..12 {
-            let p = point(x, 0);
+        match (sides[0], sides[1]) {
+            (0, 1) => ori.flipx = true,
+            (1, 2) => {
+                ori.flipx = true;
+                ori.flipy = true
+            }
+            (2, 3) => ori.flipy = true,
+            _ => panic!(),
+        }
+        self.place_tile(point(0, 0), tile, ori);
+    }
+
+    fn solve_type_b(&mut self) -> usize {
+        println!("{:#?}", &self.by_side);
+
+        self.place_top_corner();
+        for x in 1..self.map_side {
+            let p = point(x as isize, 0);
             let left = &self.edge_values(p.left())[1];
             // println!("look for match to {}", left);
             let tile = self.matching_tile(left);
@@ -324,9 +335,9 @@ impl Puzzle {
             self.place_tile(p, tile, ori);
             debug_assert_eq!(left, &self.edge_values(p)[3]);
         }
-        for y in 1..MAPTILES {
-            for x in 0..MAPTILES {
-                let p = point(x, y);
+        for y in 1..self.map_side {
+            for x in 0..self.map_side {
+                let p = point(x as isize, y as isize);
                 let above = &self.edge_values(p.up())[2];
                 let tile = self.matching_tile(above);
                 let ori = self.orient_tile(tile, None, Some(above));
@@ -339,14 +350,34 @@ impl Puzzle {
             }
         }
 
+        println!("{}", self.image().to_string_lines());
+
         0
     }
 
+    /// Assemble the overall image. Strip the overlapping borders.
     fn image(&self) -> Matrix<char> {
-        let sidelen = MAPTILES * (TILESZ - 1) + 1;
-        let mut _image = Matrix::new(sidelen as usize, sidelen as usize, '.');
-
-        todo!();
+        let pertilesz = TILESZ as usize - 2;
+        let sidelen = self.map_side * pertilesz;
+        let mut image = Matrix::new(sidelen as usize, sidelen as usize, '.');
+        for tx in 0..self.map_side {
+            for ty in 0..self.map_side {
+                let tilept = point(tx as isize, ty as isize);
+                let tile = self.placement[tilept];
+                for px in 1..TILESZ as usize - 1 {
+                    for py in 1..TILESZ as usize - 1 {
+                        let ppt = point(px as isize, py as isize);
+                        let rotpt = rotate(ppt, &self.oris[tilept], TILESZ);
+                        let outpt = point(
+                            (tx * pertilesz + px - 1) as isize,
+                            (ty * pertilesz + py - 1) as isize,
+                        );
+                        image[outpt] = self.maps[&tile][rotpt];
+                    }
+                }
+            }
+        }
+        image
     }
 }
 
@@ -364,6 +395,15 @@ fn intersect<T: Clone + Eq + PartialEq>(a: &[T], b: &[T]) -> Vec<T> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn example_b() {
+        let mut puz = Puzzle::new(&std::fs::read_to_string("examples/20b.in").unwrap());
+        puz.solve_type_b();
+        let image = puz.image().to_string_lines();
+        println!("{}", image);
+        // assert_eq!(image, std::fs::read_to_string("examples/20b.out").unwrap());
+    }
 
     #[test]
     fn solution_a() {}
