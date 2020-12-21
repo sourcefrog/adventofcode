@@ -44,6 +44,11 @@ use std::collections::BTreeSet;
 
 type Maps = BTreeMap<usize, Matrix<char>>;
 
+const MONSTER: &'static str = "                  # 
+#    ##    ##    ###
+ #  #  #  #  #  #   
+";
+
 pub fn main() {
     //    println!("a: {}", solve_a());
     println!("b: {}", solve_b());
@@ -86,6 +91,7 @@ fn canonical_side_values(mat: &Matrix<char>) -> Vec<String> {
         r[i] = canonical(&r[i]);
     }
     r.sort();
+
     r
 }
 
@@ -350,9 +356,10 @@ impl Puzzle {
             }
         }
 
-        println!("{}", self.image().to_string_lines());
+        let image = self.image();
+        println!("{}", image.to_string_lines());
 
-        0
+        find_monsters(&image)
     }
 
     /// Assemble the overall image. Strip the overlapping borders.
@@ -379,6 +386,65 @@ impl Puzzle {
         }
         image
     }
+}
+
+fn mark_monsters(image: &mut Matrix<char>, monster: &Matrix<char>) -> bool {
+    let imagesz = image.width() as isize;
+    let monstw = monster.width() as isize;
+    let monsth = monster.height() as isize;
+    // which pixels are lit in the monster?
+    let monst_lit = monster
+        .iter_points()
+        .filter(|p| monster[*p] == '#')
+        .collect_vec();
+    dbg!(&monst_lit);
+    let mut found_one = false;
+    for x in 0..imagesz - monstw {
+        for y in 0..imagesz - monsth {
+            if monst_lit
+                .iter()
+                .cloned()
+                .all(|mp| image[point(x + mp.x, y + mp.y)] == '#')
+            {
+                println!("found monster at {},{}!!", x, y);
+                found_one = true; // finally!
+                for p in &monst_lit {
+                    image[point(x + p.x, y + p.y)] = 'O'
+                }
+            }
+        }
+    }
+    // 1446 too low
+    found_one
+}
+
+fn rotate_image(image: &Matrix<char>, ori: &Orientation) -> Matrix<char> {
+    assert_eq!(image.height(), image.width());
+    let imagesz = image.height();
+    let mut out = Matrix::new(imagesz, imagesz, '?');
+    for x in 0..imagesz {
+        for y in 0..imagesz {
+            let p = point(x as isize, y as isize);
+            let rp = rotate(p, ori, imagesz as isize);
+            out[p] = image[rp];
+        }
+    }
+    out
+}
+
+fn find_monsters(image: &Matrix<char>) -> usize {
+    let monster_map = Matrix::from_string_lines(MONSTER);
+    assert_eq!(monster_map.height(), 3);
+    assert_eq!(monster_map.width(), 20);
+    for ori in Orientation::all() {
+        println!("search for monsters in {:?}", ori);
+        let mut mutimage = rotate_image(image, &ori);
+        if mark_monsters(&mut mutimage, &monster_map) {
+            println!("found monsters!\n{}", mutimage.to_string_lines());
+            return mutimage.values().filter(|c| **c == '#').count();
+        }
+    }
+    panic!("no monsters? :((");
 }
 
 fn contains<T: Clone + Eq>(a: &[T], x: &T) -> bool {
