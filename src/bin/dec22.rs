@@ -14,10 +14,7 @@
 
 //! Solve https://adventofcode.com/2020/day/22.
 
-// use std::collections::BTreeMap;
 use std::collections::BTreeSet;
-use std::collections::HashSet;
-// use std::collections::VecDeque;
 
 pub fn main() {
     println!("22a: {}", solve_a());
