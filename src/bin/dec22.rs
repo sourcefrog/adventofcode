@@ -25,18 +25,20 @@ pub fn main() {
 
 fn solve_a() -> usize {
     let mut decks = parse(&load());
-    while !(decks[0].is_empty() || decks[1].is_empty()) {
+    let winner = loop {
+        if decks[0].is_empty() {
+            break 1;
+        }
+        if decks[1].is_empty() {
+            break 0;
+        }
         let draw = [decks[0].remove(0), decks[1].remove(0)];
-        let winner = (draw[1] > draw[0]) as usize;
-        decks[winner].push(draw[winner]);
-        decks[winner].push(draw[1 - winner]);
-    }
-    let win = if decks[0].is_empty() {
-        &decks[1]
-    } else {
-        &decks[0]
+        let rw = (draw[1] > draw[0]) as usize;
+        decks[rw].push(draw[rw]);
+        decks[rw].push(draw[1 - rw]);
     };
-    win.iter()
+    decks[winner]
+        .iter()
         .rev()
         .enumerate()
         .map(|(i, c)| (i + 1) * *c)
@@ -57,41 +59,34 @@ impl Game {
     }
 
     fn play_game(&mut self) -> usize {
-        let winner: usize = loop {
-            if self.prev_states.contains(&self.decks) {
-                break 0;
-            } else {
-                self.prev_states.insert(self.decks.clone());
-            }
-
+        loop {
             // println!("decks {:?}", self.decks);
-
+            if !self.prev_states.insert(self.decks.clone()) {
+                // already present
+                return 0;
+            }
             if self.decks[0].is_empty() {
-                break 1;
+                return 1;
             } else if self.decks[1].is_empty() {
-                break 0;
+                return 0;
             }
 
             let draw = [self.decks[0].remove(0), self.decks[1].remove(0)];
             // println!("draw {}, {}", draw[0], draw[1]);
 
-            let winner: usize = if draw[0] <= self.decks[0].len() && draw[1] <= self.decks[1].len()
-            {
+            let rw: usize = if draw[0] <= self.decks[0].len() && draw[1] <= self.decks[1].len() {
                 let sub_decks: [Vec<usize>; 2] = [
                     self.decks[0].iter().take(draw[0]).cloned().collect(),
                     self.decks[1].iter().take(draw[1]).cloned().collect(),
                 ];
-                println!("recurse down");
+                // println!("recurse down");
                 Game::new(sub_decks).play_game()
             } else {
                 (draw[1] > draw[0]) as usize
             };
-
-            // println!("{} wins", winner);
-            self.decks[winner].push(draw[winner]);
-            self.decks[winner].push(draw[1 - winner]);
-        };
-        winner
+            self.decks[rw].push(draw[rw]);
+            self.decks[rw].push(draw[1 - rw]);
+        }
     }
 }
 
