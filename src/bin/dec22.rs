@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::BTreeMap;
+//! Solve https://adventofcode.com/2020/day/22.
+
+// use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 // use std::collections::VecDeque;
 
@@ -46,8 +48,6 @@ struct Game {
     prev_states: BTreeSet<[Vec<usize>; 2]>,
 }
 
-type GameMemo = BTreeMap<[Vec<usize>; 2], usize>;
-
 impl Game {
     fn new(decks: [Vec<usize>; 2]) -> Game {
         Game {
@@ -56,17 +56,12 @@ impl Game {
         }
     }
 
-    fn play_game(&mut self, memo: &mut GameMemo) -> usize {
-        let orig_decks = self.decks.clone();
+    fn play_game(&mut self) -> usize {
         let winner: usize = loop {
             if self.prev_states.contains(&self.decks) {
                 break 0;
             } else {
                 self.prev_states.insert(self.decks.clone());
-            }
-
-            if let Some(known_winner) = memo.get(&self.decks) {
-                return *known_winner;
             }
 
             // println!("decks {:?}", self.decks);
@@ -87,7 +82,7 @@ impl Game {
                     self.decks[1].iter().take(draw[1]).cloned().collect(),
                 ];
                 println!("recurse down");
-                Game::new(sub_decks).play_game(memo)
+                Game::new(sub_decks).play_game()
             } else {
                 (draw[1] > draw[0]) as usize
             };
@@ -96,9 +91,6 @@ impl Game {
             self.decks[winner].push(draw[winner]);
             self.decks[winner].push(draw[1 - winner]);
         };
-        let existed = memo.insert(orig_decks, winner).is_some();
-        println!("memo size {}", memo.len());
-        assert!(!existed);
         winner
     }
 }
@@ -110,10 +102,7 @@ fn solve_b() -> usize {
         prev_states: Default::default(),
     };
 
-    let winner = top_game.play_game(&mut GameMemo::new());
-
-    // not 8949
-
+    let winner = top_game.play_game();
     top_game.decks[winner]
         .iter()
         .rev()
@@ -147,10 +136,14 @@ mod test {
     use super::*;
 
     #[test]
-    fn solution_a() {}
+    fn solution_a() {
+        assert_eq!(solve_a(), 31308);
+    }
 
     #[test]
-    fn solution_b() {}
+    fn solution_b() {
+        assert_eq!(solve_b(), 33647);
+    }
 
     #[test]
     fn example_b() {
@@ -172,7 +165,7 @@ mod test {
         ",
         );
         let mut game = Game::new(decks);
-        assert_eq!(game.play_game(&mut GameMemo::new()), 1);
+        assert_eq!(game.play_game(), 1);
         assert_eq!(game.decks[0], vec![]);
         assert_eq!(game.decks[1], vec![7, 5, 6, 2, 4, 1, 10, 8, 9, 3]);
     }
