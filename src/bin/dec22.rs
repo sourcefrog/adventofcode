@@ -47,21 +47,18 @@ fn solve_a() -> usize {
 
 struct Game {
     decks: [Vec<usize>; 2],
-    prev_states: BTreeSet<[Vec<usize>; 2]>,
 }
 
 impl Game {
     fn new(decks: [Vec<usize>; 2]) -> Game {
-        Game {
-            decks,
-            prev_states: Default::default(),
-        }
+        Game { decks }
     }
 
     fn play_game(&mut self) -> usize {
+        let mut prev_states: BTreeSet<[Vec<usize>; 2]> = BTreeSet::new();
         loop {
             // println!("decks {:?}", self.decks);
-            if !self.prev_states.insert(self.decks.clone()) {
+            if !prev_states.insert(self.decks.clone()) {
                 // already present
                 return 0;
             }
@@ -91,12 +88,7 @@ impl Game {
 }
 
 fn solve_b() -> usize {
-    let orig_decks = parse(&load());
-    let mut top_game = Game {
-        decks: orig_decks.clone(),
-        prev_states: Default::default(),
-    };
-
+    let mut top_game = Game::new(parse(&load()));
     let winner = top_game.play_game();
     top_game.decks[winner]
         .iter()
