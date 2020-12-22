@@ -16,6 +16,7 @@
 
 // use std::collections::BTreeMap;
 use std::collections::BTreeSet;
+use std::collections::HashSet;
 // use std::collections::VecDeque;
 
 pub fn main() {
@@ -45,52 +46,43 @@ fn solve_a() -> usize {
         .sum()
 }
 
-struct Game {
-    decks: [Vec<usize>; 2],
-}
-
-impl Game {
-    fn new(decks: [Vec<usize>; 2]) -> Game {
-        Game { decks }
-    }
-
-    fn play_game(&mut self) -> usize {
-        let mut prev_states: BTreeSet<[Vec<usize>; 2]> = BTreeSet::new();
-        loop {
-            // println!("decks {:?}", self.decks);
-            if !prev_states.insert(self.decks.clone()) {
-                // already present
-                return 0;
-            }
-            if self.decks[0].is_empty() {
-                return 1;
-            } else if self.decks[1].is_empty() {
-                return 0;
-            }
-
-            let draw = [self.decks[0].remove(0), self.decks[1].remove(0)];
-            // println!("draw {}, {}", draw[0], draw[1]);
-
-            let rw: usize = if draw[0] <= self.decks[0].len() && draw[1] <= self.decks[1].len() {
-                let sub_decks: [Vec<usize>; 2] = [
-                    self.decks[0].iter().take(draw[0]).cloned().collect(),
-                    self.decks[1].iter().take(draw[1]).cloned().collect(),
-                ];
-                // println!("recurse down");
-                Game::new(sub_decks).play_game()
-            } else {
-                (draw[1] > draw[0]) as usize
-            };
-            self.decks[rw].push(draw[rw]);
-            self.decks[rw].push(draw[1 - rw]);
+fn play_recursive(decks: &mut [Vec<usize>; 2]) -> usize {
+    let mut prev_states: BTreeSet<[Vec<usize>; 2]> = BTreeSet::new();
+    loop {
+        // println!("decks {:?}", decks);
+        // Interestingly, it's much faster just to clone and insert it, than
+        // to check before inserting. I guess the tree walking is much cheaper
+        // than the copying.
+        if !prev_states.insert(decks.clone()) {
+            return 0;
         }
+        if decks[0].is_empty() {
+            return 1;
+        } else if decks[1].is_empty() {
+            return 0;
+        }
+
+        let draw = [decks[0].remove(0), decks[1].remove(0)];
+        // println!("draw {}, {}", draw[0], draw[1]);
+
+        let rw;
+        if draw[0] <= decks[0].len() && draw[1] <= decks[1].len() {
+            let mut sub_decks: [Vec<usize>; 2] =
+                [decks[0][..draw[0]].to_vec(), decks[1][..draw[1]].to_vec()];
+            // println!("recurse down");
+            rw = play_recursive(&mut sub_decks);
+        } else {
+            rw = (draw[1] > draw[0]) as usize;
+        };
+        decks[rw].push(draw[rw]);
+        decks[rw].push(draw[1 - rw]);
     }
 }
 
 fn solve_b() -> usize {
-    let mut top_game = Game::new(parse(&load()));
-    let winner = top_game.play_game();
-    top_game.decks[winner]
+    let mut decks = parse(&load());
+    let winner = play_recursive(&mut decks);
+    decks[winner]
         .iter()
         .rev()
         .enumerate()
@@ -134,7 +126,7 @@ mod test {
 
     #[test]
     fn example_b() {
-        let decks = parse(
+        let mut decks = parse(
             "\
         Player 1:
         9
@@ -151,9 +143,9 @@ mod test {
         10
         ",
         );
-        let mut game = Game::new(decks);
-        assert_eq!(game.play_game(), 1);
-        assert_eq!(game.decks[0], vec![]);
-        assert_eq!(game.decks[1], vec![7, 5, 6, 2, 4, 1, 10, 8, 9, 3]);
+
+        assert_eq!(play_recursive(&mut decks), 1);
+        assert_eq!(decks[0], vec![]);
+        assert_eq!(decks[1], vec![7, 5, 6, 2, 4, 1, 10, 8, 9, 3]);
     }
 }
