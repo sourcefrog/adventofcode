@@ -22,7 +22,7 @@ const INPUT: &'static str = "562893147";
 // const INPUT: &'static str = "389125467";
 
 pub fn main() {
-    // println!("23a: {}", Ring::from_str(INPUT).solve_a());
+    println!("23a: {}", Ring::new(parse(INPUT)).solve_a());
     println!("23b: {}", Ring::solve_b());
 }
 
@@ -52,7 +52,7 @@ impl Ring {
             first: v[0],
             succ,
         };
-        r.check();
+        r.check_slowly();
         r
     }
 
@@ -86,15 +86,6 @@ impl Ring {
         r
     }
 
-    // fn wrap_add(&self, a: usize, b: usize) -> usize {
-    //     let mut r = a + b;
-    //     if r > self.n {
-    //         r -= self.n
-    //     }
-    //     assert!(r >= 1 && r <= self.n);
-    //     r
-    // }
-
     fn solve_a(&mut self) -> String {
         self.play(100);
 
@@ -115,19 +106,15 @@ impl Ring {
 
     fn play(&mut self, rounds: usize) {
         let mut current = self.first;
-        self.check();
+        self.check_slowly();
 
-        for round in 1..=rounds {
-            assert!(current > 0 && current <= self.n);
-            if round % 1000 == 0 {
-                println!("round {}", round);
-            }
+        for _round in 1..=rounds {
+            debug_assert!(current > 0 && current <= self.n);
+            // if round % 1000 == 0 {
+            //     println!("round {}", round);
+            // }
             // println!("deck: {:?}", self.to_value_vec());
             // dbg!(round, current, &self.succ);
-            // println!(
-            //     "cups: {:?}, current value {} in position {}",
-            //     self.v, current_val, current,
-            // );
             let taken = self.unlink_3_after(current);
             // println!("taken {:?}", taken);
             let mut dest = current;
@@ -140,16 +127,15 @@ impl Ring {
             assert!(dest > 0 && dest <= self.n);
             // println!("insert after {}: {:?}", dest, taken);
             self.insert_after(dest, taken);
-            self.check();
+            // It's too slow to check during many iterations.
+            // self.check_slowly();
             current = self.succ[current];
         }
-        // println!("final: {:?}", self.v);
     }
 
     fn a_result(&self) -> String {
         let mut r = String::new();
         let mut a = self.succ[1];
-        dbg!(&self.succ);
         while a != 1 {
             r.push(std::char::from_digit(a as u32, 10).unwrap());
             a = self.succ[a];
@@ -158,10 +144,10 @@ impl Ring {
     }
 
     #[cfg(not(debug_assertions))]
-    fn check(&self) {}
+    fn check_slowly(&self) {}
 
     #[cfg(debug_assertions)]
-    fn check(&self) {
+    fn check_slowly(&self) {
         let mut seen = vec![false; self.n + 1];
         debug_assert_eq!(self.n + 1, self.succ.len());
         assert_eq!(self.succ[0], 0);
@@ -169,18 +155,24 @@ impl Ring {
         assert_eq!(*self.succ[1..].iter().max().unwrap(), self.n);
         for i in 1..=self.n {
             assert_ne!(self.succ[i], i);
+            assert_ne!(self.succ[i], 0);
             assert_eq!(seen[i], false);
             seen[i] = true;
         }
-        assert!(seen.iter().skip(1).all(|x| *x));
+        assert!(seen[1..].iter().all(|x| *x));
     }
 
     fn solve_b() -> usize {
         let mut v = parse(INPUT);
-        v.extend(v.len() + 1..=1_000_000);
-        assert_eq!(v.len(), 1_000_000);
-        Ring::new(v).play(10_000_000);
-        todo!()
+        const CUPS: usize = 1_000_000;
+        v.extend((v.len() + 1..=CUPS).into_iter());
+        assert_eq!(v.len(), CUPS);
+        let mut ring = Ring::new(v);
+        ring.play(10_000_000);
+
+        let a = ring.succ[1];
+        let b = ring.succ[a];
+        a * b
     }
 }
 
@@ -205,6 +197,6 @@ mod test {
 
     #[test]
     fn solution_b() {
-        // assert_eq!(solve_b(), 0);
+        assert_eq!(Ring::solve_b(), 131152940564);
     }
 }
