@@ -24,6 +24,15 @@ use nom::multi::*;
 use nom::sequence::*;
 use nom::{IResult, Parser};
 
+/// Hex coordinates {x, y} where x increases by 2 for horizontally adjacent
+/// hexes.
+// type Hex = (isize, isize);
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+struct Hex {
+    x: isize,
+    y: isize,
+}
+
 pub fn main() {
     println!("24a: {}", solve_a());
     println!("24b: {}", solve_b());
@@ -34,17 +43,22 @@ fn solve_a() -> usize {
 }
 
 fn solve_type_a(s: &str) -> usize {
-    let mut black: BTreeSet<(isize, isize)> = BTreeSet::new();
-    for line in parse(s) {
-        let coord = reduce(&line);
-        if !black.insert(coord) {
-            black.remove(&coord);
-        }
-    }
+    let black = load_map(s);
     black.len()
 }
 
-fn reduce(line: &[&str]) -> (isize, isize) {
+fn load_map(s: &str) -> BTreeSet<Hex> {
+    let mut black: BTreeSet<Hex> = BTreeSet::new();
+    for line in parse(s) {
+        let coord = reduce(&line);
+        if !black.insert(coord.clone()) {
+            black.remove(&coord);
+        }
+    }
+    black
+}
+
+fn reduce(line: &[&str]) -> Hex {
     let mut x = 0;
     let mut y = 0;
     for d in line {
@@ -70,7 +84,7 @@ fn reduce(line: &[&str]) -> (isize, isize) {
             _other => panic!(),
         }
     }
-    (x, y)
+    Hex { x, y }
 }
 
 fn countchar(s: &str, c: char) -> isize {
@@ -95,8 +109,51 @@ fn try_parse(s: &str) -> IResult<&str, Vec<Vec<&str>>> {
     ))(s)
 }
 
-fn solve_b() -> isize {
-    0
+fn solve_b() -> usize {
+    solve_type_b(&load())
+}
+
+fn neighbors(Hex { x, y }: &Hex) -> Vec<Hex> {
+    vec![
+        Hex { x: x + 2, y: *y },
+        Hex { x: x - 2, y: *y },
+        Hex { x: x + 1, y: y + 1 },
+        Hex { x: x + 1, y: y - 1 },
+        Hex { x: x - 1, y: y + 1 },
+        Hex { x: x - 1, y: y - 1 },
+    ]
+}
+
+fn solve_type_b(s: &str) -> usize {
+    let mut black = load_map(s);
+    dbg!(&black);
+    for day in 0..100 {
+        let interest: BTreeSet<Hex> = black
+            .iter()
+            .flat_map(|h| {
+                let mut n = neighbors(h);
+                n.push(h.clone());
+                n
+            })
+            .collect();
+        dbg!(interest.len());
+        let mut newmap: BTreeSet<Hex> = BTreeSet::new();
+        for h in interest {
+            let bns = neighbors(&h).iter().filter(|n| black.contains(n)).count();
+            let newstate = if black.contains(&h) {
+                !(bns == 0 || bns > 2)
+            } else {
+                bns == 2
+            };
+            if newstate {
+                let added = newmap.insert(h.clone());
+                assert!(added, "{:?} somehow already present", h);
+            }
+        }
+        black = newmap;
+        println!("day {}: {}", day, black.len());
+    }
+    black.len()
 }
 
 fn load() -> String {
