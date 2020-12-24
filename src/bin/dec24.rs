@@ -27,8 +27,8 @@ use nom::IResult;
 /// hexes.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
 struct Hex {
-    x: i32,
-    y: i32,
+    x: i16,
+    y: i16,
 }
 
 /// The state of the game, represented as the set of black hexes.
