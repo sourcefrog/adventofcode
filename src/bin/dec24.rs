@@ -106,8 +106,8 @@ fn try_parse(s: &str) -> IResult<&str, Vec<Vec<&str>>> {
     ))(s)
 }
 
-fn neighbors(Hex { x, y }: &Hex) -> Vec<Hex> {
-    vec![
+fn neighbors(Hex { x, y }: &Hex) -> [Hex; 6] {
+    [
         Hex { x: x + 2, y: *y },
         Hex { x: x - 2, y: *y },
         Hex { x: x + 1, y: y + 1 },
@@ -126,7 +126,11 @@ fn solve_type_b(s: &str) -> usize {
     let mut newblack: HexMap = Default::default();
     let mut interest: HexMap = Default::default();
     for _day in 0..100 {
-        interest.extend(black.iter().flat_map(|h| neighbors(h)));
+        for h in &black {
+            for hh in &neighbors(h) {
+                interest.insert(hh.clone());
+            }
+        }
         interest.extend(black.iter().cloned());
         for h in &interest {
             // take(3) because we don't care about results higher than 3
