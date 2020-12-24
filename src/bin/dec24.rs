@@ -123,6 +123,7 @@ fn solve_b() -> usize {
 
 fn solve_type_b(s: &str) -> usize {
     let mut black = load_map(s);
+    let mut newblack: HexMap = Default::default();
     for _day in 0..100 {
         let interest: HexMap = black
             .iter()
@@ -132,7 +133,6 @@ fn solve_type_b(s: &str) -> usize {
                 n
             })
             .collect();
-        let mut newmap: HexMap = Default::default();
         for h in interest {
             // take(3) because we don't care about results higher than 3
             let bns = neighbors(&h)
@@ -146,11 +146,12 @@ fn solve_type_b(s: &str) -> usize {
                 bns == 2
             };
             if newstate {
-                let added = newmap.insert(h.clone());
+                let added = newblack.insert(h.clone());
                 debug_assert!(added, "{:?} somehow already present", h);
             }
         }
-        black = newmap;
+        std::mem::swap(&mut black, &mut newblack);
+        newblack.clear();
         // println!("day {}: {}", day, black.len());
     }
     black.len()
