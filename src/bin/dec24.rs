@@ -124,15 +124,10 @@ fn solve_b() -> usize {
 fn solve_type_b(s: &str) -> usize {
     let mut black = load_map(s);
     let mut newblack: HexMap = Default::default();
+
     for _day in 0..100 {
-        let interest: HexMap = black
-            .iter()
-            .flat_map(|h| {
-                let mut n = neighbors(h);
-                n.push(h.clone());
-                n
-            })
-            .collect();
+        let mut interest: HexMap = black.iter().flat_map(|h| neighbors(h)).collect();
+        interest.extend(black.iter().cloned());
         for h in interest {
             // take(3) because we don't care about results higher than 3
             let bns = neighbors(&h)
