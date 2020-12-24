@@ -25,11 +25,10 @@ use nom::IResult;
 
 /// Hex coordinates {x, y} where x increases by 2 for horizontally adjacent
 /// hexes.
-// type Hex = (isize, isize);
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
 struct Hex {
-    x: isize,
-    y: isize,
+    x: i32,
+    y: i32,
 }
 
 /// The state of the game, represented as the set of black hexes.
