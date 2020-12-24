@@ -14,7 +14,7 @@
 
 //! Solve https://adventofcode.com/2020/day/24.
 
-use std::collections::BTreeSet;
+use fnv::FnvHashSet;
 
 use nom::branch::*;
 use nom::bytes::complete::*;
@@ -26,11 +26,14 @@ use nom::IResult;
 /// Hex coordinates {x, y} where x increases by 2 for horizontally adjacent
 /// hexes.
 // type Hex = (isize, isize);
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
 struct Hex {
     x: isize,
     y: isize,
 }
+
+/// The state of the game, represented as the set of black hexes.
+type HexMap = FnvHashSet<Hex>;
 
 pub fn main() {
     println!("24a: {}", solve_a());
@@ -46,8 +49,8 @@ fn solve_type_a(s: &str) -> usize {
     black.len()
 }
 
-fn load_map(s: &str) -> BTreeSet<Hex> {
-    let mut black: BTreeSet<Hex> = BTreeSet::new();
+fn load_map(s: &str) -> HexMap {
+    let mut black: HexMap = Default::default();
     for tokens in parse(s) {
         let h = tokens_to_hex(&tokens);
         if !black.insert(h.clone()) {
@@ -122,7 +125,7 @@ fn solve_b() -> usize {
 fn solve_type_b(s: &str) -> usize {
     let mut black = load_map(s);
     for _day in 0..100 {
-        let interest: BTreeSet<Hex> = black
+        let interest: HexMap = black
             .iter()
             .flat_map(|h| {
                 let mut n = neighbors(h);
@@ -130,7 +133,7 @@ fn solve_type_b(s: &str) -> usize {
                 n
             })
             .collect();
-        let mut newmap: BTreeSet<Hex> = BTreeSet::new();
+        let mut newmap: HexMap = Default::default();
         for h in interest {
             let bns = neighbors(&h).iter().filter(|n| black.contains(n)).count();
             let newstate = if black.contains(&h) {
