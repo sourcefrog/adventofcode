@@ -130,8 +130,8 @@ fn solve_type_b(s: &str) -> usize {
             for hh in &neighbors(h) {
                 interest.insert(hh.clone());
             }
+            interest.insert(h.clone());
         }
-        interest.extend(black.iter().cloned());
         for h in &interest {
             // take(3) because we don't care about results higher than 3
             let bns = neighbors(&h)
