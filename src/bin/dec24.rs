@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![allow(dead_code, unused_imports)]
+//! Solve https://adventofcode.com/2020/day/24.
 
 use std::collections::BTreeSet;
 
 use nom::branch::*;
 use nom::bytes::complete::*;
 use nom::character::complete::*;
-use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
-use nom::{IResult, Parser};
+use nom::IResult;
 
 /// Hex coordinates {x, y} where x increases by 2 for horizontally adjacent
 /// hexes.
@@ -49,19 +48,19 @@ fn solve_type_a(s: &str) -> usize {
 
 fn load_map(s: &str) -> BTreeSet<Hex> {
     let mut black: BTreeSet<Hex> = BTreeSet::new();
-    for line in parse(s) {
-        let coord = reduce(&line);
-        if !black.insert(coord.clone()) {
-            black.remove(&coord);
+    for tokens in parse(s) {
+        let h = tokens_to_hex(&tokens);
+        if !black.insert(h.clone()) {
+            black.remove(&h);
         }
     }
     black
 }
 
-fn reduce(line: &[&str]) -> Hex {
+fn tokens_to_hex(tokens: &[&str]) -> Hex {
     let mut x = 0;
     let mut y = 0;
-    for d in line {
+    for d in tokens {
         match *d {
             "e" => x += 2,
             "w" => x -= 2,
@@ -87,10 +86,6 @@ fn reduce(line: &[&str]) -> Hex {
     Hex { x, y }
 }
 
-fn countchar(s: &str, c: char) -> isize {
-    s.chars().filter(|x| *x == c).count() as isize
-}
-
 fn parse(s: &str) -> Vec<Vec<&str>> {
     try_parse(s).unwrap().1
 }
@@ -109,10 +104,6 @@ fn try_parse(s: &str) -> IResult<&str, Vec<Vec<&str>>> {
     ))(s)
 }
 
-fn solve_b() -> usize {
-    solve_type_b(&load())
-}
-
 fn neighbors(Hex { x, y }: &Hex) -> Vec<Hex> {
     vec![
         Hex { x: x + 2, y: *y },
@@ -124,10 +115,13 @@ fn neighbors(Hex { x, y }: &Hex) -> Vec<Hex> {
     ]
 }
 
+fn solve_b() -> usize {
+    solve_type_b(&load())
+}
+
 fn solve_type_b(s: &str) -> usize {
     let mut black = load_map(s);
-    dbg!(&black);
-    for day in 0..100 {
+    for _day in 0..100 {
         let interest: BTreeSet<Hex> = black
             .iter()
             .flat_map(|h| {
@@ -136,7 +130,6 @@ fn solve_type_b(s: &str) -> usize {
                 n
             })
             .collect();
-        dbg!(interest.len());
         let mut newmap: BTreeSet<Hex> = BTreeSet::new();
         for h in interest {
             let bns = neighbors(&h).iter().filter(|n| black.contains(n)).count();
@@ -147,11 +140,11 @@ fn solve_type_b(s: &str) -> usize {
             };
             if newstate {
                 let added = newmap.insert(h.clone());
-                assert!(added, "{:?} somehow already present", h);
+                debug_assert!(added, "{:?} somehow already present", h);
             }
         }
         black = newmap;
-        println!("day {}: {}", day, black.len());
+        // println!("day {}: {}", day, black.len());
     }
     black.len()
 }
@@ -165,8 +158,12 @@ mod test {
     use super::*;
 
     #[test]
-    fn solution_a() {}
+    fn solution_a() {
+        assert_eq!(solve_a(), 244);
+    }
 
     #[test]
-    fn solution_b() {}
+    fn solution_b() {
+        assert_eq!(solve_b(), 3665);
+    }
 }
