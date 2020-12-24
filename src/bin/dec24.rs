@@ -135,7 +135,12 @@ fn solve_type_b(s: &str) -> usize {
             .collect();
         let mut newmap: HexMap = Default::default();
         for h in interest {
-            let bns = neighbors(&h).iter().filter(|n| black.contains(n)).count();
+            // take(3) because we don't care about results higher than 3
+            let bns = neighbors(&h)
+                .iter()
+                .filter(|n| black.contains(n))
+                .take(3)
+                .count();
             let newstate = if black.contains(&h) {
                 !(bns == 0 || bns > 2)
             } else {
