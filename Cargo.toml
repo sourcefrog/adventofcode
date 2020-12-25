@@ -13,5 +13,4 @@ license = "Apache-2.0"
 [dependencies]
 fnv = "1.0.7"
 itertools = "0.9"
-regex = "1"
 nom = "6"
