@@ -1,5 +1,5 @@
-# sourcefrog/adventofcode2020
+# sourcefrog/adventofcode
 
-My solutions in Rust to https://adventofcode.com/2020.
+My solutions in Rust to https://adventofcode.com/.
 
 This is not an officially supported Google product (obviously.)
