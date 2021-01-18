@@ -1,0 +1,989 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'mbp-aoc2019'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "mbp-aoc2019",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc22'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc22",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc22",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc22'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc22",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc22",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc21'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc21",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc21",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc21'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc21",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc21",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc09'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc09",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc09",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc09'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc09",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc09",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc15'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc15",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc15",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc15'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc15",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc15",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc23'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc23",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc23",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc23'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc23",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc23",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc05'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc05",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc05",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc05'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc05",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc05",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc06'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc06",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc06",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc06'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc06",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc06",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc10'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc10",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc10",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc10'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc10",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc10",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc25'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc25",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc25",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc25'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc25",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc25",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc04'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc04",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc04",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc04'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc04",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc04",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc01'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc01",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc01",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc01'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc01",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc01",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc12'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc12",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc12",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc12'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc12",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc12",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc17'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc17",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc17",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc17'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc17",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc17",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc19'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc19",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc19",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc19'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc19",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc19",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc20'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc20",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc20",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc20'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc20",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc20",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc11'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc11",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc11",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc11'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc11",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc11",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc13'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc13",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc13",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc13'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc13",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc13",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc16'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc16",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc16",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc16'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc16",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc16",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc14_nom'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc14_nom",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc14_nom",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc14_nom'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc14_nom",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc14_nom",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc24'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc24",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc24",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc24'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc24",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc24",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc18'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc18",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc18",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc18'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc18",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc18",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc02'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc02",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc02",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc02'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc02",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc02",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc14'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc14",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc14",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc14'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc14",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc14",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc03'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc03",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc03",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc03'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc03",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc03",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc08'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc08",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc08",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc08'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc08",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc08",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc07'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc07",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc07",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc07'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc07",
+                    "--package=mbp-aoc2019"
+                ],
+                "filter": {
+                    "name": "aoc07",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
