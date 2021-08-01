@@ -1,0 +1,16 @@
+[package]
+name = "adventofcode2016"
+version = "0.1.0"
+authors = ["Martin Pool <mbp@sourcefrog.net>"]
+edition = "2018"
+description = "My solutions to https://adventofcode.com/2016"
+readme = "README.md"
+publish = false
+license = "Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# fnv = "1.0.7"
+# itertools = "0.9"
+# nom = "6"
