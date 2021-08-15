@@ -21,6 +21,8 @@ def load(l):
 
 
 def solve_memo(cons, var):
+    if var in cons and isinstance(cons[var], int):
+        return cons[var]
     v = solve1(cons, var)
     cons[var] = v
     print(f'{var} = {v}')
