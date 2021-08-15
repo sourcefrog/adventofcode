@@ -3,6 +3,10 @@
 version = 3
 
 [[package]]
+name = "adventofcode2016"
+version = "0.1.0"
+
+[[package]]
 name = "adventofcode2020"
 version = "0.1.0"
 dependencies = [
