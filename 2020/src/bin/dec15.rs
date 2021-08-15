@@ -16,7 +16,7 @@
 //!
 //! Produces https://oeis.org/A181391.
 
-const INPUT: &'static [usize] = &[1, 2, 16, 19, 18, 0];
+const INPUT: &[usize] = &[1, 2, 16, 19, 18, 0];
 
 pub fn main() {
     println!("15a: {}", solve_a());
@@ -28,7 +28,7 @@ fn solve_a() -> usize {
 }
 
 fn solve_b() -> usize {
-    solve(&INPUT, 30000000)
+    solve(INPUT, 30000000)
 }
 
 fn solve(input: &[usize], n: usize) -> usize {

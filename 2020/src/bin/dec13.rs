@@ -48,7 +48,7 @@ fn solve_a() -> usize {
 
 fn solve_b() -> isize {
     let inp = std::fs::read_to_string("input/dec13.txt").unwrap();
-    solve_type_b(&inp.lines().skip(1).next().unwrap())
+    solve_type_b(inp.lines().nth(1).unwrap())
 }
 
 fn solve_type_b(inp: &str) -> isize {

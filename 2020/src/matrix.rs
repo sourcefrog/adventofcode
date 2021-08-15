@@ -185,11 +185,10 @@ impl<T: Clone> FromRows<T> {
             // First row
             assert!(!r.is_empty());
             self.w = r.len();
-            self.d.extend_from_slice(r);
         } else {
             assert_eq!(r.len(), self.w, "Rows must be the same length");
-            self.d.extend_from_slice(r);
         }
+        self.d.extend_from_slice(r);
     }
 
     pub fn finish(mut self) -> Matrix<T> {
