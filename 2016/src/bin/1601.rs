@@ -15,7 +15,7 @@ impl Heading {
             Right => 1,
         };
         let nd = (self.0 + rh).rem_euclid(4);
-        assert!(nd >= 0 && nd <= 3);
+        assert!((0..=3).contains(&nd));
         Heading(nd)
     }
 }
