@@ -3,10 +3,6 @@
 version = 3
 
 [[package]]
-name = "adventofcode2016"
-version = "0.1.0"
-
-[[package]]
 name = "adventofcode2020"
 version = "0.1.0"
 dependencies = [
@@ -234,6 +230,10 @@ name = "maplit"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
+
+[[package]]
+name = "mbp-aoc2016"
+version = "0.1.0"
 
 [[package]]
 name = "mbp-aoc2019"
