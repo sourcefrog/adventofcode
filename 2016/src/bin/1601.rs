@@ -1,8 +1,12 @@
-#[derive(Debug, PartialEq, Eq)]
+//! https://adventofcode.com/2016/day/1
+
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum Dir {
     Left,
     Right,
 }
+use std::collections::HashSet;
+
 use Dir::*;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
@@ -23,8 +27,14 @@ impl Heading {
 #[derive(Debug, PartialEq, Eq)]
 struct Instruction(Dir, usize);
 
-#[derive(Debug, PartialEq, Eq, Default)]
+#[derive(Debug, PartialEq, Eq, Default, Clone, Copy, Hash)]
 struct Position(isize, isize);
+
+impl Position {
+    fn manhattan_distance(&self) -> usize {
+        self.0.unsigned_abs() + self.1.unsigned_abs()
+    }
+}
 
 fn parse(s: &str) -> Vec<Instruction> {
     let mut r = Vec::new();
@@ -56,7 +66,15 @@ fn parse(s: &str) -> Vec<Instruction> {
 }
 
 fn solve_a() -> usize {
-    solve_type_a(&std::fs::read_to_string("input/1601.txt").unwrap())
+    solve_type_a(&load())
+}
+
+fn solve_b() -> usize {
+    solve_type_b(&load())
+}
+
+fn load() -> String {
+    std::fs::read_to_string("input/1601.txt").unwrap()
 }
 
 #[derive(Debug, PartialEq, Eq, Default)]
@@ -66,35 +84,49 @@ struct Walker {
 }
 
 impl Walker {
-    fn walk(&mut self, Instruction(dir, l): Instruction)  {
-        let Position(x, y) = self.pos;
-        let l = l as isize;
+    /// Follow the given direction; returns a vec of all positions visited.
+    fn walk(&mut self, &Instruction(dir, len): &Instruction) -> Vec<Position> {
+        let mut visited = Vec::new();
+        let mut p = self.pos;
         self.heading = self.heading.turn(dir);
-        self.pos = match self.heading.0 {
-            0 => Position(x, y + l),
-            1 => Position(x + l, y),
-            2 => Position(x, y - l),
-            3 => Position(x - l, y),
-            _ => panic!("unexpected heading"),
-        };
+        for _ in 0..len {
+            p = match self.heading.0 {
+                0 => Position(p.0, p.1 + 1),
+                1 => Position(p.0 + 1, p.1),
+                2 => Position(p.0, p.1 - 1),
+                3 => Position(p.0 - 1, p.1),
+                _ => panic!("unexpected heading"),
+            };
+            visited.push(p);
+        }
+        self.pos = p;
+        visited
     }
 }
 
 fn solve_type_a(input: &str) -> usize {
     let mut walker = Walker::default();
     for inst in parse(input) {
-        walker.walk(inst);
+        walker.walk(&inst);
     }
-    let pos = walker.pos;
-    pos.0.unsigned_abs() + pos.1.unsigned_abs()
+    walker.pos.manhattan_distance()
 }
 
-// fn solve_type_b(input: &str) -> usize {
-//     todo!();
-// }
+fn solve_type_b(input: &str) -> usize {
+    let mut walker = Walker::default();
+    let mut seen = HashSet::new();
+    seen.insert(walker.pos);
+    for p in parse(input).iter().flat_map(|inst| walker.walk(inst)) {
+        if !seen.insert(p) {
+            return p.manhattan_distance();
+        }
+    }
+    panic!("Reached no square twice");
+}
 
 pub fn main() {
-    println!("{}", solve_a());
+    println!("1601a: {}", solve_a());
+    println!("1601b: {}", solve_b());
 }
 
 #[cfg(test)]
@@ -123,5 +155,10 @@ mod test {
     #[test]
     fn solution_a() {
         assert_eq!(super::solve_a(), 246);
+    }
+
+    #[test]
+    fn solution_b() {
+        assert_eq!(super::solve_b(), 124);
     }
 }
