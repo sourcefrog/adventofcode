@@ -5,7 +5,7 @@ enum Dir {
 }
 use Dir::*;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
 struct Heading(isize);
 
 impl Heading {
@@ -21,12 +21,12 @@ impl Heading {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-struct Step(Dir, usize);
+struct Instruction(Dir, usize);
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Default)]
 struct Position(isize, isize);
 
-fn parse(s: &str) -> Vec<Step> {
+fn parse(s: &str) -> Vec<Instruction> {
     let mut r = Vec::new();
     let mut chars = s.chars();
     loop {
@@ -45,7 +45,7 @@ fn parse(s: &str) -> Vec<Step> {
             };
             len = Some(len.unwrap_or_default() * 10 + d.to_digit(10).unwrap() as usize);
         }
-        r.push(Step(dir, len.expect("Empty length field")));
+        r.push(Instruction(dir, len.expect("Empty length field")));
         match chars.next() {
             Some(' ') | Some('\n') => (),
             None => break,
@@ -59,28 +59,39 @@ fn solve_a() -> usize {
     solve_type_a(&std::fs::read_to_string("input/1601.txt").unwrap())
 }
 
-fn walk(pos: Position, heading: &Heading, l: usize) -> Position {
-    let Position(x, y) = pos;
-    let l = l as isize;
-    match heading.0 {
-        0 => Position(x, y + l),
-        1 => Position(x + l, y),
-        2 => Position(x, y - l),
-        3 => Position(x - l, y),
-        _ => panic!("unexpected {:#?}", heading),
+#[derive(Debug, PartialEq, Eq, Default)]
+struct Walker {
+    pos: Position,
+    heading: Heading,
+}
+
+impl Walker {
+    fn walk(&mut self, Instruction(dir, l): Instruction)  {
+        let Position(x, y) = self.pos;
+        let l = l as isize;
+        self.heading = self.heading.turn(dir);
+        self.pos = match self.heading.0 {
+            0 => Position(x, y + l),
+            1 => Position(x + l, y),
+            2 => Position(x, y - l),
+            3 => Position(x - l, y),
+            _ => panic!("unexpected heading"),
+        };
     }
 }
 
 fn solve_type_a(input: &str) -> usize {
-    let insts = parse(input);
-    let mut pos = Position(0, 0);
-    let mut heading = Heading(0);
-    for Step(dir, len) in insts {
-        heading = heading.turn(dir);
-        pos = walk(pos, &heading, len);
+    let mut walker = Walker::default();
+    for inst in parse(input) {
+        walker.walk(inst);
     }
+    let pos = walker.pos;
     pos.0.unsigned_abs() + pos.1.unsigned_abs()
 }
+
+// fn solve_type_b(input: &str) -> usize {
+//     todo!();
+// }
 
 pub fn main() {
     println!("{}", solve_a());
@@ -91,11 +102,15 @@ mod test {
     #[test]
     fn parse() {
         use super::parse;
-        use super::{Dir::*, Step};
+        use super::{Dir::*, Instruction};
 
         assert_eq!(
             parse("R1, L123, R99\n"),
-            vec![Step(Right, 1), Step(Left, 123), Step(Right, 99)]
+            vec![
+                Instruction(Right, 1),
+                Instruction(Left, 123),
+                Instruction(Right, 99)
+            ]
         )
     }
 
