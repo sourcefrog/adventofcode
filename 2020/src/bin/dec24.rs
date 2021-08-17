@@ -134,12 +134,12 @@ fn solve_type_b(s: &str) -> usize {
         }
         for h in &interest {
             // take(3) because we don't care about results higher than 3
-            let bns = neighbors(&h)
+            let bns = neighbors(h)
                 .iter()
                 .filter(|n| black.contains(n))
                 .take(3)
                 .count();
-            let newstate = if black.contains(&h) {
+            let newstate = if black.contains(h) {
                 !(bns == 0 || bns > 2)
             } else {
                 bns == 2

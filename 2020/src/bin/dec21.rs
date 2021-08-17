@@ -72,7 +72,7 @@ fn solve_on(s: &str) -> (usize, String) {
                     .entry(alg.clone())
                     .and_modify(|ei|
                         // Only ingredients common to the two foods remain possibilities.
-                        ei.retain(|i| ings.iter().find(|j| **j == *i).is_some()))
+                        ei.retain(|i| ings.iter().any(|j| *j == *i)))
                     .or_insert_with(|| ings);
                 if en.len() == 1 {
                     let final_ing = &en[0];
@@ -95,7 +95,7 @@ fn solve_on(s: &str) -> (usize, String) {
         .map(|i| {
             foods
                 .iter()
-                .filter(|f| f.ingreds.iter().find(|fi| *i == **fi).is_some())
+                .filter(|f| f.ingreds.iter().any(|fi| *i == *fi))
                 .count()
         })
         .sum();

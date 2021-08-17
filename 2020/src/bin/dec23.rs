@@ -14,11 +14,9 @@
 
 //! Solve https://adventofcode.com/2020/day/23.
 
-#![allow(unused_imports, dead_code, unused_mut)]
-
 // use std::collections::BTreeSet;
 
-const INPUT: &'static str = "562893147";
+const INPUT: &str = "562893147";
 // const INPUT: &'static str = "389125467";
 
 pub fn main() {
@@ -92,35 +90,18 @@ impl Ring {
         self.a_result()
     }
 
-    fn to_value_vec(&self) -> Vec<usize> {
-        let mut r = Vec::new();
-        let mut a = 1;
-        loop {
-            r.push(a);
-            a = self.succ[a];
-            if a == 1 {
-                return r;
-            }
-        }
-    }
-
     fn play(&mut self, rounds: usize) {
         let mut current = self.first;
         self.check_slowly();
 
         for _round in 1..=rounds {
             debug_assert!(current > 0 && current <= self.n);
-            // if round % 1000 == 0 {
-            //     println!("round {}", round);
-            // }
-            // println!("deck: {:?}", self.to_value_vec());
-            // dbg!(round, current, &self.succ);
             let taken = self.unlink_3_after(current);
             // println!("taken {:?}", taken);
             let mut dest = current;
             loop {
                 dest = self.wrap_sub(dest, 1);
-                if !contains(&taken, dest) {
+                if !taken.iter().any(|x| *x == dest) {
                     break;
                 }
             }
@@ -153,10 +134,13 @@ impl Ring {
         assert_eq!(self.succ[0], 0);
         assert_eq!(*self.succ[1..].iter().min().unwrap(), 1);
         assert_eq!(*self.succ[1..].iter().max().unwrap(), self.n);
+        // Clippy suggests `enumerate` but with one index into two parallel arrays
+        // just looping on the index seems simpler.
+        #[allow(clippy::needless_range_loop)]
         for i in 1..=self.n {
             assert_ne!(self.succ[i], i);
             assert_ne!(self.succ[i], 0);
-            assert_eq!(seen[i], false);
+            assert!(!seen[i]);
             seen[i] = true;
         }
         assert!(seen[1..].iter().all(|x| *x));
@@ -174,10 +158,6 @@ impl Ring {
         let b = ring.succ[a];
         a * b
     }
-}
-
-fn contains(a: &[usize], b: usize) -> bool {
-    a.iter().position(|x| *x == b).is_some()
 }
 
 fn parse(s: &str) -> Vec<usize> {

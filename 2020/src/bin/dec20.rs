@@ -44,7 +44,7 @@ use std::collections::BTreeSet;
 
 type Maps = BTreeMap<usize, Matrix<char>>;
 
-const MONSTER: &'static str = "                  # 
+const MONSTER: &str = "                  # 
 #    ##    ##    ###
  #  #  #  #  #  #   
 ";
@@ -61,10 +61,10 @@ fn solve_a() -> usize {
 fn solve_type_a(maps: &Maps) -> usize {
     // find the canonical side-values for
     let mut by_side: BTreeMap<String, Vec<usize>> = BTreeMap::new();
-    let mut by_square: BTreeMap<usize, Vec<String>> = BTreeMap::new();
+    let mut by_square: BTreeMap<usize, [String; 4]> = BTreeMap::new();
 
     for (num, mat) in maps.iter() {
-        let svs = canonical_side_values(&mat);
+        let svs = canonical_side_values(mat);
         by_square.insert(*num, svs.clone());
         println!("{} => {:?}", num, svs);
         for sv in svs {
@@ -84,14 +84,13 @@ fn solve_type_a(maps: &Maps) -> usize {
     corners.iter().map(|(n, _)| *n).product()
 }
 
-fn canonical_side_values(mat: &Matrix<char>) -> Vec<String> {
+fn canonical_side_values(mat: &Matrix<char>) -> [String; 4] {
     let mut r = side_values(mat);
     // Canonical order is whichever sorts lower
-    for i in 0..4 {
-        r[i] = canonical(&r[i]);
+    for item in r.iter_mut() {
+        *item = canonical(item);
     }
-    r.sort();
-
+    r.sort_unstable();
     r
 }
 
@@ -138,8 +137,8 @@ impl Orientation {
 
 // Return the values for the sides of this tile,
 // in order: N, E, S, W. Horizontal edges are read across, vertical edges are read down.
-fn side_values(mat: &Matrix<char>) -> Vec<String> {
-    let mut svs = vec![String::new(); 4];
+fn side_values(mat: &Matrix<char>) -> [String; 4] {
+    let mut svs: [String; 4] = Default::default();
     for i in 0..10 {
         svs[0].push(mat[point(i, 0)]);
         svs[1].push(mat[point(9, i)]);
@@ -184,7 +183,7 @@ fn load(s: &str) -> Maps {
         let num: usize = l
             .strip_prefix("Tile ")
             .unwrap()
-            .strip_suffix(":")
+            .strip_suffix(':')
             .unwrap()
             .parse()
             .unwrap();
@@ -208,7 +207,7 @@ struct Puzzle {
     oris: Matrix<Orientation>,
     unplaced_tiles: BTreeSet<TileId>,
     by_side: BTreeMap<String, Vec<TileId>>,
-    by_square: BTreeMap<TileId, Vec<String>>,
+    by_square: BTreeMap<TileId, [String; 4]>,
     map_side: usize,
 }
 
@@ -217,15 +216,15 @@ impl Puzzle {
         let maps = load(s);
         let unplaced_tiles: BTreeSet<usize> = maps.keys().cloned().collect();
         let mut by_side: BTreeMap<String, Vec<usize>> = BTreeMap::new();
-        let mut by_square: BTreeMap<usize, Vec<String>> = BTreeMap::new();
+        let mut by_square: BTreeMap<usize, [String; 4]> = BTreeMap::new();
         let map_side = (maps.len() as f64).sqrt() as usize;
 
         for (tile, mat) in maps.iter() {
-            let svs = canonical_side_values(&mat);
+            let svs = canonical_side_values(mat);
             by_square.insert(*tile, svs.clone());
             // println!("{} => {:?}", num, svs);
-            for sv in svs {
-                by_side.entry(sv).or_default().push(*tile);
+            for sv in &svs {
+                by_side.entry(sv.clone()).or_default().push(*tile);
             }
         }
         assert_eq!(maps.len(), map_side * map_side);
@@ -447,13 +446,9 @@ fn find_monsters(image: &Matrix<char>) -> usize {
     panic!("no monsters? :((");
 }
 
-fn contains<T: Clone + Eq>(a: &[T], x: &T) -> bool {
-    a.iter().position(|y| *y == *x).is_some()
-}
-
 fn intersect<T: Clone + Eq + PartialEq>(a: &[T], b: &[T]) -> Vec<T> {
     a.iter()
-        .filter(|x| b.iter().find(|y| *y == *x).is_some())
+        .filter(|x| b.iter().any(|y| *y == **x))
         .cloned()
         .collect_vec()
 }

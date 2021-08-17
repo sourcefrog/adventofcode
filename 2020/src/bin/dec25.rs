@@ -35,7 +35,7 @@ fn solve_a() -> u64 {
     for _i in 1..=a {
         val = (val * DOORPUB) % MODULUS;
     }
-    return val;
+    val
 }
 
 #[cfg(test)]

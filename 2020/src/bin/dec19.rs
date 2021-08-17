@@ -74,9 +74,11 @@ fn count_matches<'a>(rulenum: RuleNum, rules: &[Rule], input: &'a [char]) -> (us
 fn solve_type_a(input: &str) -> usize {
     let (ruleset, vals) = parse_input(input).unwrap().1;
     vals.iter()
-        .filter(|v| match apply(0, &ruleset, v) {
-            Some(rest) if rest.is_empty() => true,
-            _ => false,
+        .filter(|v| {
+            matches!(
+                apply(0, &ruleset, v),
+                Some(rest) if rest.is_empty()
+            )
         })
         .count()
 }
@@ -121,7 +123,7 @@ fn apply<'a>(num: RuleNum, ruleset: &[Rule], input: &'a [char]) -> Option<&'a [c
                 return Some(rest);
             }
             // println!("rule {} fails overall", num);
-            return None;
+            None
         }
     }
 }
@@ -141,7 +143,7 @@ fn parse_rules(l: &str) -> IResult<&str, Vec<Rule>> {
                             tuple((space0, char('|'), space0)),
                             separated_list1(space1, map(digit1, |s: &str| s.parse().unwrap())),
                         ),
-                        |l: Vec<Vec<usize>>| Rule::Alt(l),
+                        Rule::Alt,
                     ),
                 )),
             ),

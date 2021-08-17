@@ -33,10 +33,12 @@ fn solve_b() -> usize {
         .product()
 }
 
+#[allow(clippy::ptr_arg)]
 fn tree_at(map: &Map, x: usize, y: usize) -> bool {
     map[y][x % map[y].len()]
 }
 
+#[allow(clippy::ptr_arg)]
 fn glide(map: &Map, dx: usize, dy: usize) -> usize {
     let mut x = 0;
     let mut y = 0;

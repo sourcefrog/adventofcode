@@ -18,7 +18,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-const START: &'static str = "shiny gold";
+const START: &str = "shiny gold";
 
 pub fn main() {
     println!("07a: {}", solve_a());

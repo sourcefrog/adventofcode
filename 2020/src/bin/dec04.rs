@@ -68,9 +68,9 @@ fn is_valid(para: &str) -> bool {
             "eyr" => v.len() == 4 && v >= "2020" && v <= "2030",
             "hgt" => {
                 if let Some(cm) = v.strip_suffix("cm") {
-                    cm >= "150" && cm <= "193"
+                    ("150"..="193").contains(&cm)
                 } else if let Some(inch) = v.strip_suffix("in") {
-                    inch >= "59" && inch <= "76"
+                    ("59"..="76").contains(&inch)
                 } else {
                     false
                 }

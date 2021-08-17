@@ -125,7 +125,7 @@ fn solve_b() -> usize {
     let n_fields = valid_tickets[0].len();
     let mut narrowing: Vec<HashSet<String>> = Vec::new();
     for field_idx in 0..n_fields {
-        for poss in valid_tickets
+        if let Some(poss) = valid_tickets
             .iter()
             .map(|t| t[field_idx])
             .map(|f| possible_fields(f, &defns))

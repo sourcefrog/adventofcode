@@ -57,9 +57,9 @@ fn load_input() -> String {
     std::fs::read_to_string("input/dec02.txt").unwrap()
 }
 
-fn parse(s: &str) -> Vec<Password> {
-    let mut v = Vec::new();
-    for line in s.lines() {
+fn parse(input: &str) -> Vec<Password> {
+    let mut result = Vec::new();
+    for line in input.lines() {
         let mut fields = line.split(&['-', ' ', ':'][..]);
         let a: usize = fields.next().unwrap().parse().unwrap();
         let b: usize = fields.next().unwrap().parse().unwrap();
@@ -67,9 +67,9 @@ fn parse(s: &str) -> Vec<Password> {
         assert_eq!(fields.next().unwrap(), "");
         let p = fields.next().unwrap().chars().collect();
         let p = Password { a, b, c, p };
-        v.push(p);
+        result.push(p);
     }
-    v
+    result
 }
 
 #[cfg(test)]

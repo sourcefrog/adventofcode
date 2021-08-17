@@ -30,7 +30,7 @@ pub fn main() {
 fn solve_a() -> usize {
     let mut tot: usize = 0;
     for l in std::fs::read_to_string("input/dec18.txt").unwrap().lines() {
-        let expr = parse(&l);
+        let expr = parse(l);
         println!("{:?}", expr);
         let val = eval(&expr);
         println!("=> {}", val);
@@ -42,7 +42,7 @@ fn solve_a() -> usize {
 fn solve_b() -> usize {
     let mut tot: usize = 0;
     for l in std::fs::read_to_string("input/dec18.txt").unwrap().lines() {
-        let expr = parse(&l);
+        let expr = parse(l);
         println!("{:?}", expr);
         let val = eval_b(&expr);
         println!("=> {}", val);
@@ -97,7 +97,7 @@ impl Term {
     }
 }
 
-fn eval(expr: &Expr) -> usize {
+fn eval(expr: &[TermOrOp]) -> usize {
     let mut it = expr.iter();
     assert!(expr.len() >= 3);
     // dbg!(expr.len());
@@ -115,7 +115,7 @@ fn eval(expr: &Expr) -> usize {
     accum
 }
 
-fn eval_b(expr: &Expr) -> usize {
+fn eval_b(expr: &[TermOrOp]) -> usize {
     let terms: Vec<&Term> = expr.iter().step_by(2).map(|o| o.as_term()).collect();
     let ops: Vec<char> = expr.iter().skip(1).step_by(2).map(|o| o.as_op()).collect();
     let term_vals: Vec<usize> = terms.iter().map(|t| t.eval_b()).collect();
@@ -142,7 +142,7 @@ fn eval_b(expr: &Expr) -> usize {
 fn parse_term(s: &str) -> IResult<&str, Term> {
     alt((
         map(digit1, |d: &str| Number(d.parse().unwrap())),
-        delimited(char('('), map(parse_expr, |ex| Parens(ex)), char(')')),
+        delimited(char('('), map(parse_expr, Parens), char(')')),
     ))(s)
 }
 
@@ -150,8 +150,8 @@ fn parse_expr(s: &str) -> IResult<&str, Expr> {
     separated_list1(
         space1,
         alt((
-            map(parse_term, |t| TermOrOp::Term(t)),
-            map(one_of("+*"), |c| TermOrOp::Op(c)),
+            map(parse_term, TermOrOp::Term),
+            map(one_of("+*"), TermOrOp::Op),
         )),
     )(s)
 }

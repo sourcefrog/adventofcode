@@ -23,12 +23,12 @@ fn solve_a() -> usize {
     let mut input = load();
     // add the final device
     input.push(input.iter().max().unwrap() + 3);
-    input.sort();
+    input.sort_unstable();
     let mut last = 0;
     let mut steps = [0usize; 4];
     for j in input {
         let diff = j - last;
-        debug_assert!(diff >= 1 && diff <= 3);
+        debug_assert!((1..=3).contains(&diff));
         steps[diff] += 1;
         last = j;
     }
@@ -43,7 +43,7 @@ fn solve_b() -> usize {
 fn solve_type_b(mut jolt: Vec<usize>) -> usize {
     jolt.push(jolt.iter().max().unwrap() + 3);
     jolt.push(0);
-    jolt.sort();
+    jolt.sort_unstable();
 
     // Number of paths leading to jolt[i]:
     let mut paths = vec![0; jolt.len()];
