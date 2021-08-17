@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 use std::convert::TryInto;
 
 const REPEATS: usize = 10_000;
@@ -28,7 +27,7 @@ pub fn main() {
 
 fn solve_b() -> String {
     let input = &std::fs::read_to_string("input/input16.txt").unwrap();
-    solve_type_b(&input)
+    solve_type_b(input)
 }
 
 fn solve_type_b(input: &str) -> String {

@@ -1,4 +1,3 @@
-#![allow(dead_code, unused_mut, unused_variables)]
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
@@ -121,8 +119,7 @@ impl Map {
 
         // Squares we want to visit, preceded by their depth, and including
         // the computer state when in them.
-        let mut queue: Vec<(usize, Point, Computer)> = Vec::new();
-        queue.push((0, (0, 0), orig_c));
+        let mut queue: Vec<(usize, Point, Computer)> = vec![(0, (0, 0), orig_c)];
 
         let mut oxygen_depth = None;
         let mut oxygen_pos = None;

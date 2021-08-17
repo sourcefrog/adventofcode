@@ -42,7 +42,7 @@ fn solve_a() -> usize {
 fn show_map(program: &Computer) {
     for y in 0..50 {
         for x in 0..50 {
-            if is_lit(&program, x, y) {
+            if is_lit(program, x, y) {
                 print!("#");
             } else {
                 print!(".");

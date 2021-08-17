@@ -15,7 +15,7 @@
 #[macro_use]
 extern crate itertools;
 
-use std::convert::{identity, TryInto};
+use std::convert::{ TryInto};
 
 pub fn main() {
     println!("03a: {}", solve_a());
@@ -124,7 +124,7 @@ impl Wire {
 fn intersect_any(ws1: &[Wire], ws2: &[Wire]) -> Option<usize> {
     iproduct!(ws1, ws2)
         .map(|(w1, w2)| w1.intersect(w2))
-        .filter_map(identity)
+        .flatten()
         .map(|(man_dist, _path_dist)| man_dist)
         .min()
 }
@@ -133,7 +133,7 @@ fn intersect_any(ws1: &[Wire], ws2: &[Wire]) -> Option<usize> {
 fn intersect_shortest(ws1: &[Wire], ws2: &[Wire]) -> Option<usize> {
     iproduct!(ws1, ws2)
         .map(|(w1, w2)| w1.intersect(w2))
-        .filter_map(identity)
+        .flatten()
         .map(|(_man_dist, path_dist)| path_dist)
         .min()
 }

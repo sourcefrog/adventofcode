@@ -92,7 +92,6 @@ impl fmt::Display for Moon {
     }
 }
 
-
 fn step(ms: &mut [Moon]) {
     // gravity
     // Use indexes to avoid multiply borrowing ms.

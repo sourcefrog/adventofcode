@@ -75,9 +75,7 @@ fn solve_type_b(s: &str, mins: usize) -> usize {
         // Every new level can be computed from previous states of this
         // level and the ones above and below it. If there was nothing above
         // or below it, we can just treat them as empty.
-        let mut newstack: Vec<Map> = Vec::new();
-        newstack.push(empty.clone());
-        newstack.push(empty.clone());
+        let mut newstack: Vec<Map> = vec![empty.clone(), empty.clone()];
         for win in stack.windows(3) {
             let next = stacked_next_state(&win[0], &win[1], &win[2]);
             // println!(

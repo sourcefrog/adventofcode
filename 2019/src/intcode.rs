@@ -199,11 +199,11 @@ impl Computer {
                 self.halt = true;
                 return false;
             }
-            Add(p1, p2, p3) => self.poke(&p3, self.peek(&p1).checked_add(self.peek(&p2)).unwrap()),
-            Mul(p1, p2, p3) => self.poke(&p3, self.peek(&p1).checked_mul(self.peek(&p2)).unwrap()),
+            Add(p1, p2, p3) => self.poke(p3, self.peek(p1).checked_add(self.peek(p2)).unwrap()),
+            Mul(p1, p2, p3) => self.poke(p3, self.peek(p1).checked_mul(self.peek(p2)).unwrap()),
             Input(a) => {
                 if let Some(v) = self.input.pop_front() {
-                    self.poke(&a, v);
+                    self.poke(a, v);
                 } else {
                     self.wants_input = true;
                     // Return without updating PC, so this will be tried again, hopefully
@@ -211,27 +211,27 @@ impl Computer {
                     return false;
                 }
             }
-            Output(a) => self.output.push_back(self.peek(&a)),
+            Output(a) => self.output.push_back(self.peek(a)),
             JumpIfTrue(p1, p2) => {
-                if self.peek(&p1) != 0 {
-                    newpc = self.peek(&p2).try_into().unwrap()
+                if self.peek(p1) != 0 {
+                    newpc = self.peek(p2).try_into().unwrap()
                 }
             }
             JumpIfFalse(p1, p2) => {
-                if self.peek(&p1) == 0 {
-                    newpc = self.peek(&p2).try_into().unwrap()
+                if self.peek(p1) == 0 {
+                    newpc = self.peek(p2).try_into().unwrap()
                 }
             }
             LessThan(p1, p2, p3) => {
-                let v: isize = (self.peek(&p1) < self.peek(&p2)).into();
-                self.poke(&p3, v);
+                let v: isize = (self.peek(p1) < self.peek(p2)).into();
+                self.poke(p3, v);
             }
             Equals(p1, p2, p3) => {
-                let v: isize = (self.peek(&p1) == self.peek(&p2)).into();
-                self.poke(&p3, v);
+                let v: isize = (self.peek(p1) == self.peek(p2)).into();
+                self.poke(p3, v);
             }
             AdjRelBase(p) => {
-                self.relbase = self.relbase.checked_add(self.peek(&p)).unwrap();
+                self.relbase = self.relbase.checked_add(self.peek(p)).unwrap();
             }
         }
         self.pc = newpc;
@@ -269,7 +269,7 @@ impl Computer {
             self.run();
             let (text, new_score) = self.drain_output_to_string_and_score();
             score = score.or(new_score);
-            out.write_all(&text.as_bytes()).unwrap();
+            out.write_all(text.as_bytes()).unwrap();
             if self.is_halted() {
                 return score;
             } else if self.wants_input() {

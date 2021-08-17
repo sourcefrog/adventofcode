@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::fmt;
@@ -42,7 +41,7 @@ impl KeySet {
     }
 
     fn offset(c: char) -> u32 {
-        assert!(c >= 'a' && c <= 'z');
+        assert!(c.is_ascii_lowercase());
         (c as u32) - ('a' as u32)
     }
 
@@ -247,7 +246,7 @@ fn reachable(
     let mut dist = dist0 + 1;
     let mut result = Vec::new();
     let mut remaining_keys = all_keys.clone();
-    remaining_keys.subtract(&ks);
+    remaining_keys.subtract(ks);
     while !queue.is_empty() && !remaining_keys.is_empty() {
         // Find every as-yet-unvisited neighbor at this distance.
         let mut new_queue: Vec<Point> = Vec::new();

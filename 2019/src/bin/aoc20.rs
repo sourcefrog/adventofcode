@@ -14,11 +14,8 @@
 
 //! AoC 2019-20: Find the shortest path through a (recursive) maze.
 
-#![allow(unused_imports, dead_code)]
-
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::path::Path;
 
 use mbp_aoc2019::shortest_path::shortest_distance;
 use mbp_aoc2019::{point, Matrix, Point};

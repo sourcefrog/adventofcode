@@ -129,7 +129,7 @@ fn solve_type_b(rm: RecipeMap) -> u64 {
 }
 
 /// True if any recipe in this map uses this chemical.
-fn any_recipe_uses(rm: &RecipeMap, chemical: &Chemical) -> bool {
+fn any_recipe_uses(rm: &RecipeMap, chemical: &str) -> bool {
     rm.values().any(|r| r.uses(chemical))
 }
 

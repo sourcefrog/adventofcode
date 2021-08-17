@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{convert::TryInto, str::FromStr};
+use std::str::FromStr;
 
 use modinverse::modinverse;
 use num_integer::gcd;
@@ -96,16 +95,14 @@ impl FromStr for Transform {
         let s = s.trim();
         if s == "deal into new stack" {
             Ok(Transform::Reverse)
-        } else if s.starts_with("deal with increment ") {
-            s[20..]
-                .parse()
+        } else if let Some(arg) = s.strip_prefix("deal with increment ") {
+            arg.parse()
                 .map_err(|_| ParseInstructionError {})
-                .map(|i| Transform::Multiply(i))
-        } else if s.starts_with("cut ") {
-            s[4..]
-                .parse()
+                .map(Transform::Multiply)
+        } else if let Some(arg) = s.strip_prefix("cut ") {
+            arg.parse()
                 .map_err(|_| ParseInstructionError {})
-                .map(|i| Transform::Add(i))
+                .map(Transform::Add)
         } else {
             Err(ParseInstructionError {})
         }
@@ -119,26 +116,6 @@ fn parse_input(s: &str) -> Vec<Transform> {
         .map(Transform::from_str)
         .map(Result::unwrap)
         .collect()
-}
-
-/// Given a list of transforms, find which card number ends up in a given position.
-fn card_at(position: i128, transforms: &[Transform], n_cards: i128) -> i128 {
-    // Originally, every card is in the position with its own number.
-    let mut c = position;
-    println!("eval card_at {}", position);
-    for t in transforms.iter().rev() {
-        let old_c = c;
-        assert!(c >= 0);
-        assert!(c < n_cards, "{} is too big before evaluating {:?}", c, t);
-        c = match *t {
-            Reverse => n_cards - 1 - c,
-            Add(i) => (c + n_cards + i) % n_cards,
-            Multiply(_i) => todo!(),
-        };
-        println!("eval {:?}, {} => {}", t, old_c, c);
-        assert!(c >= 0);
-    }
-    c
 }
 
 /// Transforms applied to the original deck so that card `i` ends up in position
@@ -181,7 +158,10 @@ impl Fold {
     }
 
     /// Given a collapsed transform, produce the deck
+    #[cfg(test)]
     fn to_deck(&self) -> Vec<i128> {
+        use std::convert::TryInto;
+
         let mut r = vec![-1; self.n as usize];
         for i in 0..(self.n) {
             let pos = self.position_of_card(i);
@@ -246,20 +226,20 @@ impl Fold {
                 result = result.multiply(&base);
             }
             base = base.double();
-            exp = exp >> 1;
+            exp >>= 1;
         }
         result
     }
 }
 
-fn cards_to_string(cards: &[i128]) -> String {
-    let s: Vec<String> = cards.iter().map(|c| c.to_string()).collect();
-    s.join(" ")
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
+
+    fn cards_to_string(cards: &[i128]) -> String {
+        let s: Vec<String> = cards.iter().map(|c| c.to_string()).collect();
+        s.join(" ")
+    }
 
     fn check_eval(input: &str, n_cards: i128, expected: &str) {
         let transforms = parse_input(input);

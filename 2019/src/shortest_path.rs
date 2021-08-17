@@ -15,7 +15,7 @@
 //! Find the shortest path in a graph, using Djikstra's method.
 
 use core::hash::Hash;
-use std::collections::{HashMap, BinaryHeap};
+use std::collections::{BinaryHeap, HashMap};
 
 type D = isize;
 

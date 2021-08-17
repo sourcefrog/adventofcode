@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // NOTE: This representation apparently does a lot of string copying. It could perhaps be
 // eliminated by keeping the names just once in the struct, but that might not be worth it unless
 // this's too slow.
