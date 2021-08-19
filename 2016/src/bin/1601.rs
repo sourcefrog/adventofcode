@@ -1,31 +1,12 @@
 //! https://adventofcode.com/2016/day/1
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
-enum Dir {
-    Left,
-    Right,
-}
 use std::collections::HashSet;
 
-use Dir::*;
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
-struct Heading(isize);
-
-impl Heading {
-    fn turn(&self, dir: Dir) -> Heading {
-        let rh = match dir {
-            Left => -1,
-            Right => 1,
-        };
-        let nd = (self.0 + rh).rem_euclid(4);
-        assert!((0..=3).contains(&nd));
-        Heading(nd)
-    }
-}
-
 #[derive(Debug, PartialEq, Eq)]
-struct Instruction(Dir, usize);
+struct Instruction {
+    turn: char,
+    len: usize,
+}
 
 #[derive(Debug, PartialEq, Eq, Default, Clone, Copy, Hash)]
 struct Position(isize, isize);
@@ -40,13 +21,10 @@ fn parse(s: &str) -> Vec<Instruction> {
     s.trim_end()
         .split(", ")
         .map(|p| {
-            let dir: Dir = match p.chars().nth(0).expect("no direction character") {
-                'R' => Right,
-                'L' => Left,
-                other => panic!("Unexpected character {:#?}", other),
-            };
+            let turn: char = p.chars().next().expect("no direction character");
+            assert!(turn == 'R' || turn == 'L');
             let len = p.split_at(1).1.parse().expect("parse length");
-            Instruction(dir, len)
+            Instruction { turn, len }
         })
         .collect()
 }
@@ -66,26 +44,30 @@ fn load() -> String {
 #[derive(Debug, PartialEq, Eq, Default)]
 struct Walker {
     pos: Position,
-    heading: Heading,
+    heading: isize,
 }
 
 impl Walker {
     /// Follow the given direction; returns a vec of all positions visited.
-    fn walk(&mut self, &Instruction(dir, len): &Instruction) -> Vec<Position> {
+    fn walk(&mut self, &Instruction { turn, len }: &Instruction) -> Vec<Position> {
         let mut visited = Vec::new();
-        let mut p = self.pos;
-        self.heading = self.heading.turn(dir);
+        let rh = match turn {
+            'L' => -1,
+            'R' => 1,
+            _ => panic!("unexpected turn"),
+        };
+        self.heading = (self.heading + rh).rem_euclid(4);
+        assert!((0..=3).contains(&self.heading));
         for _ in 0..len {
-            p = match self.heading.0 {
-                0 => Position(p.0, p.1 + 1),
-                1 => Position(p.0 + 1, p.1),
-                2 => Position(p.0, p.1 - 1),
-                3 => Position(p.0 - 1, p.1),
+            self.pos = match self.heading {
+                0 => Position(self.pos.0, self.pos.1 + 1),
+                1 => Position(self.pos.0 + 1, self.pos.1),
+                2 => Position(self.pos.0, self.pos.1 - 1),
+                3 => Position(self.pos.0 - 1, self.pos.1),
                 _ => panic!("unexpected heading"),
             };
-            visited.push(p);
+            visited.push(self.pos);
         }
-        self.pos = p;
         visited
     }
 }
@@ -120,14 +102,17 @@ mod test {
     #[test]
     fn parse() {
         use super::parse;
-        use super::{Dir::*, Instruction};
+        use super::Instruction;
 
         assert_eq!(
             parse("R1, L123, R99\n"),
             vec![
-                Instruction(Right, 1),
-                Instruction(Left, 123),
-                Instruction(Right, 99)
+                Instruction { turn: 'R', len: 1 },
+                Instruction {
+                    turn: 'L',
+                    len: 123
+                },
+                Instruction { turn: 'R', len: 99 },
             ]
         )
     }
