@@ -37,32 +37,18 @@ impl Position {
 }
 
 fn parse(s: &str) -> Vec<Instruction> {
-    let mut r = Vec::new();
-    let mut chars = s.chars();
-    loop {
-        let dir: Dir = match chars.next() {
-            None => break,
-            Some('R') => Right,
-            Some('L') => Left,
-            Some(other) => panic!("Unexpected character {:#?}", other),
-        };
-        let mut len: Option<usize> = None;
-        loop {
-            let d = match chars.next() {
-                Some(d) if d.is_ascii_digit() => d,
-                None | Some(',') | Some('\n') => break,
-                Some(other) => panic!("Unexpected non-digit {:#?}", other),
+    s.trim_end()
+        .split(", ")
+        .map(|p| {
+            let dir: Dir = match p.chars().nth(0).expect("no direction character") {
+                'R' => Right,
+                'L' => Left,
+                other => panic!("Unexpected character {:#?}", other),
             };
-            len = Some(len.unwrap_or_default() * 10 + d.to_digit(10).unwrap() as usize);
-        }
-        r.push(Instruction(dir, len.expect("Empty length field")));
-        match chars.next() {
-            Some(' ') | Some('\n') => (),
-            None => break,
-            Some(other) => panic!("Unexpected character {:#?}", other),
-        }
-    }
-    r
+            let len = p.split_at(1).1.parse().expect("parse length");
+            Instruction(dir, len)
+        })
+        .collect()
 }
 
 fn solve_a() -> usize {
