@@ -1,11 +1,33 @@
 //! https://adventofcode.com/2016/day/1
 
 use std::collections::HashSet;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq)]
 struct Instruction {
     turn: char,
     len: usize,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct InstructionParseError(&'static str);
+
+impl FromStr for Instruction {
+    type Err = InstructionParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let turn: char = s
+            .chars()
+            .next()
+            .ok_or(InstructionParseError("no direction character"))?;
+        assert!(turn == 'R' || turn == 'L');
+        let len = s
+            .split_at(1)
+            .1
+            .parse()
+            .or(Err(InstructionParseError("length parse error")))?;
+        Ok(Instruction { turn, len })
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Default, Clone, Copy, Hash)]
@@ -20,12 +42,7 @@ impl Position {
 fn parse(s: &str) -> Vec<Instruction> {
     s.trim_end()
         .split(", ")
-        .map(|p| {
-            let turn: char = p.chars().next().expect("no direction character");
-            assert!(turn == 'R' || turn == 'L');
-            let len = p.split_at(1).1.parse().expect("parse length");
-            Instruction { turn, len }
-        })
+        .map(|p| str::parse(p).unwrap())
         .collect()
 }
 
