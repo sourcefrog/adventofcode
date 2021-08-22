@@ -1,7 +1,5 @@
 //! https://adventofcode.com/2016/day/5
 
-use md5;
-
 const DAY: &str = "1605";
 
 fn solve_type_a(input: &str) -> String {
