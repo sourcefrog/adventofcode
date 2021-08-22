@@ -2,49 +2,47 @@
 
 const DAY: &str = "1606";
 
-fn solve_type_a(input: &str) -> String {
-    let inp: Vec<Vec<u8>> = input
-        .lines()
-        .map(str::trim)
-        .map(|l| l.bytes().collect())
-        .collect();
-    let mut r = String::new();
-    for col in 0..8 {
-        let mut counts = [0; 128];
-        for row in &inp {
-            counts[row[col] as usize] += 1;
+/// Returns a vec with 8 elements, one per column, each element
+/// being an array of length 128 giving the frequency of that
+/// ASCII character within that column.
+fn frequency_tables(input: &str) -> Vec<[usize; 128]> {
+    let mut f = vec![[0usize; 128]; 8];
+    for l in input.lines() {
+        assert_eq!(l.len(), f.len());
+        for (col, ch) in l.trim().bytes().enumerate() {
+            f[col][ch as usize] += 1
         }
-        let comm = counts
+    }
+    f
+}
+
+fn solve_type_a(input: &str) -> String {
+    let f = frequency_tables(input);
+    let mut r = String::new();
+    for counts in f {
+        let most = counts
             .iter()
             .enumerate()
             .max_by_key(|(_i, count)| **count)
             .unwrap()
             .0;
-        r.push(char::from_u32(comm as u32).unwrap());
+        r.push(most as u8 as char);
     }
     r
 }
 
 fn solve_type_b(input: &str) -> String {
-    let inp: Vec<Vec<u8>> = input
-        .lines()
-        .map(str::trim)
-        .map(|l| l.bytes().collect())
-        .collect();
+    let f = frequency_tables(input);
     let mut r = String::new();
-    for col in 0..8 {
-        let mut counts = [0; 128];
-        for row in &inp {
-            counts[row[col] as usize] += 1;
-        }
-        let comm = counts
+    for counts in f {
+        let least = counts
             .iter()
             .enumerate()
             .filter(|(_i, count)| **count > 0)
             .min_by_key(|(_i, count)| **count)
             .unwrap()
             .0;
-        r.push(char::from_u32(comm as u32).unwrap());
+        r.push(least as u8 as char);
     }
     r
 }
