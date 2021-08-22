@@ -21,8 +21,25 @@ fn solve_type_a(input: &str) -> String {
     unreachable!()
 }
 
-fn solve_type_b(input: &str) -> usize {
-    0
+fn solve_type_b(input: &str) -> String {
+    let input = input.trim();
+    let mut r = ['-'; 8];
+    for i in 0.. {
+        let msg = format!("{}{}", input, i);
+        let digest = md5::compute(msg.as_bytes());
+        if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
+            let pos = (digest[2] & 0x0f) as usize;
+            if pos > 7 || r[pos] != '-' {
+                continue;
+            }
+            r[pos] = char::from_digit((digest[3] >> 4) as u32, 16).unwrap();
+            println!("{}", r.iter().collect::<String>());
+            if !r.contains(&'-') {
+                return r.iter().collect();
+            }
+        }
+    }
+    unreachable!()
 }
 
 fn input() -> String {
@@ -33,7 +50,7 @@ fn solve_a() -> String {
     solve_type_a(&input())
 }
 
-fn solve_b() -> usize {
+fn solve_b() -> String {
     solve_type_b(&input())
 }
 
@@ -43,7 +60,7 @@ fn main() {
 }
 
 #[cfg(test)]
-mod test {
+mod test1605 {
     use super::*;
 
     #[test]
@@ -53,6 +70,6 @@ mod test {
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(), 0);
+        assert_eq!(solve_b(), "8c35d1ab");
     }
 }
