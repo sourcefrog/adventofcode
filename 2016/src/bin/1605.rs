@@ -9,12 +9,12 @@ fn solve_type_a(input: &str) -> String {
     let mut r = String::new();
     for i in 0.. {
         let msg = format!("{}{}", input, i);
-        let hexdigest = format!("{:x}", md5::compute(msg.as_bytes()));
-        if hexdigest.starts_with("00000") {
-            r.push(hexdigest.chars().nth(5).unwrap());
+        let digest = md5::compute(msg.as_bytes());
+        if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
+            r.push(char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap());
             // dbg!(&r);
             if r.len() == 8 {
-                return r
+                return r;
             }
         }
     }
