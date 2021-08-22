@@ -27,23 +27,59 @@ fn checksum(s: &str) -> String {
     v.iter().map(|(_count, c)| *c).take(5).collect()
 }
 
+fn parse(l: &str) -> (&str, usize, &str) {
+    let (a, cksum) = l.strip_suffix(']').unwrap().split_once('[').unwrap();
+    let (name, sector) = a.rsplit_once('-').unwrap();
+    (name, sector.parse().unwrap(), cksum)
+}
+
 fn solve_type_a(input: &str) -> usize {
     input
         .lines()
-        .flat_map(|l| {
-            let (a, cksum) = l.strip_suffix(']').unwrap().split_once('[').unwrap();
-            let (name, sector) = a.rsplit_once('-').unwrap();
+        .map(|l| {
+            let (name, sector, cksum) = parse(l);
             if cksum == checksum(name) {
-                Some(sector.parse::<usize>().unwrap())
+                sector
             } else {
-                None
+                0
             }
         })
         .sum()
 }
 
+fn rotate(c: char, sector: usize) -> char {
+    ord_to_letter((letter_to_ord(c) + sector) % 26)
+}
+
+fn decrypt(cypher: &str, sector: usize) -> String {
+    cypher
+        .chars()
+        .filter(char::is_ascii_lowercase)
+        .map(|c| rotate(c, sector))
+        .collect()
+}
+
 fn solve_type_b(input: &str) -> usize {
-    todo!()
+    input
+        .lines()
+        .flat_map(|l| {
+            let (name, sector, cksum) = parse(l);
+            if cksum == checksum(name) {
+                let cleartext = decrypt(name, sector);
+                println!("{}", cleartext);
+                Some((sector, cleartext))
+            } else {
+                None
+            }
+        })
+        .find_map(|(sector, cleartext)| {
+            if cleartext == "northpoleobjectstorage" {
+                Some(sector)
+            } else {
+                None
+            }
+        })
+        .unwrap()
 }
 
 fn input() -> String {
@@ -96,6 +132,6 @@ mod test {
 
     #[test]
     fn solution_b() {
-        // assert_eq!(solve_b(), 1921);
+         assert_eq!(solve_b(), 324);
     }
 }
