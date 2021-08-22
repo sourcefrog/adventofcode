@@ -1,6 +1,7 @@
 //! https://adventofcode.com/2016/day/4
 
 const DAY: &str = "1604";
+const TARGET: &str = "northpoleobjectstorage";
 
 fn letter_to_ord(c: char) -> usize {
     ((c as u32) - ('a' as u32)) as usize
@@ -33,17 +34,16 @@ fn parse(l: &str) -> (&str, usize, &str) {
     (name, sector.parse().unwrap(), cksum)
 }
 
-fn solve_type_a(input: &str) -> usize {
+fn real_rooms(input: &str) -> impl Iterator<Item = (&str, usize, &str)> {
     input
         .lines()
-        .map(|l| {
-            let (name, sector, cksum) = parse(l);
-            if cksum == checksum(name) {
-                sector
-            } else {
-                0
-            }
-        })
+        .map(parse)
+        .filter(|(name, _sector, cksum)| *cksum == checksum(name))
+}
+
+fn solve_type_a(input: &str) -> usize {
+    real_rooms(input)
+        .map(|(_name, sector, _cksum)| sector)
         .sum()
 }
 
@@ -60,25 +60,10 @@ fn decrypt(cypher: &str, sector: usize) -> String {
 }
 
 fn solve_type_b(input: &str) -> usize {
-    input
-        .lines()
-        .flat_map(|l| {
-            let (name, sector, cksum) = parse(l);
-            if cksum == checksum(name) {
-                let cleartext = decrypt(name, sector);
-                println!("{}", cleartext);
-                Some((sector, cleartext))
-            } else {
-                None
-            }
-        })
-        .find_map(|(sector, cleartext)| {
-            if cleartext == "northpoleobjectstorage" {
-                Some(sector)
-            } else {
-                None
-            }
-        })
+    real_rooms(input)
+        .filter(|(name, sector, _cksum)| decrypt(name, *sector) == TARGET)
+        .map(|(_, sector, _)| sector)
+        .next()
         .unwrap()
 }
 
@@ -132,6 +117,6 @@ mod test {
 
     #[test]
     fn solution_b() {
-         assert_eq!(solve_b(), 324);
+        assert_eq!(solve_b(), 324);
     }
 }
