@@ -1,5 +1,7 @@
 //! https://adventofcode.com/2016/day/3
 
+const DAY: &str = "1603";
+
 fn solve_type_a(s: &str) -> usize {
     s.lines()
         .filter(|l| {
@@ -36,7 +38,7 @@ fn solve_type_b(input: &str) -> usize {
 }
 
 fn input() -> String {
-    std::fs::read_to_string("input/1603.txt").unwrap()
+    std::fs::read_to_string(&format!("input/{}.txt", DAY)).unwrap()
 }
 
 fn solve_a() -> usize {
@@ -48,8 +50,8 @@ fn solve_b() -> usize {
 }
 
 fn main() {
-    println!("1602a: {}", solve_a());
-    println!("1602b: {}", solve_b());
+    println!("{}a: {}", DAY, solve_a());
+    println!("{}b: {}", DAY, solve_b());
 }
 
 #[cfg(test)]
