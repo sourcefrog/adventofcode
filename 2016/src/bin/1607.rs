@@ -3,26 +3,24 @@
 const DAY: &str = "1607";
 
 fn solve_type_a(input: &str) -> usize {
-    input.lines().map(str::trim)
-        .filter(|l| supports_tls(l))
-        .count()
+    input.lines().filter(|l| supports_tls(l)).count()
 }
 
-/// Parse into a vec of components outside of brackets, and a 
+/// Parse into a vec of components outside of brackets, and a
 /// vec that are inside.
-fn parse(l: &str) -> (Vec<&str>, Vec<&str>) {
+fn parse(l: &str) -> (Vec<Vec<char>>, Vec<Vec<char>>) {
     let mut outside = Vec::new();
     let mut inside = Vec::new();
-    let mut rest = l;
+    let mut rest = l.trim();
     while !rest.is_empty() {
         if let Some((a, b)) = rest.split_once('[') {
-            outside.push(a);
+            outside.push(a.chars().collect());
             let (c, d) = b.split_once(']').expect("closing brace");
-            inside.push(c);
+            inside.push(c.chars().collect());
             rest = d;
         } else {
             // No more brackets; the remainder is outside, and we're done
-            outside.push(rest);
+            outside.push(rest.chars().collect());
             break;
         }
     }
@@ -34,13 +32,31 @@ fn supports_tls(l: &str) -> bool {
     outside.iter().any(|s| is_abba(s)) && !inside.iter().any(|s| is_abba(s))
 }
 
-fn is_abba(a: &str) -> bool {
-    let chs: Vec<char> = a.chars().collect();
-    chs.windows(4).any(|w| w[0] == w[3] && w[1] == w[2] && w[0] != w[1])
+fn is_abba(a: &[char]) -> bool {
+    a.windows(4)
+        .any(|w| w[0] == w[3] && w[1] == w[2] && w[0] != w[1])
 }
 
 fn solve_type_b(input: &str) -> usize {
-    0
+    input.lines().filter(|l| supports_ssl(l)).count()
+}
+
+fn supports_ssl(l: &str) -> bool {
+    let (supernets, hypernets) = parse(l);
+    supernets
+        .iter()
+        .flat_map(|a| a.windows(3).filter(|w| is_aba(w)))
+        .any(|aba| hypernets.iter().any(|hn| contains_bab(hn, aba)))
+}
+
+fn is_aba(a: &[char]) -> bool {
+    a[0] == a[2] && a[0] != a[1]
+}
+
+fn contains_bab(hn: &[char], aba: &[char]) -> bool {
+    debug_assert_eq!(aba.len(), 3);
+    hn.windows(3)
+        .any(|w| w[0] == aba[1] && w[1] == aba[0] && w[2] == aba[1])
 }
 
 fn input() -> String {
@@ -71,6 +87,6 @@ mod test {
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(), 0);
+        assert_eq!(solve_b(), 260);
     }
 }
