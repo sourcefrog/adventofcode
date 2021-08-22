@@ -3,12 +3,12 @@
 const DAY: &str = "1604";
 const TARGET: &str = "northpoleobjectstorage";
 
-fn letter_to_ord(c: char) -> usize {
-    ((c as u32) - ('a' as u32)) as usize
+fn letter_to_ord(c: u8) -> usize {
+    (c - b'a') as usize
 }
 
 fn ord_to_letter(o: usize) -> char {
-    char::from_u32(('a' as u32) + (o as u32)).unwrap()
+    char::from_u32(b'a' as u32 + o as u32).unwrap()
 }
 
 /// Return the five most common letters in s, in order by frequency,
@@ -16,7 +16,7 @@ fn ord_to_letter(o: usize) -> char {
 /// ignored.
 fn checksum(s: &str) -> String {
     let mut counts = [0; 26];
-    for c in s.chars().filter(char::is_ascii_lowercase) {
+    for c in s.bytes().filter(u8::is_ascii_lowercase) {
         counts[letter_to_ord(c)] += 1;
     }
     let mut v: Vec<(isize, char)> = counts
@@ -47,14 +47,14 @@ fn solve_type_a(input: &str) -> usize {
         .sum()
 }
 
-fn rotate(c: char, sector: usize) -> char {
+fn rotate(c: u8, sector: usize) -> char {
     ord_to_letter((letter_to_ord(c) + sector) % 26)
 }
 
 fn decrypt(cypher: &str, sector: usize) -> String {
     cypher
-        .chars()
-        .filter(char::is_ascii_lowercase)
+        .bytes()
+        .filter(u8::is_ascii_lowercase)
         .map(|c| rotate(c, sector))
         .collect()
 }
