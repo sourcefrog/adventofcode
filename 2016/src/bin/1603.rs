@@ -50,12 +50,12 @@ fn solve_b() -> usize {
 }
 
 fn main() {
-    println!("{}a: {}", DAY, solve_a());
-    println!("{}b: {}", DAY, solve_b());
+    println!("1603a: {}", solve_a());
+    println!("1603b: {}", solve_b());
 }
 
 #[cfg(test)]
-mod test {
+mod test1603 {
     use super::*;
 
     #[test]
