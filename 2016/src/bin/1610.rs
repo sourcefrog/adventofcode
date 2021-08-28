@@ -3,6 +3,7 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
 use std::cmp::max;
+use std::collections::HashMap;
 
 use nom::branch::alt;
 use nom::bytes::complete::tag;
@@ -22,10 +23,23 @@ type OutputId = usize;
 struct Bot {
     /// 0 to 2 values that are already loaded into this bot.
     values: Vec<Chip>,
+
+    low: Option<Dest>,
+    high: Option<Dest>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+impl Bot {
+    fn take(&mut self, value: Chip) {
+        assert!(self.values.len() < 2, "bot is already full");
+        self.values.push(value)
+    }
 
+    fn is_ready(&self) -> bool {
+        self.values.len() == 2
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Dest {
     Bot(BotId),
     Output(OutputId),
@@ -43,7 +57,7 @@ impl Dest {
 
 #[derive(Debug, PartialEq, Eq)]
 enum Inst {
-    Load { value: Chip, bot: BotId },
+    Load { chip: Chip, bot: BotId },
     Give { bot: BotId, low: Dest, high: Dest },
 }
 
@@ -78,7 +92,7 @@ fn parse_line(input: &str) -> IResult<&str, Inst> {
     alt((
         map(
             tuple((tag("value "), parse_int, tag(" goes to bot "), parse_int)),
-            |(_, value, _, bot)| Inst::Load { value, bot },
+            |(_, value, _, bot)| Inst::Load { chip: value, bot },
         ),
         map(
             tuple((
@@ -113,9 +127,56 @@ fn solve_type_a(input: &str) -> usize {
     // seems like we need to keep them queued up per bot, and then when it does
     // get two inputs we can reevaluate them.
     let (rest, insts) = parse(input).expect("parse");
-    assert!(rest.is_empty());
+    debug_assert!(rest.is_empty());
     let n_bots = max_bot_number(&insts);
-    todo!();
+    let mut bots: Vec<Bot> = (0..=n_bots).map(|_| Bot::default()).collect();
+    // First load all the chips, and queue up give instructions
+    for inst in &insts {
+        match inst {
+            Inst::Load { chip: value, bot } => bots[*bot].take(*value),
+            Inst::Give { bot, low, high } => {
+                let bot = &mut bots[*bot];
+                assert!(bot.low.is_none() && bot.high.is_none());
+                bot.low = Some(low.clone());
+                bot.high = Some(high.clone());
+            }
+        }
+        // dbg!(&inst);
+    }
+    for bot in &bots {
+        println!("{:?}", *bot);
+    }
+    // Find a robot that has two chips and instructions on what to do with them
+    loop {
+        for bot_id in 1..n_bots {
+            if bots[bot_id].is_ready() {
+                let bot = &bots[bot_id];
+                println!("move on {}: {:?}", bot_id, bot);
+                let lowv = *bot.values.iter().min().unwrap();
+                let highv = *bot.values.iter().max().unwrap();
+                if lowv == 17 && highv == 61 {
+                    return bot_id;
+                }
+                let low = bot.low.as_ref().unwrap().clone();
+                let high = bot.high.as_ref().unwrap().clone();
+                match low {
+                    Dest::Bot(lowbot) => {
+                        println!("give {} to {}", lowv, lowbot);
+                        bots[lowbot].take(lowv)
+                    }
+                    _ => (),
+                };
+                match high {
+                    Dest::Bot(highbot) => {
+                        println!("give {} to {}", highv, highbot);
+                        bots[highbot].take(highv)
+                    }
+                    _ => (),
+                };
+                bots[bot_id].values.clear();
+            }
+        }
+    }
 }
 
 fn solve_type_b(input: &str) -> usize {
@@ -147,16 +208,16 @@ mod test1610 {
     fn parse_lines() {
         assert_eq!(
             parse_line("value 5 goes to bot 2\n"),
-            Ok(("\n", Inst::Load { value: 5, bot: 2 }))
+            Ok(("\n", Inst::Load { chip: 5, bot: 2 }))
         );
         assert_eq!(
             parse("value 5 goes to bot 2\nvalue 3000 goes to bot 112233\n"),
             Ok((
                 "",
                 vec![
-                    Inst::Load { value: 5, bot: 2 },
+                    Inst::Load { chip: 5, bot: 2 },
                     Inst::Load {
-                        value: 3000,
+                        chip: 3000,
                         bot: 112233
                     }
                 ]
@@ -187,10 +248,10 @@ mod test1610 {
         assert_eq!(insts.len(), 231);
     }
 
-    // #[test]
-    // fn solution_a() {
-    //     assert_eq!(solve_a(), 0);
-    // }
+    #[test]
+    fn solution_a() {
+        assert_eq!(solve_a(), 27);
+    }
 
     // #[test]
     // fn solution_b() {
