@@ -4,12 +4,12 @@
 
 use std::cmp::max;
 
-use nom::bytes::complete::{tag, take_while_m_n};
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::{line_ending, not_line_ending, one_of};
-use nom::combinator::{all_consuming, map};
-use nom::combinator::{map_res, recognize};
+use nom::combinator::{all_consuming, map, map_res, recognize};
 use nom::multi::{many0, many1};
-use nom::sequence::{terminated, tuple};
+use nom::sequence::{preceded, terminated, tuple};
 use nom::IResult;
 
 const DAY: &str = "1610";
@@ -51,10 +51,11 @@ impl Inst {
     fn max_bot_id(&self) -> BotId {
         match self {
             Inst::Load { bot, .. } => *bot,
-            Inst::Give { bot, low, high } => {
-            [low, high].iter().flat_map(|d| d.bot_id()).max()
-                .map_or(*bot, |a| max(a, *bot))
-            },
+            Inst::Give { bot, low, high } => [low, high]
+                .iter()
+                .flat_map(|d| d.bot_id())
+                .max()
+                .map_or(*bot, |a| max(a, *bot)),
         }
     }
 }
@@ -65,12 +66,32 @@ fn parse_int(input: &str) -> IResult<&str, usize> {
     })(input)
 }
 
+fn parse_dest(input: &str) -> IResult<&str, Dest> {
+    alt((
+        preceded(tag("output "), map(parse_int, |v| Dest::Output(v))),
+        preceded(tag("bot "), map(parse_int, |v| Dest::Bot(v))),
+    ))(input)
+}
+
 fn parse_line(input: &str) -> IResult<&str, Inst> {
     // dbg!(&input);
-    map(
-        tuple((tag("value "), parse_int, tag(" goes to bot "), parse_int)),
-        |(_, value, _, bot)| Inst::Load { value, bot },
-    )(input)
+    alt((
+        map(
+            tuple((tag("value "), parse_int, tag(" goes to bot "), parse_int)),
+            |(_, value, _, bot)| Inst::Load { value, bot },
+        ),
+        map(
+            tuple((
+                tag("bot "),
+                parse_int,
+                tag(" gives low to "),
+                parse_dest,
+                tag(" and high to "),
+                parse_dest,
+            )),
+            |(_, bot, _, low, _, high)| Inst::Give { bot, low, high },
+        ),
+    ))(input)
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Inst>> {
@@ -146,25 +167,33 @@ mod test1610 {
     #[test]
     fn parse_give() {
         assert_eq!(
-            parse_line("bot 1 gives low to output 1 and high to bot 0\n"),
+            parse_line("bot 42 gives low to output 0 and high to bot 90\n"),
             Ok((
                 "\n",
                 Inst::Give {
-                    bot: 2,
-                    low: Dest::Output(1),
-                    high: Dest::Bot(0),
+                    bot: 42,
+                    low: Dest::Output(0),
+                    high: Dest::Bot(90),
                 }
             ))
         );
     }
 
     #[test]
-    fn solution_a() {
-        assert_eq!(solve_a(), 0);
+    fn parse_all_input() {
+        let input = &input();
+        let (rest, insts) = parse(&input).unwrap();
+        assert!(rest.is_empty());
+        assert_eq!(insts.len(), 231);
     }
 
-    #[test]
-    fn solution_b() {
-        assert_eq!(solve_b(), 0);
-    }
+    // #[test]
+    // fn solution_a() {
+    //     assert_eq!(solve_a(), 0);
+    // }
+
+    // #[test]
+    // fn solution_b() {
+    //     assert_eq!(solve_b(), 0);
+    // }
 }
