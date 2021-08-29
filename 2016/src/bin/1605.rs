@@ -4,19 +4,18 @@ const DAY: &str = "1605";
 
 fn solve_type_a(input: &str) -> String {
     let input = input.trim();
-    let mut r = String::new();
-    for i in 0.. {
-        let msg = format!("{}{}", input, i);
-        let digest = md5::compute(msg.as_bytes());
-        if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
-            r.push(char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap());
-            // dbg!(&r);
-            if r.len() == 8 {
-                return r;
+    (0..)
+        .flat_map(|i| {
+            let msg = format!("{}{}", input, i);
+            let digest = md5::compute(msg.as_bytes());
+            if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
+                Some(char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap())
+            } else {
+                None
             }
-        }
-    }
-    unreachable!()
+        })
+        .take(8)
+        .collect()
 }
 
 fn solve_type_b(input: &str) -> String {
