@@ -75,6 +75,8 @@ fn itoa(a: usize, buf: &mut [u8]) -> Option<usize> {
 
 fn solve_type_a_parallel(input: &str) -> String {
     let input = input.trim();
+    let ibytes = input.as_bytes();
+    let ilen = ibytes.len();
     let ncpus = num_cpus::get();
     const GOAL: usize = 8;
     // We need to find the first 8 hashes that have 5 leading zeroes.
@@ -92,11 +94,13 @@ fn solve_type_a_parallel(input: &str) -> String {
     crossbeam::scope(|scope| {
         for _ in 0..ncpus {
             scope.spawn(|_scope| {
+                let mut buf = vec![0u8; ilen + 20];
+                buf[..ilen].copy_from_slice(ibytes);
                 loop {
                     let i = iatomic.fetch_add(1, Ordering::Relaxed);
                     // sleep(Duration::from_millis(1000));
-                    let msg = format!("{}{}", input, i);
-                    let digest = md5::compute(msg.as_bytes());
+                    let msglen = ilen + itoa(i, &mut buf[ilen..]).unwrap();
+                    let digest = md5::compute(&buf[..msglen]);
                     if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
                         let ch = char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap();
                         let mut rlck = results.lock().unwrap();
