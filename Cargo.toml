@@ -4,3 +4,5 @@ members = [
     "2019",
     "2020"
 ]
+[profile.release]
+debug = 1
