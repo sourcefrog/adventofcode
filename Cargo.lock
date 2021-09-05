@@ -237,7 +237,6 @@ version = "0.1.0"
 dependencies = [
  "md5",
  "nom 7.0.0",
- "num-bigint",
 ]
 
 [[package]]
@@ -303,17 +302,6 @@ dependencies = [
  "memchr",
  "minimal-lexical",
  "version_check",
-]
-
-[[package]]
-name = "num-bigint"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e0d047c1062aa51e256408c560894e5251f08925980e53cf1aa5bd00eec6512"
-dependencies = [
- "autocfg",
- "num-integer",
- "num-traits",
 ]
 
 [[package]]

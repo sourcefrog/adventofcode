@@ -1,7 +1,5 @@
 //! https://adventofcode.com/2016/day/9
 
-use num_bigint::BigUint;
-
 const DAY: &str = "1609";
 
 fn read_int<I: Iterator<Item = char>>(inch: &mut I, terminator: char) -> usize {
@@ -45,16 +43,16 @@ fn solve_type_a(input: &str) -> usize {
 }
 
 /// Return the decompressed length for a string that might contain recursive repetitions.
-fn decompressed_len(input: &str) -> BigUint {
+fn decompressed_len(input: &str) -> u64 {
     let b: Vec<char> = input.chars().filter(|c| !c.is_whitespace()).collect();
     recurse_len(&b)
 }
 
-fn parse_int(b: &[char]) -> usize {
+fn parse_int(b: &[char]) -> u64 {
     b.iter().collect::<String>().parse().expect("parse int")
 }
 
-fn parse_repeat(b: &[char]) -> (usize, usize, &[char]) {
+fn parse_repeat(b: &[char]) -> (u64, u64, &[char]) {
     let xpos = b.iter().position(|c| *c == 'x').expect("find x");
     let ppos = b.iter().position(|c| *c == ')').expect("find ')'");
     let replen = parse_int(&b[..xpos]);
@@ -62,8 +60,8 @@ fn parse_repeat(b: &[char]) -> (usize, usize, &[char]) {
     (replen, repcnt, &b[(ppos + 1)..])
 }
 
-fn recurse_len(mut b: &[char]) -> BigUint {
-    let mut l = BigUint::default();
+fn recurse_len(mut b: &[char]) -> u64 {
+    let mut l = 0;
     // let orig_b = b;
     while !b.is_empty() {
         let c = b[0];
@@ -71,18 +69,19 @@ fn recurse_len(mut b: &[char]) -> BigUint {
         if c == '(' {
             let (replen, repcnt, rest) = parse_repeat(&b);
             // println!("{}, {}", replen, repcnt);
-            let sub_b = &rest[..replen];
-            b = &rest[replen..];
+            let rus: usize = replen as usize;
+            let sub_b = &rest[..rus];
+            b = &rest[rus..];
             l += repcnt * recurse_len(sub_b);
         } else {
-            l += 1u32
+            l += 1u64
         }
     }
     // println!("{} => {}", orig_b.iter().collect::<String>(), l);
     l
 }
 
-fn solve_type_b(input: &str) -> BigUint {
+fn solve_type_b(input: &str) -> u64 {
     decompressed_len(input)
 }
 
@@ -94,7 +93,7 @@ fn solve_a() -> usize {
     solve_type_a(&input())
 }
 
-fn solve_b() -> BigUint {
+fn solve_b() -> u64 {
     solve_type_b(&input())
 }
 
