@@ -8,11 +8,9 @@ readme = "README.md"
 publish = false
 license = "Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-# fnv = "1.0.7"
-# itertools = "0.9"
-# nom = "6"
+concurrent-queue = "1.2.2"
+crossbeam = "0.8.1"
 md5 = "0.7.0"
+num_cpus = "1.13"
 nom = "7.0"
