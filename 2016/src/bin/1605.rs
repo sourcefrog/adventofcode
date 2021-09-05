@@ -8,13 +8,20 @@ Compute naively and sequentially on a single thread until 8 results are found:
      Time (mean ± σ):     953.4 ms ±  10.4 ms    [User: 952.9 ms, System: 0.4 ms]
      Range (min … max):   938.4 ms … 973.6 ms    10 runs
 
-Run ncpus threads until enough results are found:
+Run ncpus threads until enough results are found (f2a5ee2d):
 
     Benchmark #1: ../target/release/1605
       Time (mean ± σ):     142.4 ms ±  52.8 ms    [User: 3.372 s, System: 0.003 s]
       Range (min … max):    90.8 ms … 259.7 ms    50 runs
 
 (It's noticeably noisy.)
+
+Using only physical cores with `num_cpus::get_physical` is slower:
+
+    Benchmark #1: ../target/release/1605a
+    Time (mean ± σ):     211.4 ms ±  88.3 ms    [User: 2.443 s, System: 0.001 s]
+    Range (min … max):   130.7 ms … 352.4 ms    50 runs
+
 */
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -38,6 +45,34 @@ fn solve_type_a(input: &str) -> String {
         .collect()
 }
 
+/// Write a decimal representation of an integer into an existing byte buffer.
+///
+/// Return the number of bytes written if possible, or None if it does not fit.
+#[must_use]
+fn itoa(a: usize, buf: &mut [u8]) -> Option<usize> {
+    let mut l = 0;
+    // work out the length
+    let mut aa = a;
+    loop {
+        l += 1;
+        aa /= 10;
+        if aa == 0 {
+            break;
+        }
+    }
+    if l > buf.len() {
+        return None;
+    }
+    // now generate digits from right to left
+    let mut aa = a;
+    for i in (0..l).rev() {
+        let d = (aa % 10) as u8;
+        aa /= 10;
+        buf[i] = b'0' + d;
+    }
+    Some(l)
+}
+
 fn solve_type_a_parallel(input: &str) -> String {
     let input = input.trim();
     let ncpus = num_cpus::get();
@@ -46,10 +81,10 @@ fn solve_type_a_parallel(input: &str) -> String {
     //
     // Start ncpus threads, each generating hashes.
     //
-    // Each takes a number to generate from an atomic int, so we know
-    // they are _started_ in order, but due to skew between the threads they
-    // may not finish in order. Therefore we also need to remember the `i` that
-    // found a match, and sort them when we're done.
+    // Each takes a number to generate from an atomic int, so we know they are
+    // _started_ in order, but due to skew between the threads they may not
+    // finish in order. Therefore we also need to remember the `i` that found a
+    // match, and sort them when we're done.
 
     let iatomic = AtomicUsize::new(0);
     let results = Mutex::new(Vec::new());
@@ -126,6 +161,8 @@ fn main() {
 
 #[cfg(test)]
 mod test1605 {
+    use proptest::prelude::*;
+
     use super::*;
 
     #[test]
@@ -141,5 +178,33 @@ mod test1605 {
     #[test]
     fn solution_b() {
         assert_eq!(solve_b(), "8c35d1ab");
+    }
+
+    proptest! {
+    #[test]
+    fn test_itoa(a: usize) {
+        println!("a={}", a);
+        let mut buf = [0u8; 30];
+        check_itoa(a, &mut buf);
+    }}
+
+    #[test]
+    fn test_itoa_basics() {
+        check_itoa(0, &mut [0u8]);
+        check_itoa(1, &mut [0u8]);
+        check_itoa(2, &mut [0u8]);
+    }
+
+    #[test]
+    fn itoa_too_small() {
+        assert!(itoa(100, &mut []).is_none());
+        assert!(itoa(100, &mut [0]).is_none());
+        assert!(itoa(100, &mut [0, 0]).is_none());
+        assert!(itoa(0, &mut []).is_none());
+    }
+
+    fn check_itoa(a: usize, buf: &mut [u8]) {
+        let l: usize = itoa(a, buf).unwrap();
+        assert_eq!(format!("{}", a).as_bytes(), &buf[..l]);
     }
 }
