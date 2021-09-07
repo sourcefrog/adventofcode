@@ -38,12 +38,19 @@ through the series with less coordination? This is much better again
     Time (mean ± σ):      49.2 ms ±   3.4 ms    [User: 1.107 s, System: 0.001 s]
     Range (min … max):    47.2 ms …  74.2 ms    62 runs
 
-Switching from a std::sync::Mutex to a RwLock makes things incrementally better again:
+Switching from a std::sync::Mutex to a RwLock makes things incrementally better again
+(c58b82d3e36a359aa0f0c1179c9fbc67c245f848):
 
     Benchmark #1: ../target/release/1605
     Time (mean ± σ):      42.5 ms ±   2.6 ms    [User: 964.6 ms, System: 1.4 ms]
     Range (min … max):    40.5 ms …  55.5 ms    100 runs
-    
+
+Generating digits in reverse order should do fewer integer divisions but makes no
+perceptible difference:
+
+    Benchmark #1: ../target/release/1605
+    Time (mean ± σ):      42.7 ms ±   3.1 ms    [User: 969.3 ms, System: 1.0 ms]
+    Range (min … max):    40.6 ms …  62.3 ms    100 runs
 
 
 */
@@ -56,13 +63,15 @@ const DAY: &str = "1605";
 ///
 /// Return the number of bytes written if possible, or None if it does not fit.
 #[must_use]
-fn itoa(a: usize, buf: &mut [u8]) -> Option<usize> {
+fn itoa(a: u64, buf: &mut [u8]) -> Option<usize> {
     let mut l = 0;
-    // work out the length
+    let mut revdigs = [0u8; 22];
+    // work out the length and accumulate digits in reverse order.
     let mut aa = a;
     loop {
-        l += 1;
+        revdigs[l] = b'0' + (aa % 10) as u8;
         aa /= 10;
+        l += 1;
         if aa == 0 {
             break;
         }
@@ -70,12 +79,8 @@ fn itoa(a: usize, buf: &mut [u8]) -> Option<usize> {
     if l > buf.len() {
         return None;
     }
-    // now generate digits from right to left
-    let mut aa = a;
-    for i in (0..l).rev() {
-        let d = (aa % 10) as u8;
-        aa /= 10;
-        buf[i] = b'0' + d;
+    for i in 0..l {
+        buf[l - i - 1] = revdigs[i];
     }
     Some(l)
 }
@@ -101,15 +106,16 @@ fn solve_type_a_parallel(input: &str) -> String {
                 buf[..ilen].copy_from_slice(ibytes);
                 for j in 0.. {
                     let i = j * ncpus + thread_i;
-                    let msglen = ilen + itoa(i, &mut buf[ilen..]).unwrap();
+                    let msglen = ilen + itoa(i as u64, &mut buf[ilen..]).unwrap();
                     let digest = md5::compute(&buf[..msglen]);
                     if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
                         let ch = char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap();
                         rrw.write().push((i, ch));
                         // println!("found at i={}", i);
                     }
-                    // If there are GOAL elements all with index <i then this thread cannot possibly find any more good answers.
-                    else if j % 512 == 0 {
+                    // If there are GOAL elements all with index <i then this
+                    // thread cannot possibly find any more good answers.
+                    else if j % 256 == 0 {
                         let r = rrw.read();
                         if r.len() >= GOAL && r.iter().all(|(ii, _c)| *ii < i) {
                             // println!("{} is done", thread_i);
@@ -183,7 +189,7 @@ mod test1605 {
 
     proptest! {
     #[test]
-    fn test_itoa(a: usize) {
+    fn test_itoa(a: u64) {
         println!("a={}", a);
         let mut buf = [0u8; 30];
         check_itoa(a, &mut buf);
@@ -204,7 +210,7 @@ mod test1605 {
         assert!(itoa(0, &mut []).is_none());
     }
 
-    fn check_itoa(a: usize, buf: &mut [u8]) {
+    fn check_itoa(a: u64, buf: &mut [u8]) {
         let l: usize = itoa(a, buf).unwrap();
         assert_eq!(format!("{}", a).as_bytes(), &buf[..l]);
     }
