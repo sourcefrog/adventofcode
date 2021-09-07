@@ -6,3 +6,4 @@ tags
 .vscode/.ropeproject/objectdb
 2016/target
 2016/callgrind.out.*
+2016/flamegraph.svg
