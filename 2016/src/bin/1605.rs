@@ -25,17 +25,30 @@ Using only physical cores with `num_cpus::get_physical` is slower:
 Checking for changes less frequently, is much better: presumably less ping-ponging
 of the variable across threads (9a021acba4b319cfb9d14636d14e4a001da0c78a):
 
-> hyperfine ../target/release/1605 --warmup 20 -m 50
-Benchmark #1: ../target/release/1605
-  Time (mean ± σ):      91.4 ms ±   2.2 ms    [User: 2.158 s, System: 0.001 s]
-  Range (min … max):    86.5 ms …  95.0 ms    50 runs
+    > hyperfine ../target/release/1605 --warmup 20 -m 50
+    Benchmark #1: ../target/release/1605
+    Time (mean ± σ):      91.4 ms ±   2.2 ms    [User: 2.158 s, System: 0.001 s]
+    Range (min … max):    86.5 ms …  95.0 ms    50 runs
 
 This suggests perhaps we could do without sharing i: what if each thread walked
-through the series with less coordination?
+through the series with less coordination? This is much better again
+(9e7d3e39bc258cb06db2e44a93af2f4e10eadb83):
+
+    Benchmark #1: ../target/release/1605
+    Time (mean ± σ):      49.2 ms ±   3.4 ms    [User: 1.107 s, System: 0.001 s]
+    Range (min … max):    47.2 ms …  74.2 ms    62 runs
+
+Switching from a std::sync::Mutex to a RwLock makes things incrementally better again:
+
+    Benchmark #1: ../target/release/1605
+    Time (mean ± σ):      42.5 ms ±   2.6 ms    [User: 964.6 ms, System: 1.4 ms]
+    Range (min … max):    40.5 ms …  55.5 ms    100 runs
+    
+
 
 */
 
-use std::sync::Mutex;
+use parking_lot::RwLock;
 
 const DAY: &str = "1605";
 
@@ -77,11 +90,11 @@ fn solve_type_a_parallel(input: &str) -> String {
     let ilen = ibytes.len();
     let ncpus = num_cpus::get();
     const GOAL: usize = 8;
-    let results = Mutex::new(Vec::with_capacity(GOAL * 2));
+    let rrw = RwLock::new(Vec::with_capacity(GOAL * 2));
     crossbeam::scope(|scope| {
         // shadow external variables so that they're not moved/copied.
         // https://stackoverflow.com/a/58459786/243712
-        let results = &results;
+        let rrw = &rrw;
         for thread_i in 0..ncpus {
             scope.spawn(move |_scope| {
                 let mut buf = vec![0u8; ilen + 20];
@@ -92,13 +105,12 @@ fn solve_type_a_parallel(input: &str) -> String {
                     let digest = md5::compute(&buf[..msglen]);
                     if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
                         let ch = char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap();
-                        let mut r = results.lock().unwrap();
-                        r.push((i, ch));
+                        rrw.write().push((i, ch));
                         // println!("found at i={}", i);
                     }
                     // If there are GOAL elements all with index <i then this thread cannot possibly find any more good answers.
                     else if j % 512 == 0 {
-                        let r = results.lock().unwrap();
+                        let r = rrw.read();
                         if r.len() >= GOAL && r.iter().all(|(ii, _c)| *ii < i) {
                             // println!("{} is done", thread_i);
                             break;
@@ -110,7 +122,7 @@ fn solve_type_a_parallel(input: &str) -> String {
     })
     .unwrap();
 
-    let mut r = results.into_inner().unwrap();
+    let mut r = rrw.into_inner();
     dbg!(r.len());
     // assert_eq!(r.len(), GOAL);
     r.sort_unstable();
