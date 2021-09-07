@@ -22,28 +22,22 @@ Using only physical cores with `num_cpus::get_physical` is slower:
     Time (mean ± σ):     211.4 ms ±  88.3 ms    [User: 2.443 s, System: 0.001 s]
     Range (min … max):   130.7 ms … 352.4 ms    50 runs
 
+Checking for changes less frequently, is much better: presumably less ping-ponging
+of the variable across threads (9a021acba4b319cfb9d14636d14e4a001da0c78a):
+
+> hyperfine ../target/release/1605 --warmup 20 -m 50
+Benchmark #1: ../target/release/1605
+  Time (mean ± σ):      91.4 ms ±   2.2 ms    [User: 2.158 s, System: 0.001 s]
+  Range (min … max):    86.5 ms …  95.0 ms    50 runs
+
+This suggests perhaps we could do without sharing i: what if each thread walked
+through the series with less coordination?
+
 */
 
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
 const DAY: &str = "1605";
-
-fn solve_type_a(input: &str) -> String {
-    let input = input.trim();
-    (0..)
-        .flat_map(|i| {
-            let msg = format!("{}{}", input, i);
-            let digest = md5::compute(msg.as_bytes());
-            if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
-                Some(char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap())
-            } else {
-                None
-            }
-        })
-        .take(8)
-        .collect()
-}
 
 /// Write a decimal representation of an integer into an existing byte buffer.
 ///
@@ -74,41 +68,41 @@ fn itoa(a: usize, buf: &mut [u8]) -> Option<usize> {
 }
 
 fn solve_type_a_parallel(input: &str) -> String {
-    let input = input.trim();
-    let ibytes = input.as_bytes();
-    let ilen = ibytes.len();
-    let ncpus = num_cpus::get();
-    const GOAL: usize = 8;
     // We need to find the first 8 hashes that have 5 leading zeroes.
     //
     // Start ncpus threads, each generating hashes.
     //
-    // Each takes a number to generate from an atomic int, so we know they are
-    // _started_ in order, but due to skew between the threads they may not
-    // finish in order. Therefore we also need to remember the `i` that found a
-    // match, and sort them when we're done.
-
-    let iatomic = AtomicUsize::new(0);
-    let results = Mutex::new(Vec::new());
-    let found = AtomicUsize::new(0);
+    // They will not necessarily find matches in the right order.
+    let ibytes = input.trim().as_bytes();
+    let ilen = ibytes.len();
+    let ncpus = num_cpus::get();
+    const GOAL: usize = 8;
+    let results = Mutex::new(Vec::with_capacity(GOAL * 2));
     crossbeam::scope(|scope| {
-        for _ in 0..ncpus {
-            scope.spawn(|_scope| {
+        // shadow external variables so that they're not moved/copied.
+        // https://stackoverflow.com/a/58459786/243712
+        let results = &results;
+        for thread_i in 0..ncpus {
+            scope.spawn(move |_scope| {
                 let mut buf = vec![0u8; ilen + 20];
                 buf[..ilen].copy_from_slice(ibytes);
-                loop {
-                    let i = iatomic.fetch_add(1, Ordering::Relaxed);
+                for j in 0.. {
+                    let i = j * ncpus + thread_i;
                     let msglen = ilen + itoa(i, &mut buf[ilen..]).unwrap();
                     let digest = md5::compute(&buf[..msglen]);
                     if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
                         let ch = char::from_digit((digest[2] & 0x0f) as u32, 16).unwrap();
-                        let mut rlck = results.lock().unwrap();
-                        rlck.push((i, ch));
-                        if found.fetch_add(1, Ordering::AcqRel) >= GOAL {
+                        let mut r = results.lock().unwrap();
+                        r.push((i, ch));
+                        // println!("found at i={}", i);
+                    }
+                    // If there are GOAL elements all with index <i then this thread cannot possibly find any more good answers.
+                    else if j % 512 == 0 {
+                        let r = results.lock().unwrap();
+                        if r.len() >= GOAL && r.iter().all(|(ii, _c)| *ii < i) {
+                            // println!("{} is done", thread_i);
                             break;
                         }
-                    } else if (i % 512 == 0) && found.load(Ordering::Acquire) >= GOAL {
-                        break;
                     }
                 }
             });
@@ -118,8 +112,9 @@ fn solve_type_a_parallel(input: &str) -> String {
 
     let mut r = results.into_inner().unwrap();
     dbg!(r.len());
-    assert_eq!(r.len(), GOAL);
+    // assert_eq!(r.len(), GOAL);
     r.sort_unstable();
+    dbg!(&r);
     r.iter().take(GOAL).map(|(_i, ch)| ch).collect()
 }
 
@@ -148,10 +143,6 @@ fn input() -> String {
     std::fs::read_to_string(&format!("input/{}.txt", DAY)).unwrap()
 }
 
-fn solve_a() -> String {
-    solve_type_a(&input())
-}
-
 fn solve_b() -> String {
     solve_type_b(&input())
 }
@@ -167,11 +158,6 @@ mod test1605 {
     use proptest::prelude::*;
 
     use super::*;
-
-    #[test]
-    fn solution_a() {
-        assert_eq!(solve_a(), "c6697b55");
-    }
 
     #[test]
     fn solution_a_parallel() {
