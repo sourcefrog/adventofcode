@@ -98,7 +98,6 @@ fn solve_type_a_parallel(input: &str) -> String {
                 buf[..ilen].copy_from_slice(ibytes);
                 loop {
                     let i = iatomic.fetch_add(1, Ordering::Relaxed);
-                    // sleep(Duration::from_millis(1000));
                     let msglen = ilen + itoa(i, &mut buf[ilen..]).unwrap();
                     let digest = md5::compute(&buf[..msglen]);
                     if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0) == 0 {
@@ -108,7 +107,7 @@ fn solve_type_a_parallel(input: &str) -> String {
                         if found.fetch_add(1, Ordering::AcqRel) >= GOAL {
                             break;
                         }
-                    } else if found.load(Ordering::Acquire) >= GOAL {
+                    } else if (i % 512 == 0) && found.load(Ordering::Acquire) >= GOAL {
                         break;
                     }
                 }
