@@ -46,12 +46,11 @@ Switching from a std::sync::Mutex to a RwLock makes things incrementally better 
     Range (min … max):    40.5 ms …  55.5 ms    100 runs
 
 Generating digits in reverse order should do fewer integer divisions but makes no
-perceptible difference:
+perceptible difference (91cf0ce76d756a11e49a0a8c5bafe2fdbcb2c664):
 
     Benchmark #1: ../target/release/1605
     Time (mean ± σ):      42.7 ms ±   3.1 ms    [User: 969.3 ms, System: 1.0 ms]
     Range (min … max):    40.6 ms …  62.3 ms    100 runs
-
 
 */
 
@@ -129,10 +128,9 @@ fn solve_type_a_parallel(input: &str) -> String {
     .unwrap();
 
     let mut r = rrw.into_inner();
-    dbg!(r.len());
-    // assert_eq!(r.len(), GOAL);
+    // dbg!(r.len());
     r.sort_unstable();
-    dbg!(&r);
+    // dbg!(&r);
     r.iter().take(GOAL).map(|(_i, ch)| ch).collect()
 }
 
