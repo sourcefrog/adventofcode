@@ -4,3 +4,6 @@ members = [
     "2019",
     "2020"
 ]
+
+[profile.dev]
+opt-level = 3
