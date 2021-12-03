@@ -51,9 +51,9 @@ fn solve_type_a(s: &str) -> isize {
 /// the total number of bugs present.
 fn solve_type_b(s: &str, mins: usize) -> usize {
     let mut init = Matrix::from_string_lines(s);
-    init[point(2, 2)] = UNKNOWN;
+    init[(2usize, 2)] = UNKNOWN;
     let mut empty = Matrix::new(5, 5, EMPTY);
-    empty[point(2, 2)] = UNKNOWN;
+    empty[(2usize, 2)] = UNKNOWN;
     let empty = empty;
     // stack is always maintained with at least two empty levels on the top
     // and bottom, so we can always look above and below the lowest/highest
