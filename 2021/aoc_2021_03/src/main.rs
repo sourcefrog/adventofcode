@@ -9,13 +9,18 @@ fn input() -> String {
     std::fs::read_to_string("input.txt").unwrap()
 }
 
+fn char_matrix(input: &str) -> Vec<Vec<char>> {
+    input.lines().map(|l| l.chars().collect()).collect()
+}
+
 fn solve_a(input: &str) -> usize {
-    let n = input.lines().count();
-    let cols = input.lines().next().unwrap().len();
+    let m = char_matrix(input);
+    let n = m.len();
+    let cols = m[0].len();
     let mut ones = vec![0; cols];
-    for l in input.lines() {
-        for (i, c) in l.chars().enumerate() {
-            if c == '1' {
+    for l in m {
+        for (i, c) in l.iter().enumerate() {
+            if *c == '1' {
                 ones[i] += 1
             }
         }
@@ -34,43 +39,47 @@ fn solve_a(input: &str) -> usize {
     gamma * epsilon
 }
 
-fn count(a: &[&str], i: usize) -> (usize, usize) {
-    let ones = a
-        .iter()
-        .filter(|l| l.chars().nth(i).unwrap() == '1')
-        .count();
+fn count(a: &[&[char]], i: usize) -> (usize, usize) {
+    let ones = a.iter().filter(|l| l[i] == '1').count();
     (ones, a.len() - ones)
 }
 
-fn solve_b(input: &str) -> usize {
-    let n = input.lines().count();
+fn from_base2(a: &[char]) -> usize {
+    let mut x = 0;
+    for c in a {
+        x <<= 1;
+        x |= (*c == '1') as usize;
+    }
+    x
+}
 
-    let mut oxy_cands: Vec<&str> = input.lines().collect();
+fn solve_b(input: &str) -> usize {
+    let m = char_matrix(input);
+    let n = m.len();
+
+    let mut oxy_cands: Vec<&[char]> = m.iter().map(|l| l.as_ref()).collect();
+    let mut co2_cands: Vec<&[char]> = oxy_cands.clone();
     for i in 0..n {
         let (ones, zeroes) = count(&oxy_cands, i);
         let crit = if ones >= zeroes { '1' } else { '0' };
-        // println!("{}/{} ones so crit={}", ones, oxy_cands.len(), crit);
-        oxy_cands.retain(|l| l.chars().nth(i).unwrap() == crit);
-        // dbg!(oxy_cands.len());
+        oxy_cands.retain(|l| l[i] == crit);
         if oxy_cands.len() == 1 {
             break;
         }
     }
     assert_eq!(oxy_cands.len(), 1);
-    let oxy_rating = usize::from_str_radix(oxy_cands[0], 2).unwrap();
+    let oxy_rating = from_base2(oxy_cands[0]);
 
-    let mut co2_cands: Vec<&str> = input.lines().collect();
     for i in 0..n {
         let (ones, zeroes) = count(&co2_cands, i);
         let crit = if ones < zeroes { '1' } else { '0' };
-        println!("{}/{} ones so crit={}", ones, co2_cands.len(), crit);
-        co2_cands.retain(|l| l.chars().nth(i).unwrap() == crit);
+        co2_cands.retain(|l| l[i] == crit);
         if co2_cands.len() == 1 {
             break;
         }
     }
     assert_eq!(co2_cands.len(), 1);
-    let co2_rating = usize::from_str_radix(co2_cands[0], 2).unwrap();
+    let co2_rating = from_base2(&co2_cands[0]);
     oxy_rating * co2_rating
 }
 
