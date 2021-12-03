@@ -270,6 +270,8 @@ mod test {
         m[point(6, 6)] = 10;
         assert_eq!(m[point(6, 6)], 10);
         assert_eq!(m[point(5, 5)], 7u8);
+
+        assert_eq!(m.row(4).cloned().collect::<Vec<u8>>(), vec![7u8; 10]);
     }
 
     #[test]
