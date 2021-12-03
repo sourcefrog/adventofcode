@@ -263,6 +263,7 @@ dependencies = [
 name = "mbp-aoc2019"
 version = "0.1.0"
 dependencies = [
+ "aoclib",
  "bytecount",
  "console",
  "itertools 0.8.2",

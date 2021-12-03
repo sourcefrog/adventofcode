@@ -13,13 +13,10 @@
 // limitations under the License.
 
 pub mod intcode;
-pub mod matrix;
 pub mod permute;
-mod point;
 pub mod shortest_path;
 
-pub use matrix::Matrix;
-pub use point::{point, Point};
+pub use aoclib::{point, Matrix, Point};
 
 use std::cmp::Ordering;
 

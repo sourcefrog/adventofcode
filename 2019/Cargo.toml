@@ -16,3 +16,7 @@ console = "0.9.1"
 pest = "2.1.2"
 pest_derive = "2.1"
 nom = "6"
+
+[dependencies.aoclib]
+path="../aoclib"
+
