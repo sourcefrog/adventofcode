@@ -17,20 +17,12 @@ fn to_matrix(input: &str) -> Matrix<bool> {
 
 fn solve_a(input: &str) -> usize {
     let m = to_matrix(input);
-    let n = m.height();
-    let cols = m.width();
-    let mut ones = vec![0; cols];
-    for (point, &bit) in m.point_values() {
-        if bit {
-            ones[point.x as usize] += 1;
-        }
-    }
     let mut gamma = 0;
     let mut epsilon = 0;
-    for a in ones {
+    for ones_in_col in m.columns().map(|col| col.filter(|&&bit| bit).count()) {
         gamma <<= 1;
         epsilon <<= 1;
-        if a > (n - a) {
+        if ones_in_col > (m.height() - ones_in_col) {
             gamma |= 1;
         } else {
             epsilon |= 1;
@@ -39,6 +31,7 @@ fn solve_a(input: &str) -> usize {
     gamma * epsilon
 }
 
+/// Count the number of 1s and 0s in column `col` of the selected rows of the given matrix.
 fn count(m: &Matrix<bool>, rows: &[usize], col: usize) -> (usize, usize) {
     let ones = rows.iter().filter(|row| m[(col, **row)]).count();
     (ones, rows.len() - ones)
