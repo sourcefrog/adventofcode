@@ -45,12 +45,9 @@ fn count(m: &Matrix<bool>, rows: &[usize], col: usize) -> (usize, usize) {
 }
 
 fn from_base2(matrix: &Matrix<bool>, row: usize) -> usize {
-    let mut x = 0;
-    for col in 0..matrix.width() {
-        let c = matrix[(col, row)];
-        x = (x << 1) | (c as usize);
-    }
-    x
+    matrix
+        .row(row)
+        .fold(0, |acc, &bit| (acc << 1) | (bit as usize))
 }
 
 fn solve_b(input: &str) -> usize {

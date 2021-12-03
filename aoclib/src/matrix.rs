@@ -87,6 +87,14 @@ impl<T> Matrix<T> {
             (0..self.w).map(move |x| (point(x as isize, y as isize), &self[(x, y)]))
         })
     }
+
+    /// Iterate all the cells in a given row
+    pub fn row(&self, y: usize) -> impl Iterator<Item = &T> {
+        assert!(y < self.h);
+        let off1 = self.w * y;
+        let off2 = self.w * (y + 1);
+        self.d[off1..off2].iter()
+    }
 }
 
 impl<T: Clone> Matrix<T> {
