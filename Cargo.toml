@@ -6,6 +6,7 @@ members = [
     "2021/aoc_2021_01",
     "2021/aoc_2021_02",
     "2021/aoc_2021_03",
+    "aoclib",
 ]
 
 [profile.dev]

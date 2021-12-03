@@ -17,7 +17,7 @@
 /// Panics if the character is not present.
 ///
 /// ```
-/// use adventofcode2020::split_one;
+/// use aoclib::split_one;
 /// assert_eq!(split_one("abc:xyz", ':'), ("abc", "xyz"));
 /// assert_eq!(split_one("abc:", ':'), ("abc", ""));
 /// assert_eq!(split_one("abc::", ':'), ("abc", ":"));

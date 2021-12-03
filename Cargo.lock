@@ -6,6 +6,7 @@ version = 3
 name = "adventofcode2020"
 version = "0.1.0"
 dependencies = [
+ "aoclib",
  "fnv",
  "itertools 0.9.0",
  "nom 6.2.1",
@@ -21,6 +22,10 @@ version = "0.1.0"
 
 [[package]]
 name = "aoc_2021_03"
+version = "0.1.0"
+
+[[package]]
+name = "aoclib"
 version = "0.1.0"
 
 [[package]]

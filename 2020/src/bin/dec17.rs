@@ -15,8 +15,6 @@
 use std::cmp::{max, min};
 use std::collections::HashSet;
 
-// use adventofcode2020::*;
-
 pub fn main() {
     println!("17a: {}", solve_a());
     println!("17b: {}", solve_b());

@@ -34,13 +34,12 @@
 // Then, find a block that can match the left block of this face, and rotate it so
 // that the matching face is on the left and in the correct orientation.
 
-#![allow(dead_code)]
-#![allow(unused_imports)]
-use adventofcode2020::*;
 use itertools::Itertools;
 use std::cmp::min;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
+
+use aoclib::*;
 
 type Maps = BTreeMap<usize, Matrix<char>>;
 
@@ -50,7 +49,7 @@ const MONSTER: &str = "                  #
 ";
 
 pub fn main() {
-    //    println!("a: {}", solve_a());
+    println!("a: {}", solve_a());
     println!("b: {}", solve_b());
 }
 
@@ -446,6 +445,7 @@ fn find_monsters(image: &Matrix<char>) -> usize {
     panic!("no monsters? :((");
 }
 
+#[allow(dead_code)]
 fn intersect<T: Clone + Eq + PartialEq>(a: &[T], b: &[T]) -> Vec<T> {
     a.iter()
         .filter(|x| b.iter().any(|y| *y == **x))

@@ -18,7 +18,7 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-use adventofcode2020::*;
+use aoclib::*;
 
 pub fn main() {
     println!("16a: {}", solve_a());

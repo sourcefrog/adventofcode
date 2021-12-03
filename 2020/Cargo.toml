@@ -14,3 +14,7 @@ license = "Apache-2.0"
 fnv = "1.0.7"
 itertools = "0.9"
 nom = "6"
+
+[dependencies.aoclib]
+path="../aoclib"
+

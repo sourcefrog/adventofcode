@@ -14,7 +14,7 @@
 
 use std::convert::TryInto;
 
-use adventofcode2020::split_one;
+use aoclib::split_one;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 enum Op {

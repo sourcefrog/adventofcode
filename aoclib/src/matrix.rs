@@ -231,7 +231,7 @@ mod test {
 
     #[test]
     fn from_string() {
-        let input = std::fs::read_to_string("input/dec11.txt").unwrap();
+        let input = std::fs::read_to_string("testdata/dec11.txt").unwrap();
         let matrix = Matrix::from_string_lines(&input);
         assert_eq!(matrix.width(), 93);
         assert_eq!(matrix.height(), 90);
@@ -239,7 +239,7 @@ mod test {
 
     #[test]
     fn from_file() {
-        let matrix = Matrix::from_file("input/dec11.txt");
+        let matrix = Matrix::from_file("testdata/dec11.txt");
         assert_eq!(matrix.width(), 93);
         assert_eq!(matrix.height(), 90);
     }
