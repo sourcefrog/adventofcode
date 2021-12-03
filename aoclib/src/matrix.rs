@@ -27,15 +27,7 @@ pub struct Matrix<T> {
     d: Vec<T>,
 }
 
-impl<T: Clone> Matrix<T> {
-    pub fn new(w: usize, h: usize, d: T) -> Matrix<T> {
-        Matrix {
-            w: w as isize,
-            h: h as isize,
-            d: vec![d; w * h],
-        }
-    }
-
+impl<T> Matrix<T> {
     pub fn width(&self) -> usize {
         self.w as usize
     }
@@ -50,15 +42,11 @@ impl<T: Clone> Matrix<T> {
     }
 
     fn offset(&self, p: Point) -> usize {
-        (self.w as usize) * (p.y as usize) + (p.x as usize)
+        self.offset_xy(p.x as usize, p.y as usize)
     }
 
-    pub fn try_get(&self, p: Point) -> Option<T> {
-        if p.x >= 0 && p.y >= 0 && p.x < self.w && p.y < self.h {
-            Some(self.d[self.offset(p)].clone())
-        } else {
-            None
-        }
+    fn offset_xy(&self, x: usize, y: usize) -> usize {
+        (self.w as usize) * y + x
     }
 
     /// Return a vec of the 4 neighboring points (if in-range) and their
@@ -78,6 +66,43 @@ impl<T: Clone> Matrix<T> {
             v.push((p.right(), &self[p.right()]))
         }
         v
+    }
+
+    /// Iterate all point addresses in this matrix.
+    pub fn iter_points(&self) -> impl Iterator<Item = Point> {
+        let h: isize = self.h as isize;
+        let w: isize = self.w as isize;
+        (0..h).flat_map(move |y| (0..w).map(move |x| point(x, y)))
+    }
+
+    /// Iterate all points and their values.
+    pub fn point_values(&self) -> impl Iterator<Item = (Point, &T)> {
+        (0..self.h).flat_map(move |y| {
+            (0..self.w).map(move |x| {
+                (
+                    point(x as isize, y as isize),
+                    &self.d[self.offset_xy(x as usize, y as usize)],
+                )
+            })
+        })
+    }
+}
+
+impl<T: Clone> Matrix<T> {
+    pub fn new(w: usize, h: usize, d: T) -> Matrix<T> {
+        Matrix {
+            w: w as isize,
+            h: h as isize,
+            d: vec![d; w * h],
+        }
+    }
+
+    pub fn try_get(&self, p: Point) -> Option<T> {
+        if p.x >= 0 && p.y >= 0 && p.x < self.w && p.y < self.h {
+            Some(self.d[self.offset(p)].clone())
+        } else {
+            None
+        }
     }
 
     /// Return a vec of all present 8-way neighbors.
@@ -108,12 +133,6 @@ impl<T: Clone> Matrix<T> {
             }
         }
         v
-    }
-
-    pub fn iter_points<'a>(&'a self) -> Box<dyn Iterator<Item = Point> + 'a> {
-        Box::new(
-            (0..self.h).flat_map(move |y| (0..self.w).map(move |x| point(x as isize, y as isize))),
-        )
     }
 }
 
@@ -149,14 +168,14 @@ impl Matrix<char> {
     }
 }
 
-impl<T: Clone> Index<Point> for Matrix<T> {
+impl<T> Index<Point> for Matrix<T> {
     type Output = T;
     fn index(&self, p: Point) -> &T {
         &self.d[self.offset(p)]
     }
 }
 
-impl<T: Clone> IndexMut<Point> for Matrix<T> {
+impl<T> IndexMut<Point> for Matrix<T> {
     fn index_mut(&mut self, p: Point) -> &mut T {
         assert!(p.x >= 0);
         assert!(p.y >= 0);

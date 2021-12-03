@@ -20,8 +20,8 @@ fn solve_a(input: &str) -> usize {
     let n = m.height();
     let cols = m.width();
     let mut ones = vec![0; cols];
-    for point in m.iter_points() {
-        if m[point] {
+    for (point, &bit) in m.point_values() {
+        if bit {
             ones[point.x as usize] += 1;
         }
     }
