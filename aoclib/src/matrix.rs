@@ -1,4 +1,5 @@
 // Copyright 2020 Google LLC
+// Copyright 2021 Martin Pool
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -202,6 +203,37 @@ impl<T: Clone> FromRows<T> {
     }
 }
 
+/// Build a Matrix from an iterator of rows, each item of which is an iterator of cells.
+///
+/// All the rows must be the same length.
+impl<CellIter, Cell> FromIterator<CellIter> for Matrix<Cell>
+where
+    CellIter: IntoIterator<Item = Cell>,
+{
+    fn from_iter<RowIter>(row_iter: RowIter) -> Self
+    where
+        RowIter: IntoIterator<Item = CellIter>,
+        CellIter: IntoIterator<Item = Cell>,
+    {
+        let mut m = Matrix {
+            w: 0,
+            h: 0,
+            d: Vec::new(),
+        };
+        for cell_iter in row_iter {
+            let mut row = Vec::from_iter(cell_iter);
+            if m.d.is_empty() {
+                m.w = row.len() as isize;
+            } else {
+                assert_eq!(row.len() as isize, m.w);
+            }
+            m.h += 1;
+            m.d.append(&mut row);
+        }
+        m
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -242,5 +274,18 @@ mod test {
         let matrix = Matrix::from_file("testdata/dec11.txt");
         assert_eq!(matrix.width(), 93);
         assert_eq!(matrix.height(), 90);
+    }
+
+    #[test]
+    fn from_iter_iter() {
+        let matrix: Matrix<usize> = (0..=1)
+            .into_iter()
+            .map(|row| (0..=1).into_iter().map(move |col| row * 10 + col))
+            .collect();
+        assert_eq!((matrix.width(), matrix.height()), (2, 2));
+        assert_eq!(
+            matrix.values().map(|v| *v).collect::<Vec<usize>>(),
+            [0, 1, 10, 11]
+        );
     }
 }

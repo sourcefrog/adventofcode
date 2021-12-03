@@ -186,13 +186,8 @@ fn load(s: &str) -> Maps {
             .unwrap()
             .parse()
             .unwrap();
-        let mut mb = Matrix::from_rows();
-        for ml in chunk.take(10) {
-            mb.add_row(&ml.chars().collect_vec());
-        }
-        m.insert(num, mb.finish());
+        m.insert(num, chunk.take(10).map(str::chars).collect());
     }
-
     m
 }
 

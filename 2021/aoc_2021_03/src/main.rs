@@ -12,12 +12,7 @@ fn input() -> String {
 }
 
 fn to_matrix(input: &str) -> Matrix<bool> {
-    let mut from_rows = Matrix::from_rows();
-    input
-        .lines()
-        .map(|l| l.chars().map(|c| c == '1').collect::<Vec<bool>>())
-        .for_each(|r| from_rows.add_row(&r));
-    from_rows.finish()
+    input.lines().map(|l| l.chars().map(|c| c == '1')).collect()
 }
 
 fn solve_a(input: &str) -> usize {
