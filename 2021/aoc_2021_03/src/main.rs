@@ -1,6 +1,6 @@
 //! https://adventofcode.com/2021/day/3
 
-use aoclib::{point, Matrix};
+use aoclib::Matrix;
 
 fn main() {
     println!("{}", solve_a(&input()));
@@ -40,17 +40,14 @@ fn solve_a(input: &str) -> usize {
 }
 
 fn count(m: &Matrix<bool>, rows: &[usize], col: usize) -> (usize, usize) {
-    let ones = rows
-        .iter()
-        .filter(|row| m[point(col as isize, **row as isize)])
-        .count();
+    let ones = rows.iter().filter(|row| m[(col, **row)]).count();
     (ones, rows.len() - ones)
 }
 
 fn from_base2(matrix: &Matrix<bool>, row: usize) -> usize {
     let mut x = 0;
     for col in 0..matrix.width() {
-        let c = matrix[point(col as isize, row as isize)];
+        let c = matrix[(col, row)];
         x = (x << 1) | (c as usize);
     }
     x
@@ -66,7 +63,7 @@ fn solve_b(input: &str) -> usize {
     for col in 0..n {
         let (ones, zeroes) = count(&m, &oxy_cands, col);
         let crit = ones >= zeroes;
-        oxy_cands.retain(|&row| m[point(col as isize, row as isize)] == crit);
+        oxy_cands.retain(|&row| m[(col, row)] == crit);
         if oxy_cands.len() == 1 {
             break;
         }
@@ -77,7 +74,7 @@ fn solve_b(input: &str) -> usize {
     for col in 0..n {
         let (ones, zeroes) = count(&m, &co2_cands, col);
         let crit = ones < zeroes;
-        co2_cands.retain(|&row| m[point(col as isize, row as isize)] == crit);
+        co2_cands.retain(|&row| m[(col, row)] == crit);
         if co2_cands.len() == 1 {
             break;
         }

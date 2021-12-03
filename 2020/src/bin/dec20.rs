@@ -138,11 +138,11 @@ impl Orientation {
 // in order: N, E, S, W. Horizontal edges are read across, vertical edges are read down.
 fn side_values(mat: &Matrix<char>) -> [String; 4] {
     let mut svs: [String; 4] = Default::default();
-    for i in 0..10 {
-        svs[0].push(mat[point(i, 0)]);
-        svs[1].push(mat[point(9, i)]);
-        svs[2].push(mat[point(i, 9)]);
-        svs[3].push(mat[point(0, i)]);
+    for i in 0..10usize {
+        svs[0].push(mat[(i, 0)]);
+        svs[1].push(mat[(9, i)]);
+        svs[2].push(mat[(i, 9)]);
+        svs[3].push(mat[(0, i)]);
     }
     svs
 }
@@ -397,12 +397,12 @@ fn mark_monsters(image: &mut Matrix<char>, monster: &Matrix<char>) -> bool {
             if monst_lit
                 .iter()
                 .cloned()
-                .all(|mp| image[point(x + mp.x, y + mp.y)] == '#')
+                .all(|mp| image[(x + mp.x, y + mp.y)] == '#')
             {
                 println!("found monster at {},{}!!", x, y);
                 found_one = true; // finally!
                 for p in &monst_lit {
-                    image[point(x + p.x, y + p.y)] = 'O'
+                    image[(x + p.x, y + p.y)] = 'O'
                 }
             }
         }

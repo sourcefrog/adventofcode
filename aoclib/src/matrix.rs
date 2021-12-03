@@ -46,6 +46,8 @@ impl<T> Matrix<T> {
     }
 
     fn offset_xy(&self, x: usize, y: usize) -> usize {
+        assert!(x < self.w as usize);
+        assert!(y < self.h as usize);
         (self.w as usize) * y + x
     }
 
@@ -168,10 +170,41 @@ impl Matrix<char> {
     }
 }
 
+impl<T> Index<(usize, usize)> for Matrix<T> {
+    type Output = T;
+    fn index(&self, (x, y): (usize, usize)) -> &T {
+        &self.d[self.offset_xy(x, y)]
+    }
+}
+
+impl<T> Index<(isize, isize)> for Matrix<T> {
+    type Output = T;
+    fn index(&self, (x, y): (isize, isize)) -> &T {
+        assert!(x >= 0);
+        assert!(y >= 0);
+        &self.d[self.offset_xy(x as usize, y as usize)]
+    }
+}
+
 impl<T> Index<Point> for Matrix<T> {
     type Output = T;
     fn index(&self, p: Point) -> &T {
         &self.d[self.offset(p)]
+    }
+}
+
+impl<T> IndexMut<(usize, usize)> for Matrix<T> {
+    fn index_mut(&mut self, (x, y): (usize, usize)) -> &mut T {
+        let o: usize = self.offset_xy(x, y);
+        &mut self.d[o]
+    }
+}
+
+impl<T> IndexMut<(isize, isize)> for Matrix<T> {
+    fn index_mut(&mut self, (x, y): (isize, isize)) -> &mut T {
+        assert!(x >= 0);
+        assert!(y >= 0);
+        self.index_mut((x as usize, y as usize))
     }
 }
 
@@ -228,6 +261,15 @@ mod test {
         m[point(6, 6)] = 10;
         assert_eq!(m[point(6, 6)], 10);
         assert_eq!(m[point(5, 5)], 7u8);
+    }
+
+    #[test]
+    fn index_by_tuple() {
+        let mut m = Matrix::new(10, 10, 7u8);
+        assert_eq!(m[(5usize, 5)], 7u8);
+        m[point(6, 6)] = 10;
+        assert_eq!(m[(6usize, 6)], 10);
+        assert_eq!(m[(5usize, 5)], 7u8);
     }
 
     #[test]
