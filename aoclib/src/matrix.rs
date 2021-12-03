@@ -22,18 +22,18 @@ use crate::{point, Point};
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Matrix<T> {
-    w: isize,
-    h: isize,
+    w: usize,
+    h: usize,
     d: Vec<T>,
 }
 
 impl<T> Matrix<T> {
     pub fn width(&self) -> usize {
-        self.w as usize
+        self.w
     }
 
     pub fn height(&self) -> usize {
-        self.h as usize
+        self.h
     }
 
     /// Return all values in row,col order.
@@ -53,18 +53,22 @@ impl<T> Matrix<T> {
 
     /// Return a vec of the 4 neighboring points (if in-range) and their
     /// values.
+    ///
+    /// p may have negative coordinates.
     pub fn neighbors4(&self, p: Point) -> Vec<(Point, &T)> {
         let mut v: Vec<(Point, &T)> = Vec::with_capacity(4);
+        let h = self.h as isize;
+        let w = self.w as isize;
         if p.y > 0 {
             v.push((p.up(), &self[p.up()]))
         }
-        if p.y < (self.h - 1) {
+        if p.y < (h - 1) {
             v.push((p.down(), &self[p.down()]))
         }
         if p.x > 0 {
             v.push((p.left(), &self[p.left()]))
         }
-        if p.x < (self.w - 1) {
+        if p.x < (w - 1) {
             v.push((p.right(), &self[p.right()]))
         }
         v
@@ -80,12 +84,7 @@ impl<T> Matrix<T> {
     /// Iterate all points and their values.
     pub fn point_values(&self) -> impl Iterator<Item = (Point, &T)> {
         (0..self.h).flat_map(move |y| {
-            (0..self.w).map(move |x| {
-                (
-                    point(x as isize, y as isize),
-                    &self.d[self.offset_xy(x as usize, y as usize)],
-                )
-            })
+            (0..self.w).map(move |x| (point(x as isize, y as isize), &self[(x, y)]))
         })
     }
 }
@@ -93,14 +92,14 @@ impl<T> Matrix<T> {
 impl<T: Clone> Matrix<T> {
     pub fn new(w: usize, h: usize, d: T) -> Matrix<T> {
         Matrix {
-            w: w as isize,
-            h: h as isize,
+            w,
+            h,
             d: vec![d; w * h],
         }
     }
 
     pub fn try_get(&self, p: Point) -> Option<T> {
-        if p.x >= 0 && p.y >= 0 && p.x < self.w && p.y < self.h {
+        if p.x >= 0 && p.y >= 0 && p.x < self.w as isize && p.y < self.h as isize {
             Some(self.d[self.offset(p)].clone())
         } else {
             None
@@ -110,27 +109,29 @@ impl<T: Clone> Matrix<T> {
     /// Return a vec of all present 8-way neighbors.
     pub fn neighbor8_values(&self, p: Point) -> Vec<T> {
         let mut v: Vec<T> = Vec::with_capacity(8);
+        let w = self.w as isize;
+        let h = self.h as isize;
         if p.y > 0 {
             if p.x > 0 {
                 v.push(self[p.left().up()].clone())
             }
             v.push(self[p.up()].clone());
-            if p.x < (self.w - 1) {
+            if p.x < (w - 1) {
                 v.push(self[p.right().up()].clone())
             }
         }
         if p.x > 0 {
             v.push(self[p.left()].clone())
         }
-        if p.x < (self.w - 1) {
+        if p.x < (w - 1) {
             v.push(self[p.right()].clone())
         }
-        if p.y < (self.h - 1) {
+        if p.y < (h - 1) {
             if p.x > 0 {
                 v.push(self[p.left().down()].clone())
             }
             v.push(self[p.down()].clone());
-            if p.x < (self.w - 1) {
+            if p.x < (w - 1) {
                 v.push(self[p.right().down()].clone())
             }
         }
@@ -149,8 +150,8 @@ impl Matrix<char> {
     /// All non-empty lines must be the same length.
     pub fn from_string_lines(s: &str) -> Matrix<char> {
         let lines: Vec<&str> = s.lines().filter(|l| !l.is_empty()).collect();
-        let w = lines.iter().map(|s| s.len()).min().unwrap() as isize;
-        let h = lines.len() as isize;
+        let w = lines.iter().map(|s| s.len()).min().unwrap();
+        let h = lines.len();
         let d: Vec<char> = lines.iter().map(|s| s.chars()).flatten().collect();
         Matrix { w, h, d }
     }
@@ -212,8 +213,8 @@ impl<T> IndexMut<Point> for Matrix<T> {
     fn index_mut(&mut self, p: Point) -> &mut T {
         assert!(p.x >= 0);
         assert!(p.y >= 0);
-        assert!(p.x < self.w, "{:?} too wide for {}", p, self.w);
-        assert!(p.y < self.h);
+        assert!(p.x < self.w as isize, "{:?} too wide for {}", p, self.w);
+        assert!(p.y < self.h as isize);
         let off = self.offset(p);
         &mut self.d[off]
     }
@@ -239,9 +240,9 @@ where
         for cell_iter in row_iter {
             let mut row = Vec::from_iter(cell_iter);
             if m.d.is_empty() {
-                m.w = row.len() as isize;
+                m.w = row.len();
             } else {
-                assert_eq!(row.len() as isize, m.w);
+                assert_eq!(row.len(), m.w);
             }
             m.h += 1;
             m.d.append(&mut row);
