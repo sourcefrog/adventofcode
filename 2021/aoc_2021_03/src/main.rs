@@ -9,18 +9,21 @@ fn input() -> String {
     std::fs::read_to_string("input.txt").unwrap()
 }
 
-fn char_matrix(input: &str) -> Vec<Vec<char>> {
-    input.lines().map(|l| l.chars().collect()).collect()
+fn to_matrix(input: &str) -> Vec<Vec<bool>> {
+    input
+        .lines()
+        .map(|l| l.chars().map(|c| c == '1').collect())
+        .collect()
 }
 
 fn solve_a(input: &str) -> usize {
-    let m = char_matrix(input);
+    let m = to_matrix(input);
     let n = m.len();
     let cols = m[0].len();
     let mut ones = vec![0; cols];
     for l in m {
         for (i, c) in l.iter().enumerate() {
-            if *c == '1' {
+            if *c {
                 ones[i] += 1
             }
         }
@@ -39,29 +42,28 @@ fn solve_a(input: &str) -> usize {
     gamma * epsilon
 }
 
-fn count(a: &[&[char]], i: usize) -> (usize, usize) {
-    let ones = a.iter().filter(|l| l[i] == '1').count();
+fn count(a: &[&[bool]], i: usize) -> (usize, usize) {
+    let ones = a.iter().filter(|l| l[i]).count();
     (ones, a.len() - ones)
 }
 
-fn from_base2(a: &[char]) -> usize {
+fn from_base2(a: &[bool]) -> usize {
     let mut x = 0;
     for c in a {
-        x <<= 1;
-        x |= (*c == '1') as usize;
+        x = (x << 1) | (*c as usize);
     }
     x
 }
 
 fn solve_b(input: &str) -> usize {
-    let m = char_matrix(input);
+    let m = to_matrix(input);
     let n = m.len();
 
-    let mut oxy_cands: Vec<&[char]> = m.iter().map(|l| l.as_ref()).collect();
-    let mut co2_cands: Vec<&[char]> = oxy_cands.clone();
+    let mut oxy_cands: Vec<&[bool]> = m.iter().map(|l| l.as_ref()).collect();
+    let mut co2_cands: Vec<&[bool]> = oxy_cands.clone();
     for i in 0..n {
         let (ones, zeroes) = count(&oxy_cands, i);
-        let crit = if ones >= zeroes { '1' } else { '0' };
+        let crit = ones >= zeroes;
         oxy_cands.retain(|l| l[i] == crit);
         if oxy_cands.len() == 1 {
             break;
@@ -72,7 +74,7 @@ fn solve_b(input: &str) -> usize {
 
     for i in 0..n {
         let (ones, zeroes) = count(&co2_cands, i);
-        let crit = if ones < zeroes { '1' } else { '0' };
+        let crit = ones < zeroes;
         co2_cands.retain(|l| l[i] == crit);
         if co2_cands.len() == 1 {
             break;
