@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use proptest::prelude::*;
+
 use aoclib::{point, Matrix};
 
 #[test]
@@ -38,7 +40,7 @@ fn index_by_tuple() {
 #[test]
 fn from_string() {
     let input = std::fs::read_to_string("testdata/dec11.txt").unwrap();
-    let matrix = Matrix::from_string_lines(&input);
+    let matrix: Matrix<char> = Matrix::from_string_lines(&input);
     assert_eq!(matrix.width(), 93);
     assert_eq!(matrix.height(), 90);
 }
@@ -61,4 +63,21 @@ fn from_iter_iter() {
         matrix.values().map(|v| *v).collect::<Vec<usize>>(),
         [0, 1, 10, 11]
     );
+}
+
+#[test]
+#[should_panic]
+fn from_linear_vec_wrong_len() {
+    Matrix::from_linear_vec((0..4).collect(), 3);
+}
+
+proptest! {
+    #[test]
+    fn basic_proptest(content in prop::collection::vec(0..100u32, 4), x in 0usize..2, y in 0usize..2) {
+        let w = 2;
+        let m = Matrix::from_linear_vec(content.clone(), w);
+        prop_assert_eq!(m.width(), 2);
+        prop_assert_eq!(m.height(), 2);
+        prop_assert_eq!(m[(x, y)], content[y * 2 + x]);
+    }
 }
