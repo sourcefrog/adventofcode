@@ -2,6 +2,5 @@ perf.data
 perf.data.old
 **/*.rs.bk
 tags
-/target
+target
 .vscode/.ropeproject/objectdb
-2016/target
