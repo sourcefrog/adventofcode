@@ -16,6 +16,8 @@
 //! A rectangular 2d matrix.
 //!
 //! Matrices are indexed by (row, column) coordinates.
+
+use std::iter::FromIterator;
 use std::ops::{Index, IndexMut};
 
 use crate::{point, Point};
