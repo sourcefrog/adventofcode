@@ -30,6 +30,18 @@ pub struct Matrix<T> {
 }
 
 impl<T> Matrix<T> {
+    /// Construct by folding a 1d vec of elements
+    pub fn from_linear_vec(d: Vec<T>, w: usize) -> Matrix<T> {
+        assert!(w > 0);
+        assert_eq!(
+            d.len() % w,
+            0,
+            "vector length is not a multiple of the width"
+        );
+        let h = d.len() / w;
+        Matrix { d, w, h }
+    }
+
     pub fn width(&self) -> usize {
         self.w
     }
