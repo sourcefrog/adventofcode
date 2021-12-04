@@ -1,5 +1,7 @@
 //! https://adventofcode.com/2021/day/4
 
+use bitvec::prelude::*;
+
 use aoclib::Matrix;
 
 fn main() {
@@ -64,7 +66,7 @@ fn solve_a(input: &str) -> u32 {
 fn solve_b(input: &str) -> u32 {
     let (calls, mats) = parse(input);
     let mut hits = vec![Matrix::new(5, 5, false); mats.len()];
-    let mut done = vec![false; mats.len()];
+    let mut done: BitVec = BitVec::repeat(false, mats.len());
     for call in calls {
         for (mnum, mat) in mats.iter().enumerate() {
             if done[mnum] {
@@ -76,8 +78,8 @@ fn solve_b(input: &str) -> u32 {
                     // println!("found {} in mat {} at {:?}", call, mnum, p);
                     if has_won(&hits[mnum]) {
                         // println!("winner!");
-                        done[mnum] = true;
-                        if done.iter().all(|b| *b) {
+                        done.set(mnum, true);
+                        if done.all() {
                             return score(&hits[mnum], mat, call);
                         }
                     }
