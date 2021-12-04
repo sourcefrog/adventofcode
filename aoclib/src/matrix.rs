@@ -53,6 +53,11 @@ impl<T> Matrix<T> {
         (self.w as usize) * y + x
     }
 
+    fn offset_to_point(&self, offset: usize) -> Point {
+        debug_assert!(offset <= self.d.len());
+        point((offset % self.w) as isize, (offset / self.w) as isize)
+    }
+
     /// Return a vec of the 4 neighboring points (if in-range) and their
     /// values.
     ///
@@ -161,6 +166,22 @@ impl<T: Clone> Matrix<T> {
             }
         }
         v
+    }
+}
+
+impl<T> Matrix<T>
+where
+    T: PartialEq,
+{
+    /// Find the first point in the matrix where `pred` is true.
+    pub fn find<Pred>(&self, pred: Pred) -> Option<Point>
+    where
+        Pred: FnMut(&T) -> bool,
+    {
+        self.d
+            .iter()
+            .position(pred)
+            .map(|offset| self.offset_to_point(offset))
     }
 }
 

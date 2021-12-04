@@ -55,21 +55,18 @@ fn solve(input: &str) -> (u32, u32) {
             if done[mnum] {
                 continue;
             }
-            for (p, mm) in mat.point_values() {
-                if *mm == call {
-                    hits[mnum][p] = true;
-                    // println!("found {} in mat {} at {:?}", call, mnum, p);
-                    if has_won(&hits[mnum]) {
-                        if !done.any() {
-                            part_a = score(&hits[mnum], mat, call).into();
-                        }
-                        // println!("winner!");
-                        done.set(mnum, true);
-                        if done.all() {
-                            return (part_a.unwrap(), score(&hits[mnum], mat, call));
-                        }
+            if let Some(point) = mat.find(|x| *x == call) {
+                hits[mnum][point] = true;
+                // println!("found {} in mat {} at {:?}", call, mnum, p);
+                if has_won(&hits[mnum]) {
+                    if !done.any() {
+                        part_a = score(&hits[mnum], mat, call).into();
                     }
-                    break;
+                    // println!("winner!");
+                    done.set(mnum, true);
+                    if done.all() {
+                        return (part_a.unwrap(), score(&hits[mnum], mat, call));
+                    }
                 }
             }
         }
