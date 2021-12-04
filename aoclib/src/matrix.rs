@@ -96,6 +96,10 @@ impl<T> Matrix<T> {
         self.d[off1..off2].iter()
     }
 
+    pub fn rows(&self) -> impl Iterator<Item = impl Iterator<Item = &T>> {
+        (0..self.h).map(move |y| self.row(y))
+    }
+
     /// Iterate all the cells in a given column.
     pub fn column(&self, x: usize) -> impl Iterator<Item = &T> {
         assert!(x < self.w);
