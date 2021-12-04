@@ -11,8 +11,9 @@ fn input() -> String {
     std::fs::read_to_string("input/04.txt").unwrap()
 }
 
+/// True if any row or any column is all true.
 fn has_won(hits: &Matrix<bool>) -> bool {
-    hits.rows().any(|mut r| r.all(|h| *h)) || hits.columns().any(|mut r| r.all(|h| *h))
+    hits.rows().any(|mut row| row.all(|h| *h)) || hits.columns().any(|mut col| col.all(|h| *h))
 }
 
 fn score(hit: &Matrix<bool>, mat: &Matrix<u32>, last_call: u32) -> u32 {
@@ -23,29 +24,36 @@ fn score(hit: &Matrix<bool>, mat: &Matrix<u32>, last_call: u32) -> u32 {
         * last_call
 }
 
-fn solve_a(input: &str) -> u32 {
+/// Parse out the list of called numbers and then a sequence of mats.
+fn parse(input: &str) -> (Vec<u32>, Vec<Matrix<u32>>) {
     let lines = input.lines().collect::<Vec<&str>>();
     let calls: Vec<u32> = lines[0].split(',').map(|s| s.parse().unwrap()).collect();
-    dbg!(&calls);
-    let mut mats: Vec<Matrix<u32>> = Vec::new();
-    for chunk in lines[1..].chunks(6) {
-        let m: Matrix<_> = chunk[1..]
-            .iter()
-            .map(|s| s.split_whitespace().map(|w| w.parse::<u32>().unwrap()))
-            .collect();
-        mats.push(m);
-    }
-    let mut hits: Vec<Matrix<bool>> = (0..mats.len()).map(|_| Matrix::new(5, 5, false)).collect();
-    for i in calls {
+    let mats: Vec<Matrix<u32>> = lines[1..]
+        .chunks(6)
+        .map(|chunk| {
+            chunk[1..]
+                .iter()
+                .map(|s| s.split_whitespace().map(|w| w.parse::<u32>().unwrap()))
+                .collect()
+        })
+        .collect();
+    (calls, mats)
+}
+
+fn solve_a(input: &str) -> u32 {
+    let (calls, mats) = parse(input);
+    let mut hits = vec![Matrix::new(5, 5, false); mats.len()];
+    for call in calls {
         for (mnum, mat) in mats.iter().enumerate() {
             for (p, mm) in mat.point_values() {
-                if *mm == i {
+                if *mm == call {
                     hits[mnum][p] = true;
-                    println!("found {} in mat {} at {:?}", i, mnum, p);
+                    // println!("found {} in mat {} at {:?}", call, mnum, p);
                     if has_won(&hits[mnum]) {
-                        println!("winner!");
-                        return score(&hits[mnum], mat, i);
+                        // println!("winner!");
+                        return score(&hits[mnum], mat, call);
                     }
+                    break;
                 }
             }
         }
@@ -54,32 +62,26 @@ fn solve_a(input: &str) -> u32 {
 }
 
 fn solve_b(input: &str) -> u32 {
-    let lines = input.lines().collect::<Vec<&str>>();
-    let calls: Vec<u32> = lines[0].split(',').map(|s| s.parse().unwrap()).collect();
-    dbg!(&calls);
-    let mut mats: Vec<Matrix<u32>> = Vec::new();
-    for chunk in lines[1..].chunks(6) {
-        let m: Matrix<_> = chunk[1..]
-            .iter()
-            .map(|s| s.split_whitespace().map(|w| w.parse::<u32>().unwrap()))
-            .collect();
-        mats.push(m);
-    }
-    let mut hits: Vec<Matrix<bool>> = (0..mats.len()).map(|_| Matrix::new(5, 5, false)).collect();
+    let (calls, mats) = parse(input);
+    let mut hits = vec![Matrix::new(5, 5, false); mats.len()];
     let mut done = vec![false; mats.len()];
-    for i in calls {
+    for call in calls {
         for (mnum, mat) in mats.iter().enumerate() {
+            if done[mnum] {
+                continue;
+            }
             for (p, mm) in mat.point_values() {
-                if *mm == i {
+                if *mm == call {
                     hits[mnum][p] = true;
-                    println!("found {} in mat {} at {:?}", i, mnum, p);
+                    // println!("found {} in mat {} at {:?}", call, mnum, p);
                     if has_won(&hits[mnum]) {
-                        println!("winner!");
+                        // println!("winner!");
                         done[mnum] = true;
                         if done.iter().all(|b| *b) {
-                            return score(&hits[mnum], mat, i);
+                            return score(&hits[mnum], mat, call);
                         }
                     }
+                    break;
                 }
             }
         }
