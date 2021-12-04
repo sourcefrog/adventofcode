@@ -1,3 +1,5 @@
+// Copyright 2021 Martin Pool
+
 //! https://adventofcode.com/2021/day/4
 
 use bitvec::prelude::*;
@@ -5,8 +7,9 @@ use bitvec::prelude::*;
 use aoclib::Matrix;
 
 fn main() {
-    println!("{}", solve_a(&input()));
-    println!("{}", solve_b(&input()));
+    let (a, b) = solve(&input());
+    println!("{}", a);
+    println!("{}", b);
 }
 
 fn input() -> String {
@@ -42,31 +45,11 @@ fn parse(input: &str) -> (Vec<u32>, Vec<Matrix<u32>>) {
     (calls, mats)
 }
 
-fn solve_a(input: &str) -> u32 {
-    let (calls, mats) = parse(input);
-    let mut hits = vec![Matrix::new(5, 5, false); mats.len()];
-    for call in calls {
-        for (mnum, mat) in mats.iter().enumerate() {
-            for (p, mm) in mat.point_values() {
-                if *mm == call {
-                    hits[mnum][p] = true;
-                    // println!("found {} in mat {} at {:?}", call, mnum, p);
-                    if has_won(&hits[mnum]) {
-                        // println!("winner!");
-                        return score(&hits[mnum], mat, call);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    unreachable!()
-}
-
-fn solve_b(input: &str) -> u32 {
+fn solve(input: &str) -> (u32, u32) {
     let (calls, mats) = parse(input);
     let mut hits = vec![Matrix::new(5, 5, false); mats.len()];
     let mut done: BitVec = BitVec::repeat(false, mats.len());
+    let mut part_a = None;
     for call in calls {
         for (mnum, mat) in mats.iter().enumerate() {
             if done[mnum] {
@@ -77,10 +60,13 @@ fn solve_b(input: &str) -> u32 {
                     hits[mnum][p] = true;
                     // println!("found {} in mat {} at {:?}", call, mnum, p);
                     if has_won(&hits[mnum]) {
+                        if !done.any() {
+                            part_a = score(&hits[mnum], mat, call).into();
+                        }
                         // println!("winner!");
                         done.set(mnum, true);
                         if done.all() {
-                            return score(&hits[mnum], mat, call);
+                            return (part_a.unwrap(), score(&hits[mnum], mat, call));
                         }
                     }
                     break;
@@ -96,12 +82,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn solution_a() {
-        assert_eq!(solve_a(&input()), 49860);
-    }
-
-    #[test]
-    fn solution_b() {
-        assert_eq!(solve_b(&input()), 24628);
+    fn solution() {
+        assert_eq!(solve(&input()), (49860, 24628));
     }
 }
