@@ -17,6 +17,7 @@
 //!
 //! Matrices are indexed by (row, column) coordinates.
 
+use std::fmt;
 use std::iter::FromIterator;
 use std::ops::{Index, IndexMut};
 
@@ -226,6 +227,24 @@ impl Matrix<char> {
             }
         }
         s
+    }
+}
+
+impl fmt::Display for Matrix<char> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use std::fmt::Write;
+        let mut first = true;
+        for r in self.rows() {
+            if !first {
+                f.write_char('\n')?;
+            } else {
+                first = false;
+            }
+            for c in r {
+                f.write_char(*c)?;
+            }
+        }
+        Ok(())
     }
 }
 

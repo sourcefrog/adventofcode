@@ -53,6 +53,13 @@ fn from_file() {
 }
 
 #[test]
+fn display_char_matrix() {
+    let m = Matrix::from_linear_vec("abcd".chars().collect(), 2);
+    let d = format!("{}", m);
+    assert_eq!(d, "ab\ncd");
+}
+
+#[test]
 fn from_iter_iter() {
     let matrix: Matrix<usize> = (0..=1)
         .into_iter()
