@@ -2,7 +2,7 @@
 
 //! https://adventofcode.com/2021/day/5
 
-use aoclib::{point, Matrix, Point};
+use aoclib::{Matrix, Point};
 
 fn main() {
     let input = input();
@@ -12,11 +12,6 @@ fn main() {
 
 fn input() -> String {
     std::fs::read_to_string("input/05.txt").unwrap()
-}
-
-fn parsept(s: &str) -> Point {
-    let (x, y) = s.split_once(',').unwrap();
-    point(x.parse().unwrap(), y.parse().unwrap())
 }
 
 fn solve_a(input: &str) -> usize {
@@ -32,7 +27,7 @@ fn solve(input: &str, include_diagonals: bool) -> usize {
         .lines()
         .map(|l| {
             let (a, b) = l.split_once(" -> ").unwrap();
-            (parsept(a), parsept(b))
+            (a.parse().unwrap(), b.parse().unwrap())
         })
         .collect();
     let max_x = lines.iter().flat_map(|(a, b)| [a.x, b.x]).max().unwrap();

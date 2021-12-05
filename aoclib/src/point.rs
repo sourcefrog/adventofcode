@@ -27,6 +27,12 @@ impl fmt::Debug for Point {
     }
 }
 
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}, {}", self.x, self.y)
+    }
+}
+
 /// Shorthand to construct a point.
 pub fn point(x: isize, y: isize) -> Point {
     Point { x, y }
@@ -66,5 +72,17 @@ impl Point {
 
     pub fn delta(&self, dx: isize, dy: isize) -> Point {
         point(self.x + dx, self.y + dy)
+    }
+}
+
+impl std::str::FromStr for Point {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Point, Self::Err> {
+        let (x, y) = s.split_once(',').ok_or("parse point: no comma")?;
+        Ok(point(
+            x.parse().map_err(|_| "parse x")?,
+            y.parse().map_err(|_| "parse y")?,
+        ))
     }
 }
