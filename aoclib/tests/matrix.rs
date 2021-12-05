@@ -43,6 +43,7 @@ fn from_string() {
     let matrix: Matrix<char> = Matrix::from_string_lines(&input);
     assert_eq!(matrix.width(), 93);
     assert_eq!(matrix.height(), 90);
+    assert_eq!(matrix.to_string(), input);
 }
 
 #[test]
@@ -56,7 +57,8 @@ fn from_file() {
 fn display_char_matrix() {
     let m = Matrix::from_linear_vec("abcd".chars().collect(), 2);
     let d = format!("{}", m);
-    assert_eq!(d, "ab\ncd");
+    assert_eq!(d, "ab\ncd\n");
+    assert_eq!(d, m.to_string());
 }
 
 #[test]
