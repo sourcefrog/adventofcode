@@ -28,11 +28,13 @@ fn solve_b(input: &str) -> usize {
 }
 
 fn solve(input: &str, include_diagonals: bool) -> usize {
-    let mut lines: Vec<(Point, Point)> = Vec::new();
-    for l in input.lines() {
-        let (a, b) = l.split_once(" -> ").unwrap();
-        lines.push((parsept(a), parsept(b)));
-    }
+    let lines: Vec<(Point, Point)> = input
+        .lines()
+        .map(|l| {
+            let (a, b) = l.split_once(" -> ").unwrap();
+            (parsept(a), parsept(b))
+        })
+        .collect();
     let max_x = lines.iter().flat_map(|(a, b)| [a.x, b.x]).max().unwrap();
     let max_y = lines.iter().flat_map(|(a, b)| [a.y, b.y]).max().unwrap();
     let mut mat = Matrix::new(max_x as usize + 1, max_y as usize + 1, 0usize);
@@ -42,15 +44,13 @@ fn solve(input: &str, include_diagonals: bool) -> usize {
         if !include_diagonals && (xs != 0) && (ys != 0) {
             continue;
         }
-        let mut x = a.x;
-        let mut y = a.y;
+        let mut p = a;
         loop {
-            mat[(x, y)] += 1;
-            if x == b.x && y == b.y {
+            mat[p] += 1;
+            if p == b {
                 break;
             }
-            x += xs;
-            y += ys;
+            p = p.delta(xs, ys);
         }
     }
     mat.values().filter(|c| **c > 1).count()
