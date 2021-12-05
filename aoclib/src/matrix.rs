@@ -43,6 +43,15 @@ impl<T> Matrix<T> {
         Matrix { d, w, h }
     }
 
+    /// From an iterator of elements.
+    pub fn from_linear_iter<I>(i: I, w: usize) -> Matrix<T>
+    where
+        I: IntoIterator<Item = T>,
+    {
+        let d: Vec<T> = i.into_iter().collect();
+        Matrix::from_linear_vec(d, w)
+    }
+
     pub fn width(&self) -> usize {
         self.w
     }

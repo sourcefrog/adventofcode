@@ -80,6 +80,13 @@ fn from_linear_vec_wrong_len() {
     Matrix::from_linear_vec((0..4).collect(), 3);
 }
 
+#[test]
+fn from_linear_iter() {
+    let m = Matrix::from_linear_iter(0..100u32, 20);
+    assert_eq!(m.width(), 20);
+    assert_eq!(m.height(), 5);
+}
+
 proptest! {
     #[test]
     fn basic_proptest(content in prop::collection::vec(0..100u32, 4), x in 0usize..2, y in 0usize..2) {
