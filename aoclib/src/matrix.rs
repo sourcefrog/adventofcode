@@ -60,9 +60,14 @@ impl<T> Matrix<T> {
         self.h
     }
 
-    /// Return all values in row,col order.
+    /// Return all values in row-major order.
     pub fn values(&self) -> std::slice::Iter<'_, T> {
         self.d.iter()
+    }
+
+    /// View as a linear slice in row-major order (first row first).
+    pub fn as_linear_slice(&self) -> &[T] {
+        &self.d
     }
 
     fn offset(&self, p: Point) -> usize {

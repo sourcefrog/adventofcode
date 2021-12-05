@@ -72,6 +72,7 @@ fn from_iter_iter() {
         matrix.values().copied().collect::<Vec<usize>>(),
         [0, 1, 10, 11]
     );
+    assert_eq!(matrix.as_linear_slice(), [0, 1, 10, 11]);
 }
 
 #[test]
