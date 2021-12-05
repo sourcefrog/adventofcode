@@ -47,6 +47,16 @@ fn from_string() {
 }
 
 #[test]
+fn map() {
+    let m = Matrix::from_linear_iter([1, 2, 3, 4, 5, 6], 2);
+    let m2 = m.map(|v| *v % 3 == 0);
+    assert_eq!(
+        m2.as_linear_slice(),
+        [false, false, true, false, false, true]
+    );
+}
+
+#[test]
 fn from_file() {
     let matrix = Matrix::from_file("testdata/dec11.txt");
     assert_eq!(matrix.width(), 93);

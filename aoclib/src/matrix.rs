@@ -144,6 +144,18 @@ impl<T> Matrix<T> {
     pub fn columns(&self) -> impl Iterator<Item = impl Iterator<Item = &T>> {
         (0..self.w).map(move |x| self.column(x))
     }
+
+    /// Produce a new matrix of equal size by applying a mapping function.
+    pub fn map<U, F>(&self, f: F) -> Matrix<U>
+    where
+        F: FnMut(&T) -> U,
+    {
+        Matrix::<U> {
+            d: self.d.iter().map(f).collect(),
+            w: self.w,
+            h: self.h,
+        }
+    }
 }
 
 impl<T: Clone> Matrix<T> {
