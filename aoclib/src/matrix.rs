@@ -256,12 +256,23 @@ impl Matrix<char> {
     }
 }
 
-impl fmt::Display for Matrix<char> {
+impl<T> fmt::Display for Matrix<T>
+where
+    T: ToString + 'static,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use std::any::TypeId;
         use std::fmt::Write;
-        for r in self.rows() {
+        let mstrings = self.map(ToString::to_string);
+        let max_len: usize;
+        if TypeId::of::<T>() == TypeId::of::<char>() {
+            max_len = 1;
+        } else {
+            max_len = mstrings.values().map(|s| s.len()).max().unwrap_or(0) + 1;
+        }
+        for r in mstrings.rows() {
             for c in r {
-                f.write_char(*c)?;
+                write!(f, "{:1$}", c, max_len)?;
             }
             f.write_char('\n')?;
         }

@@ -72,6 +72,23 @@ fn display_char_matrix() {
 }
 
 #[test]
+fn display_int_matrix() {
+    let m = Matrix::from_linear_iter(0..20, 4);
+    let d = m.to_string();
+    assert_eq!(
+        d,
+        "0  1  2  3  \n4  5  6  7  \n8  9  10 11 \n12 13 14 15 \n16 17 18 19 \n"
+    );
+}
+
+#[test]
+fn display_digits() {
+    let m = Matrix::from_linear_iter(0..6, 3);
+    let d = m.to_string();
+    assert_eq!(d, "0 1 2 \n3 4 5 \n");
+}
+
+#[test]
 fn from_iter_iter() {
     let matrix: Matrix<usize> = (0..=1)
         .into_iter()
