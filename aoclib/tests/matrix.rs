@@ -69,7 +69,7 @@ fn from_iter_iter() {
         .collect();
     assert_eq!((matrix.width(), matrix.height()), (2, 2));
     assert_eq!(
-        matrix.values().map(|v| *v).collect::<Vec<usize>>(),
+        matrix.values().copied().collect::<Vec<usize>>(),
         [0, 1, 10, 11]
     );
 }
