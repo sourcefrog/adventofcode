@@ -67,7 +67,7 @@ fn recurse_len(mut b: &[char]) -> u64 {
         let c = b[0];
         b = &b[1..];
         if c == '(' {
-            let (replen, repcnt, rest) = parse_repeat(&b);
+            let (replen, repcnt, rest) = parse_repeat(b);
             // println!("{}, {}", replen, repcnt);
             let rus: usize = replen as usize;
             let sub_b = &rest[..rus];
@@ -126,6 +126,6 @@ mod test1609 {
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(), 10915059201u64.into());
+        assert_eq!(solve_b(), 10915059201u64);
     }
 }

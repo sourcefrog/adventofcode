@@ -339,7 +339,7 @@ mod test {
     fn example_negative() {
         let mem = parse_string("1101,100,-1,4,0");
         let mut computer = Computer::new(&mem);
-        assert_eq!(computer.step(), true);
+        assert!(computer.step());
         assert_eq!(computer.mem[4], 99);
         assert_eq!(computer.pc, 4);
     }
@@ -379,20 +379,20 @@ mod test {
         assert_eq!(ic.pc, 0);
         assert_eq!(ic.mem[3], 3);
 
-        assert_eq!(ic.step(), true);
+        assert!(ic.step());
         assert_eq!(ic.mem[3], 70);
 
-        assert_eq!(ic.step(), true);
+        assert!(ic.step());
         assert_eq!(ic.mem[0], 3500);
 
-        assert_eq!(ic.step(), false);
+        assert!(!ic.step());
     }
 
     #[test]
     fn examples_02_a() {
         let mut ic = Computer::from_string("1,0,0,0,99");
-        assert_eq!(ic.step(), true);
-        assert_eq!(ic.step(), false);
+        assert!(ic.step());
+        assert!(!ic.step());
         ic.assert_mem_starts_with(&parse_string("2,0,0,0,99"));
 
         let mut ic = Computer::from_string("2,3,0,3,99");

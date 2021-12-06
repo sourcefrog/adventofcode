@@ -135,9 +135,9 @@ mod test {
     #[test]
     fn is_lit_samples() {
         let program = load_program();
-        assert_eq!(is_lit(&program, 0, 0), true);
-        assert_eq!(is_lit(&program, 0, 1), false);
-        assert_eq!(is_lit(&program, 0, 10), false);
+        assert!(is_lit(&program, 0, 0));
+        assert!(!is_lit(&program, 0, 1));
+        assert!(!is_lit(&program, 0, 10));
     }
 
     #[test]
