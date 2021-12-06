@@ -75,15 +75,15 @@ impl Inst {
 }
 
 fn parse_int(input: &str) -> IResult<&str, usize> {
-    map(recognize(many1(one_of("0123456789"))), |s| {
-        usize::from_str_radix(s, 10).unwrap()
+    map(recognize(many1(one_of("0123456789"))), |s: &str| {
+        s.parse().unwrap()
     })(input)
 }
 
 fn parse_dest(input: &str) -> IResult<&str, Dest> {
     alt((
-        preceded(tag("output "), map(parse_int, |v| Dest::Output(v))),
-        preceded(tag("bot "), map(parse_int, |v| Dest::Bot(v))),
+        preceded(tag("output "), map(parse_int, Dest::Output)),
+        preceded(tag("bot "), map(parse_int, Dest::Bot)),
     ))(input)
 }
 
@@ -159,20 +159,14 @@ fn solve_type_a(input: &str) -> usize {
                 }
                 let low = bot.low.as_ref().unwrap().clone();
                 let high = bot.high.as_ref().unwrap().clone();
-                match low {
-                    Dest::Bot(lowbot) => {
-                        println!("give {} to {}", lowv, lowbot);
-                        bots[lowbot].take(lowv)
-                    }
-                    _ => (),
-                };
-                match high {
-                    Dest::Bot(highbot) => {
-                        println!("give {} to {}", highv, highbot);
-                        bots[highbot].take(highv)
-                    }
-                    _ => (),
-                };
+                if let Dest::Bot(lowbot) = low {
+                    println!("give {} to {}", lowv, lowbot);
+                    bots[lowbot].take(lowv)
+                }
+                if let Dest::Bot(highbot) = high {
+                    println!("give {} to {}", highv, highbot);
+                    bots[highbot].take(highv)
+                }
                 bots[bot_id].values.clear();
             }
         }
@@ -242,7 +236,7 @@ mod test1610 {
 
     #[test]
     fn parse_all_input() {
-        let input = &input();
+        let input = input();
         let (rest, insts) = parse(&input).unwrap();
         assert!(rest.is_empty());
         assert_eq!(insts.len(), 231);
