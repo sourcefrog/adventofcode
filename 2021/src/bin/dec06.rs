@@ -13,44 +13,26 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str) -> usize {
-    let mut fish: Vec<usize> = input
-        .trim()
-        .split(',')
-        .map(|w| w.parse().unwrap())
-        .collect();
-    for _day in 0..80 {
-        for j in 0..fish.len() {
-            let x = fish[j];
-            if x == 0 {
-                fish[j] = 6;
-                fish.push(8);
-            } else {
-                fish[j] -= 1;
-            }
-        }
-    }
-    fish.len()
+    solve(input, 80)
 }
 
 fn solve_b(input: &str) -> usize {
-    let fish: Vec<usize> = input
+    solve(input, 256)
+}
+
+fn solve(input: &str, days: usize) -> usize {
+    let mut per_cycle = [0usize; 9]; // Number of fish per age.
+    input
         .trim()
         .split(',')
-        .map(|w| w.parse().unwrap())
-        .collect();
-    let mut per_cycle = vec![0usize; 9];
-    for c in fish {
-        per_cycle[c] += 1;
-    }
-    for _day in 0..256 {
-        dbg!(&per_cycle);
-        let mut n = vec![0usize; 9];
-        for i in 1..=8 {
-            n[i - 1] = per_cycle[i];
-        }
-        n[6] += per_cycle[0];
-        n[8] += per_cycle[0];
-        per_cycle = n;
+        .map(|w| w.parse::<usize>().unwrap())
+        .for_each(|c| per_cycle[c] += 1);
+    for _day in 0..days {
+        let mut next = [0usize; 9];
+        next[0..=7].copy_from_slice(&per_cycle[1..=8]);
+        next[6] += per_cycle[0];
+        next[8] = per_cycle[0];
+        per_cycle = next;
     }
     per_cycle.iter().sum()
 }
