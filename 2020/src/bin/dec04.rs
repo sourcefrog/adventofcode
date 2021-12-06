@@ -148,6 +148,6 @@ pid:545766238 ecl:hzl
 eyr:2022
 
 iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719";
-        assert!(data.split("\n\n").all(|para| is_valid(para)));
+        assert!(data.split("\n\n").all(is_valid));
     }
 }

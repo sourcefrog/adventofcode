@@ -145,7 +145,7 @@ fn load() -> String {
 mod test {
     use super::*;
 
-    const EXAMPLE: &'static str = "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
+    const EXAMPLE: &str = "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
 trh fvjkl sbzzf mxmxvkd (contains dairy)
 sqjhc fvjkl (contains soy)
 sqjhc mxmxvkd sbzzf (contains fish)

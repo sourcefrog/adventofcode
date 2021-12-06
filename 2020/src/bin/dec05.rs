@@ -27,7 +27,7 @@ fn all_ids() -> Vec<usize> {
     std::fs::read_to_string("input/dec05.txt")
         .unwrap()
         .lines()
-        .map(|l| decode(l))
+        .map(decode)
         .collect()
 }
 

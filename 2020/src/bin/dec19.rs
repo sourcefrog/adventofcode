@@ -179,7 +179,7 @@ abbbab
 aaabbb
 aaaabbb
 "#;
-        assert_eq!(solve_type_a(&input), 2);
+        assert_eq!(solve_type_a(input), 2);
     }
 
     #[test]
