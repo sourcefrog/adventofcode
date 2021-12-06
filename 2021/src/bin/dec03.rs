@@ -8,7 +8,7 @@ fn main() {
 }
 
 fn input() -> String {
-    std::fs::read_to_string("input.txt").unwrap()
+    std::fs::read_to_string("input/03.txt").unwrap()
 }
 
 fn to_matrix(input: &str) -> Matrix<bool> {

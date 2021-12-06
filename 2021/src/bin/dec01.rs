@@ -4,7 +4,7 @@ fn main() {
 }
 
 fn input() -> String {
-    std::fs::read_to_string("input.txt").unwrap()
+    std::fs::read_to_string("input/01.txt").unwrap()
 }
 
 fn solve_a(input: &str) -> usize {
