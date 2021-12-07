@@ -40,9 +40,15 @@ fn solve_a(ps: &[i64]) -> i64 {
     let mut best = i64::MAX;
     for i in 1..(*ps.iter().max().unwrap()) {
         let guess = ps.iter().map(|x| (x - i).abs()).sum();
-        best = std::cmp::min(best, guess);
+        // We do know that there is a single minima; once
+        // we've found it we're done.
+        if guess <= best {
+            best = guess
+        } else {
+            return best;
+        }
     }
-    best
+    unreachable!()
 }
 
 fn solve_b(ps: &[i64]) -> i64 {
@@ -72,9 +78,15 @@ fn solve_b(ps: &[i64]) -> i64 {
                 (d * (d + 1)) / 2
             })
             .sum();
-        best = std::cmp::min(best, guess);
+        // We do know that there is a single minima; once
+        // we've found it we're done.
+        if guess <= best {
+            best = guess
+        } else {
+            return best;
+        }
     }
-    best
+    unreachable!();
 }
 
 #[cfg(test)]
