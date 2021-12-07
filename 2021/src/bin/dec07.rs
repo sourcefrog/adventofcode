@@ -8,16 +8,35 @@ fn main() {
     println!("{:?}", solve_b(&input));
 }
 
-fn input() -> String {
-    std::fs::read_to_string("input/07.txt").unwrap()
-}
-
-fn solve_a(input: &str) -> i64 {
-    let ps = input
+fn input() -> Vec<i64> {
+    std::fs::read_to_string("input/07.txt")
+        .unwrap()
         .trim()
         .split(',')
         .map(|w| w.parse::<i64>().unwrap())
-        .collect::<Vec<i64>>();
+        .collect::<Vec<i64>>()
+}
+
+fn solve_a(ps: &[i64]) -> i64 {
+    // Find the position that has the minimum total absolute
+    // distance from all points.
+    //
+    // The simplest brute-force method is: consider every
+    // point in the range between the maximum and minimum
+    // number, calculate the distance to all other fish, and
+    // we're done. However this seems pretty inefficient.
+    //
+    // Intuitively it seems like the best point might be the
+    // median... but why?
+    //
+    // Also, the obvious way to find the median is to sort
+    // and then pick the middle, but that's somewhat more
+    // work than just looking at every point...
+    //
+    // If we knew it was the median and that the median
+    // value was present in the input (rather than being the
+    // mean of two points) then we could just look at all
+    // points once...
     let mut best = i64::MAX;
     for i in 1..(*ps.iter().max().unwrap()) {
         let guess = ps.iter().map(|x| (x - i).abs()).sum();
@@ -26,12 +45,24 @@ fn solve_a(input: &str) -> i64 {
     best
 }
 
-fn solve_b(input: &str) -> i64 {
-    let ps = input
-        .trim()
-        .split(',')
-        .map(|w| w.parse::<i64>().unwrap())
-        .collect::<Vec<i64>>();
+fn solve_b(ps: &[i64]) -> i64 {
+    // Find the total distance from the best location using
+    // a quadratic cost.
+    //
+    // This seems a lot like minimizing least-squares error,
+    // or linear regression.
+    //
+    // In this case it seems there's less of a guarantee
+    // that the goal is a data point in the input, and,
+    // indeed, it seems that if we only consider
+    // possibilities in the input then it doesn't find the
+    // right answer.
+    //
+    // Possibly the `abs` in calculating the distance would
+    // make it harder to state this as a polynomial?
+    //
+    // I wonder you could do something like Newton's method
+    // to find the minimum?
     let mut best = i64::MAX;
     for i in 1..(*ps.iter().max().unwrap()) {
         let guess = ps
@@ -52,7 +83,8 @@ mod test {
 
     #[test]
     fn solution() {
-        assert_eq!(solve_a(&input()), 340056);
-        assert_eq!(solve_b(&input()), 96592275);
+        let input = input();
+        assert_eq!(solve_a(&input), 340056);
+        assert_eq!(solve_b(&input), 96592275);
     }
 }
