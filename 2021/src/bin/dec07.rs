@@ -19,12 +19,11 @@ fn solve_a(input: &str) -> i64 {
         .map(|w| w.parse::<i64>().unwrap())
         .collect::<Vec<i64>>();
     let mut best = i64::MAX;
-    for i in (1..(*ps.iter().max().unwrap())) {
+    for i in 1..(*ps.iter().max().unwrap()) {
         let guess = ps.iter().map(|x| (x - i).abs()).sum();
         best = std::cmp::min(best, guess);
     }
     best
-    // 358620 is wrong
 }
 
 fn solve_b(input: &str) -> i64 {
@@ -34,12 +33,12 @@ fn solve_b(input: &str) -> i64 {
         .map(|w| w.parse::<i64>().unwrap())
         .collect::<Vec<i64>>();
     let mut best = i64::MAX;
-    for i in (1..(*ps.iter().max().unwrap())) {
+    for i in 1..(*ps.iter().max().unwrap()) {
         let guess = ps
             .iter()
             .map(|x| {
                 let d = (x - i).abs();
-                (1..=d).sum::<i64>()
+                (d * (d + 1)) / 2
             })
             .sum();
         best = std::cmp::min(best, guess);
@@ -53,7 +52,7 @@ mod test {
 
     #[test]
     fn solution() {
-        assert_eq!(solve_a(&input()), 389726);
-        assert_eq!(solve_b(&input()), 1743335992042);
+        assert_eq!(solve_a(&input()), 340056);
+        assert_eq!(solve_b(&input()), 96592275);
     }
 }
