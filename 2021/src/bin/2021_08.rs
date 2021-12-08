@@ -2,16 +2,57 @@
 
 //! https://adventofcode.com/2021/day/8
 
-// TODO: This might be simpler if all letters were just translated into
-// numbers as they're read in, at the expense of a somewhat more
-// indirect internal representation, and needing to translate more for
-// debugging output, and some risk of bugs in that code.
-//
-// Also, lit digits could then be represented as bitsets, which would do
-// away with the need for sorting, and would correspond pretty nicely to
-// the problem domain of wires and lights that are lit or not.
+use std::fmt::{self, Write};
 
 use itertools::Itertools;
+
+// Signalled wires, or active lights, can all be represented as set
+// bit in a u8 (since there are at most 7). 'a' is the low-order bit.
+// The order between them doesn't matter.
+#[derive(PartialOrd, Ord, PartialEq, Eq)]
+struct Lit(u8);
+
+impl Lit {
+    fn from_str(s: &str) -> Lit {
+        s.chars()
+            .map(|c| {
+                assert!(('a'..='g').contains(&c));
+                1 << (c as u32 - 'a' as u32)
+            })
+            .fold(0, |acc, x| acc | x)
+            .into()
+    }
+
+    /// The number of wires or leds lit.
+    fn num_set(&self) -> usize {
+        self.0.count_ones() as usize
+    }
+
+    /// Transform self into output by a permutation vector.
+    fn transform(&self, xf: &[usize]) -> Lit {
+        debug_assert_eq!(xf.len(), 7);
+        (0..=7)
+            .filter(|i| self.0 & (1 << i) != 0)
+            .map(|i| (1 << xf[i]) as u8)
+            .fold(0, |acc, x| acc | x)
+            .into()
+    }
+}
+
+impl fmt::Display for Lit {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        (0..=7)
+            .filter(|i| (self.0 & (1 << i)) != 0)
+            .map(|i| (b'a' + i) as char)
+            .try_for_each(|c| f.write_char(c))
+    }
+}
+
+impl From<u8> for Lit {
+    fn from(x: u8) -> Lit {
+        Lit(x)
+    }
+}
 
 const DIGITS: [&str; 10] = [
     "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
@@ -26,21 +67,14 @@ fn input() -> String {
     std::fs::read_to_string("input/08.txt").unwrap()
 }
 
-// The order of characters doesn't matter. Sort them to be easier to look at.
-fn sorted_word(s: &str) -> String {
-    let mut t = s.chars().collect::<Vec<char>>();
-    t.sort();
-    t.iter().collect()
-}
-
 fn solve(input: &str) -> (usize, usize) {
-    let vals: Vec<(Vec<String>, Vec<String>)> = input
+    let vals: Vec<(Vec<Lit>, Vec<Lit>)> = input
         .lines()
         .map(|s| {
             let (l, r) = s.split_once(" | ").unwrap();
             (
-                l.split_whitespace().map(sorted_word).collect(),
-                r.split_whitespace().map(sorted_word).collect(),
+                l.split_whitespace().map(Lit::from_str).collect(),
+                r.split_whitespace().map(Lit::from_str).collect(),
             )
         })
         .collect();
@@ -48,56 +82,38 @@ fn solve(input: &str) -> (usize, usize) {
         .iter()
         .map(|(_l, r)| {
             r.iter()
-                .map(|x| x.len())
-                .filter(|x| [2, 4, 3, 7].contains(x))
+                .map(|x| x.num_set())
+                .filter(|x| [2, 3, 4, 7].contains(x))
                 .count()
         })
         .sum();
-    let sol_b = vals.iter().map(|(a, b)| solve_b_line(a, b)).sum();
+    let digits_lit: Vec<Lit> = DIGITS.iter().map(|s| Lit::from_str(s)).collect();
+    let sol_b = vals
+        .iter()
+        .map(|(a, b)| solve_b_line(a, b, &digits_lit))
+        .sum();
     (sol_a, sol_b)
 }
 
-fn solve_b_line(l: &[String], r: &[String]) -> usize {
-    // A new approach: there are only 8 possibilities for the meaning of 'a', then 7 for 'b' and so
-    // on: 8! is a bit but not intractable, and many of them can probably be dismissed early. Maybe
-    // we can just try them all?
-
-    // mapping[i] = j means that letter i (counting 'a' = 0) corresponds to letter j.
-    for mapping in ('a'..='g').permutations(7) {
-        if feasible(l, &mapping) {
-            // println!(
-            //     ">> it's feasible, yay: {}",
-            //     mapping.iter().collect::<String>()
-            // );
-            let digits = r
+fn solve_b_line(l: &[Lit], r: &[Lit], digits_lit: &[Lit]) -> usize {
+    // Try every possible mapping.
+    for mapping in (0..=7).permutations(7) {
+        // Does every number on the left correspond, under this mapping,
+        // to some digit, we don't care which?
+        if l.iter()
+            .all(|lw| digits_lit.contains(&lw.transform(&mapping)))
+        {
+            // Great, this looks like a solution. Now transform the
+            // right side in the same mapping, and combine them as
+            // digits.
+            return r
                 .iter()
-                .map(|rw| translate(rw, &mapping))
-                .map(|rt| DIGITS.iter().position(|x| *x == rt).unwrap())
+                .map(|rlit| rlit.transform(&mapping))
+                .map(|rt| digits_lit.iter().position(|x| *x == rt).unwrap())
                 .fold(0, |acc, x| acc * 10 + x);
-            // dbg!(digits);
-            return digits;
         }
     }
     unreachable!();
-}
-
-fn feasible(l: &[String], mapping: &[char]) -> bool {
-    // Can mapping work for l?
-    //
-    // First, we can simply translate all words in l through that mapping. Each of them should be a
-    // DIGIT.
-    l.iter()
-        .all(|lw| DIGITS.contains(&translate(lw, mapping).as_str()))
-}
-
-fn translate(l: &str, mapping: &[char]) -> String {
-    let mut t: Vec<char> = l
-        .chars()
-        .map(|c| c as u32 - 'a' as u32)
-        .map(|i| mapping[i as usize])
-        .collect();
-    t.sort();
-    t.iter().collect::<String>()
 }
 
 #[cfg(test)]
