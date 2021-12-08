@@ -2,7 +2,20 @@
 
 //! https://adventofcode.com/2021/day/8
 
+// TODO: This might be simpler if all letters were just translated into
+// numbers as they're read in, at the expense of a somewhat more
+// indirect internal representation, and needing to translate more for
+// debugging output, and some risk of bugs in that code.
+//
+// Also, lit digits could then be represented as bitsets, which would do
+// away with the need for sorting, and would correspond pretty nicely to
+// the problem domain of wires and lights that are lit or not.
+
 use itertools::Itertools;
+
+const DIGITS: [&str; 10] = [
+    "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
+];
 
 fn main() {
     let input = input();
@@ -49,29 +62,24 @@ fn solve_b_line(l: &[String], r: &[String]) -> usize {
     // on: 8! is a bit but not intractable, and many of them can probably be dismissed early. Maybe
     // we can just try them all?
 
-    // combo[i] = j   means that letter i (counting from 0) corresponds to letter j.
+    // mapping[i] = j means that letter i (counting 'a' = 0) corresponds to letter j.
     for mapping in ('a'..='g').permutations(7) {
-        println!("{}", mapping.iter().collect::<String>());
         if feasible(l, &mapping) {
-            println!(
-                ">> it's feasible, yay: {}",
-                mapping.iter().collect::<String>()
-            );
+            // println!(
+            //     ">> it's feasible, yay: {}",
+            //     mapping.iter().collect::<String>()
+            // );
             let digits = r
                 .iter()
                 .map(|rw| translate(rw, &mapping))
                 .map(|rt| DIGITS.iter().position(|x| *x == rt).unwrap())
                 .fold(0, |acc, x| acc * 10 + x);
-            dbg!(digits);
+            // dbg!(digits);
             return digits;
         }
     }
     unreachable!();
 }
-
-const DIGITS: [&str; 10] = [
-    "abcefg", "cf", "acdeg", "acdfg", "bcdf", "abdfg", "abdefg", "acf", "abcdefg", "abcdfg",
-];
 
 fn feasible(l: &[String], mapping: &[char]) -> bool {
     // Can mapping work for l?
@@ -92,69 +100,6 @@ fn translate(l: &str, mapping: &[char]) -> String {
     t.iter().collect::<String>()
 }
 
-fn solve_b_line_fail(l: &[String], r: &[String]) -> usize {
-    // Find a mapping between letters in `l` and `r` by: finding a digit where there's only one
-    // possible solution or where it's sufficiently constrained by previous answers...
-    //
-    // Keep track of what input letters can possibly map to what output letters. At first, anything
-    // is possible.
-    use std::collections::HashMap;
-    let mut poss: HashMap<char, Vec<char>> = Default::default();
-    for i in 'a'..='g' {
-        for j in 'a'..='g' {
-            poss.entry(i).or_default().push(j);
-        }
-    }
-    // By looking at `r` maybe we can directly determine something about the constituents of some
-    // easy digits?
-    // for rw in r {
-    //     println!("consider right word {rw} of len {}", rw.len());
-    //     for (digit, rwd) in DIGITS.iter().enumerate() {
-    //         if rwd.len() == rw.len() {
-    //             println!("  could be {rwd} ({digit})");
-    //         }
-    //     }
-    // }
-
-    // Definitely known pairs.
-    let mut known: HashMap<char, char> = Default::default();
-
-    // Do the unique ones first
-    for d in [1, 4, 7, 8] {
-        let dlit = DIGITS[d];
-        for i in l.iter().filter(|iw| iw.len() == dlit.len()) {
-            println!("consider maybe {i} is {dlit} ({d})");
-            // The letters in i can only map to the letters in dlit.
-            for c in 'a'..='g' {
-                if i.contains(c) {
-                    poss.get_mut(&c).unwrap().retain(|x| dlit.contains(*x));
-                } else {
-                    // Also, the letters that are *not* in i cannot map to the letters in dlit, because
-                    // they're all accounted for.
-                    poss.get_mut(&c).unwrap().retain(|x| !dlit.contains(*x));
-                }
-                let c_poss = poss.get(&c).unwrap().iter().collect::<String>();
-                println!("poss[{c}] = {c_poss}",);
-                if c_poss.len() == 1 {
-                    println!("{c} is definitely {c_poss}!!");
-                    known.insert(c, c_poss.chars().next().unwrap());
-                }
-                assert!(!c_poss.is_empty());
-            }
-        }
-    }
-    // Now do the ambiguous ones?
-    for d in [0, 2, 3, 5, 6, 9] {
-        let dlit = DIGITS[d];
-        for i in l.iter().filter(|iw| iw.len() == dlit.len()) {
-            println!("consider maybe {i} is {dlit} ({d})");
-        }
-    }
-    // So essentially we have a 10x10 matrix of possibilities, all of which are initially possible,
-    // and we want to find unambiguously which one is which.
-    0
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -162,6 +107,6 @@ mod test {
     #[test]
     fn solution() {
         let input = input();
-        assert_eq!(solve(&input), (381, 0));
+        assert_eq!(solve(&input), (381, 1023686));
     }
 }
