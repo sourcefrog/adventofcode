@@ -2,8 +2,11 @@
 
 //! https://adventofcode.com/2021/day/9
 
-use aoclib::{Matrix, Point};
 use std::collections::{HashMap, VecDeque};
+
+use itertools::Itertools;
+
+use aoclib::{Matrix, Point};
 
 fn main() {
     let input = input();
@@ -72,9 +75,7 @@ fn solve(input: &str) -> (u32, usize) {
         }
     }
 
-    let mut lens: Vec<usize> = basins.values().cloned().collect();
-    lens.sort_unstable();
-    let sol_b = lens.iter().rev().take(3).product();
+    let sol_b = basins.values().cloned().sorted().rev().take(3).product();
 
     (sol_a, sol_b)
 }
