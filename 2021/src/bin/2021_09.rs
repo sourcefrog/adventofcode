@@ -25,8 +25,8 @@ fn solve(input: &str) -> (u32, usize) {
     });
     let mut sol_a = 0;
     // For each point in the map that's not height 9 or a low point, its
-    // the downhill neighbors.
-    let mut flows_to: Matrix<Vec<Point>> = map.map(|_| Vec::new());
+    // downhill neighbors.
+    let mut downhill: Matrix<Vec<Point>> = map.map(|_| Vec::new());
     // Points that we have to look at, where we haven't decided yet
     // which basin they're in, if any.
     let mut active: VecDeque<Point> = Default::default();
@@ -46,7 +46,7 @@ fn solve(input: &str) -> (u32, usize) {
             in_basin[p] = Some(p);
             basins.insert(p, 1);
         } else if v < 9 {
-            flows_to[p] = ns
+            downhill[p] = ns
                 .iter()
                 .filter(|(_, nv)| **nv < v)
                 .map(|(np, _)| *np)
@@ -57,12 +57,12 @@ fn solve(input: &str) -> (u32, usize) {
 
     while let Some(p) = active.pop_front() {
         assert!(in_basin[p].is_none());
-        assert!(!flows_to[p].is_empty());
-        let nbr_basins: Vec<Option<Point>> = flows_to[p].iter().map(|np| in_basin[*np]).collect();
+        assert!(!downhill[p].is_empty());
+        let nbr_basins: Vec<Option<Point>> = downhill[p].iter().map(|np| in_basin[*np]).collect();
         if nbr_basins.iter().all(Option::is_some) {
             // all downhills have been done; are they all the same?
-            let lowpt = nbr_basins[0].unwrap();
-            if nbr_basins.iter().all(|x| x.unwrap() == lowpt) {
+            if nbr_basins.iter().all_equal() {
+                let lowpt = nbr_basins[0].unwrap();
                 // println!("resolved {p} is in basin of {lowpt}");
                 in_basin[p] = Some(lowpt);
                 *basins.get_mut(&lowpt).unwrap() += 1;
