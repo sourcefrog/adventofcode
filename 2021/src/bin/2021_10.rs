@@ -31,16 +31,13 @@ fn solve(input: &str) -> (u32, usize) {
                 }
                 _ => (),
             }
-            let b = st.pop().unwrap();
-            sol_a += match c {
-                ')' if b == '(' => continue,
-                '}' if b == '{' => continue,
-                ']' if b == '[' => continue,
-                '>' if b == '<' => continue,
-                ')' => 3,
-                ']' => 57,
-                '}' => 1197,
-                '>' => 25137,
+            let b = st.pop().unwrap_or(' '); // just in case of a mismatch at the start
+            sol_a += match (b, c) {
+                ('(', ')') | ('{', '}') | ('[', ']') | ('<', '>') => continue,
+                (_, ')') => 3,
+                (_, ']') => 57,
+                (_, '}') => 1197,
+                (_, '>') => 25137,
                 _ => panic!(),
             };
             continue 'lines; // this line is corrupt
