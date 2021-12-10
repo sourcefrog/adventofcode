@@ -21,9 +21,8 @@ fn input() -> String {
 fn solve(input: &str) -> (u32, usize) {
     let mut sol_a = 0;
     let mut bs: Vec<usize> = Vec::new();
-    for l in input.lines() {
+    'lines: for l in input.lines() {
         let mut st: Vec<char> = Vec::new();
-        let mut bad = 0;
         for c in l.chars() {
             match c {
                 '(' | '[' | '{' | '<' => {
@@ -33,7 +32,7 @@ fn solve(input: &str) -> (u32, usize) {
                 _ => (),
             }
             let b = st.pop().unwrap();
-            bad = match c {
+            sol_a += match c {
                 ')' if b == '(' => continue,
                 '}' if b == '{' => continue,
                 ']' if b == '[' => continue,
@@ -44,23 +43,21 @@ fn solve(input: &str) -> (u32, usize) {
                 '>' => 25137,
                 _ => panic!(),
             };
+            continue 'lines; // this line is corrupt
         }
-        if bad != 0 {
-            sol_a += bad;
-            continue;
-        }
-        let mut z = 0;
-        while let Some(c) = st.pop() {
-            let x = match c {
-                '(' => 1,
-                '[' => 2,
-                '{' => 3,
-                '<' => 4,
-                _ => panic!(),
-            };
-            z = z * 5 + x;
-        }
-        bs.push(z);
+        // now only for non-corrupt lines, match any still-open pairs on the stack
+        bs.push(
+            st.iter()
+                .rev()
+                .map(|c| match c {
+                    '(' => 1,
+                    '[' => 2,
+                    '{' => 3,
+                    '<' => 4,
+                    _ => panic!(),
+                })
+                .fold(0, |z, x| z * 5 + x),
+        );
     }
     bs.sort_unstable();
     assert_eq!(bs.len() % 2, 1);
