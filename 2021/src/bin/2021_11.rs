@@ -21,18 +21,18 @@ fn solve(input: &str) -> (usize, usize) {
         let mut n = m.map(|&v| v + 1);
         let mut flashed = Matrix::same_size(&m, false);
         loop {
-            let mut done = true;
+            let mut found = false;
             for p in n.iter_points() {
                 if n[p] > 9 && !flashed[p] {
                     flashed[p] = true;
                     tf += 1;
+                    found = true;
                     for q in n.neighbor8_points(p) {
                         n[q] += 1;
-                        done = false;
                     }
                 }
             }
-            if done {
+            if !found {
                 break;
             }
         }
