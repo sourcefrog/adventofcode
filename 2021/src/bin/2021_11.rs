@@ -20,21 +20,15 @@ fn solve_a(input: &str) -> usize {
         c as u32 - '0' as u32
     });
     let mut tf = 0;
-    for step in 0..100 {
-        dbg!(&step);
+    for _step in 0..100 {
         let mut n = m.map(|&v| v + 1);
         let mut flashed = m.map(|_| false);
         loop {
-            // println!(
-            //     "{}",
-            //     n.map(|&v| "0123456789abcdefghijk".chars().nth(v as usize).unwrap())
-            // );
             let mut done = true;
             for p in n.iter_points() {
                 if n[p] > 9 && !flashed[p] {
                     flashed[p] = true;
                     tf += 1;
-                    println!("{} flashed", p);
                     for q in n.neighbor8_points(p) {
                         n[q] += 1;
                         done = false;
@@ -60,22 +54,14 @@ fn solve_b(input: &str) -> usize {
         assert!(c.is_ascii_digit());
         c as u32 - '0' as u32
     });
-    let mut tf = 0;
     for step in 1.. {
-        dbg!(&step);
         let mut n = m.map(|&v| v + 1);
         let mut flashed = m.map(|_| false);
         loop {
-            // println!(
-            //     "{}",
-            //     n.map(|&v| "0123456789abcdefghijk".chars().nth(v as usize).unwrap())
-            // );
             let mut done = true;
             for p in n.iter_points() {
                 if n[p] > 9 && !flashed[p] {
                     flashed[p] = true;
-                    tf += 1;
-                    println!("{} flashed", p);
                     for q in n.neighbor8_points(p) {
                         n[q] += 1;
                         done = false;
@@ -106,7 +92,7 @@ mod test {
     #[test]
     fn solution() {
         let input = input();
-        assert_eq!(solve_a(&input), 0);
-        assert_eq!(solve_b(&input), 0);
+        assert_eq!(solve_a(&input), 1652);
+        assert_eq!(solve_b(&input), 220);
     }
 }
