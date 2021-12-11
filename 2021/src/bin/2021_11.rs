@@ -15,10 +15,7 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str) -> usize {
-    let mut m: Matrix<u32> = Matrix::from_string_lines(input).map(|&c| {
-        assert!(c.is_ascii_digit());
-        c as u32 - '0' as u32
-    });
+    let mut m: Matrix<u32> = Matrix::from_digit_lines(input);
     let mut tf = 0;
     for _step in 0..100 {
         let mut n = m.map(|&v| v + 1);
@@ -50,10 +47,7 @@ fn solve_a(input: &str) -> usize {
 }
 
 fn solve_b(input: &str) -> usize {
-    let mut m: Matrix<u32> = Matrix::from_string_lines(input).map(|&c| {
-        assert!(c.is_ascii_digit());
-        c as u32 - '0' as u32
-    });
+    let mut m: Matrix<u32> = Matrix::from_digit_lines(input);
     for step in 1.. {
         let mut n = m.map(|&v| v + 1);
         let mut flashed = Matrix::same_size(&m, false);

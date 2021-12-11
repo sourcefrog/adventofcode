@@ -247,6 +247,15 @@ impl Matrix<char> {
     }
 }
 
+impl Matrix<u32> {
+    /// Build a matrix from a string containing a rectangular matrix of characters
+    pub fn from_digit_lines(s: &str) -> Matrix<u32> {
+        s.lines()
+            .map(|l| l.chars().map(|c| c.to_digit(10).expect("decimal digit")))
+            .collect()
+    }
+}
+
 impl<T> fmt::Display for Matrix<T>
 where
     T: ToString + 'static,

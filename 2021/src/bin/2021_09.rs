@@ -19,10 +19,7 @@ fn input() -> String {
 
 fn solve(input: &str) -> (u32, usize) {
     // The map as integer heights
-    let map = Matrix::from_string_lines(input).map(|c| {
-        assert!(c.is_ascii_digit());
-        *c as u32 - '0' as u32
-    });
+    let map = Matrix::from_digit_lines(input);
     let mut sol_a = 0;
     // For each point in the map that's not height 9 or a low point, its
     // downhill neighbors.
