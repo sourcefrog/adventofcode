@@ -156,37 +156,31 @@ impl<T> Matrix<T> {
             h: self.h,
         }
     }
-    ///
+
+    pub fn contains_point(&self, p: Point) -> bool {
+        p.x >= 0 && p.y >= 0 && p.x < self.w as isize && p.y < self.h as isize
+    }
+
     /// Return a vec of all present 8-way neighbors.
     pub fn neighbor8_points(&self, p: Point) -> Vec<Point> {
         let mut v: Vec<Point> = Vec::with_capacity(8);
-        let w = self.w as isize;
-        let h = self.h as isize;
-        if p.y > 0 {
-            if p.x > 0 {
-                v.push(p.left().up());
-            }
-            v.push(p.up());
-            if p.x < (w - 1) {
-                v.push(p.right().up());
-            }
-        }
-        if p.x > 0 {
-            v.push(p.left())
-        }
-        if p.x < (w - 1) {
-            v.push(p.right())
-        }
-        if p.y < (h - 1) {
-            if p.x > 0 {
-                v.push(p.left().down())
-            }
-            v.push(p.down());
-            if p.x < (w - 1) {
-                v.push(p.right().down());
+        for dx in [-1, 0, 1] {
+            for dy in [-1, 0, 1] {
+                let q = p.delta(dx, dy);
+                if p != q && self.contains_point(q) {
+                    v.push(q);
+                }
             }
         }
         v
+    }
+
+    /// Return a vec of all present 8-way neighbors.
+    pub fn neighbors8(&self, p: Point) -> Vec<(Point, &T)> {
+        self.neighbor8_points(p)
+            .into_iter()
+            .map(|p| (p, &self[p]))
+            .collect()
     }
 }
 
@@ -205,38 +199,6 @@ impl<T: Clone> Matrix<T> {
         } else {
             None
         }
-    }
-
-    /// Return a vec of all present 8-way neighbors.
-    pub fn neighbor8_values(&self, p: Point) -> Vec<T> {
-        let mut v: Vec<T> = Vec::with_capacity(8);
-        let w = self.w as isize;
-        let h = self.h as isize;
-        if p.y > 0 {
-            if p.x > 0 {
-                v.push(self[p.left().up()].clone())
-            }
-            v.push(self[p.up()].clone());
-            if p.x < (w - 1) {
-                v.push(self[p.right().up()].clone())
-            }
-        }
-        if p.x > 0 {
-            v.push(self[p.left()].clone())
-        }
-        if p.x < (w - 1) {
-            v.push(self[p.right()].clone())
-        }
-        if p.y < (h - 1) {
-            if p.x > 0 {
-                v.push(self[p.left().down()].clone())
-            }
-            v.push(self[p.down()].clone());
-            if p.x < (w - 1) {
-                v.push(self[p.right().down()].clone())
-            }
-        }
-        v
     }
 }
 
