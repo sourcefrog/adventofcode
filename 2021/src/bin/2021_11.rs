@@ -22,7 +22,7 @@ fn solve_a(input: &str) -> usize {
     let mut tf = 0;
     for _step in 0..100 {
         let mut n = m.map(|&v| v + 1);
-        let mut flashed = m.map(|_| false);
+        let mut flashed = Matrix::same_size(&m, false);
         loop {
             let mut done = true;
             for p in n.iter_points() {
@@ -56,7 +56,7 @@ fn solve_b(input: &str) -> usize {
     });
     for step in 1.. {
         let mut n = m.map(|&v| v + 1);
-        let mut flashed = m.map(|_| false);
+        let mut flashed = Matrix::same_size(&m, false);
         loop {
             let mut done = true;
             for p in n.iter_points() {

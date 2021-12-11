@@ -26,13 +26,13 @@ fn solve(input: &str) -> (u32, usize) {
     let mut sol_a = 0;
     // For each point in the map that's not height 9 or a low point, its
     // downhill neighbors.
-    let mut downhill: Matrix<Vec<Point>> = map.map(|_| Vec::new());
+    let mut downhill: Matrix<Vec<Point>> = Matrix::same_size(&map, Vec::new());
     // Points that we have to look at, where we haven't decided yet
     // which basin they're in, if any.
     let mut active: VecDeque<Point> = Default::default();
     // For points that we have decided which basin they're in: the low
     // point of that basin.
-    let mut in_basin: Matrix<Option<Point>> = map.map(|_| None);
+    let mut in_basin: Matrix<Option<Point>> = Matrix::same_size(&map, None);
 
     // For each basin, identified by its low point: the number of points
     // in that basin, including the low point.

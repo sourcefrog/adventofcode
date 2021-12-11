@@ -185,6 +185,11 @@ impl<T: Clone> Matrix<T> {
         }
     }
 
+    /// Make a new matrix the same size as `m` with a default value `fill`.
+    pub fn same_size<Q>(m: &Matrix<Q>, d: T) -> Matrix<T> {
+        Matrix::new(m.width(), m.height(), d)
+    }
+
     pub fn try_get(&self, p: Point) -> Option<T> {
         if p.x >= 0 && p.y >= 0 && p.x < self.w as isize && p.y < self.h as isize {
             Some(self.d[self.offset(p)].clone())
