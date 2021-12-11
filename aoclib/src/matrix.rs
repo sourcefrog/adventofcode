@@ -85,29 +85,6 @@ impl<T> Matrix<T> {
         point((offset % self.w) as isize, (offset / self.w) as isize)
     }
 
-    /// Return a vec of the 4 neighboring points (if in-range) and their
-    /// values.
-    ///
-    /// p may have negative coordinates.
-    pub fn neighbors4(&self, p: Point) -> Vec<(Point, &T)> {
-        let mut v: Vec<(Point, &T)> = Vec::with_capacity(4);
-        let h = self.h as isize;
-        let w = self.w as isize;
-        if p.y > 0 {
-            v.push((p.up(), &self[p.up()]))
-        }
-        if p.y < (h - 1) {
-            v.push((p.down(), &self[p.down()]))
-        }
-        if p.x > 0 {
-            v.push((p.left(), &self[p.left()]))
-        }
-        if p.x < (w - 1) {
-            v.push((p.right(), &self[p.right()]))
-        }
-        v
-    }
-
     /// Iterate all point addresses in this matrix.
     pub fn iter_points(&self) -> impl Iterator<Item = Point> {
         let h: isize = self.h as isize;
@@ -159,6 +136,21 @@ impl<T> Matrix<T> {
 
     pub fn contains_point(&self, p: Point) -> bool {
         p.x >= 0 && p.y >= 0 && p.x < self.w as isize && p.y < self.h as isize
+    }
+
+    /// Return a vec of the 4 neighboring points (if in-range) and their
+    /// values.
+    ///
+    /// p may have negative coordinates.
+    pub fn neighbors4(&self, p: Point) -> Vec<(Point, &T)> {
+        let mut v: Vec<(Point, &T)> = Vec::with_capacity(4);
+        for (dx, dy) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
+            let q = p.delta(dx, dy);
+            if self.contains_point(q) {
+                v.push((q, &self[q]));
+            }
+        }
+        v
     }
 
     /// Return a vec of all present 8-way neighbors.
