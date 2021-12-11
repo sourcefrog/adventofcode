@@ -6,18 +6,18 @@ use aoclib::Matrix;
 
 fn main() {
     let input = input();
-    println!("{:?}", solve_a(&input));
-    println!("{:?}", solve_b(&input));
+    println!("{:?}", solve(&input));
 }
 
 fn input() -> String {
     std::fs::read_to_string("input/11.txt").unwrap()
 }
 
-fn solve_a(input: &str) -> usize {
+fn solve(input: &str) -> (usize, usize) {
     let mut m: Matrix<u32> = Matrix::from_digit_lines(input);
     let mut tf = 0;
-    for _step in 0..100 {
+    let mut sol_a = None;
+    for step in 1.. {
         let mut n = m.map(|&v| v + 1);
         let mut flashed = Matrix::same_size(&m, false);
         loop {
@@ -36,44 +36,17 @@ fn solve_a(input: &str) -> usize {
                 break;
             }
         }
-        for p in n.iter_points() {
-            if flashed[p] {
+        for (p, &v) in flashed.point_values() {
+            if v {
                 n[p] = 0;
             }
         }
         m = n;
-    }
-    tf
-}
-
-fn solve_b(input: &str) -> usize {
-    let mut m: Matrix<u32> = Matrix::from_digit_lines(input);
-    for step in 1.. {
-        let mut n = m.map(|&v| v + 1);
-        let mut flashed = Matrix::same_size(&m, false);
-        loop {
-            let mut done = true;
-            for p in n.iter_points() {
-                if n[p] > 9 && !flashed[p] {
-                    flashed[p] = true;
-                    for q in n.neighbor8_points(p) {
-                        n[q] += 1;
-                        done = false;
-                    }
-                }
-            }
-            if done {
-                break;
-            }
+        if step == 100 {
+            sol_a = Some(tf);
         }
-        for p in n.iter_points() {
-            if flashed[p] {
-                n[p] = 0;
-            }
-        }
-        m = n;
         if flashed.values().all(|&x| x) {
-            return step;
+            return (sol_a.unwrap(), step);
         }
     }
     unreachable!()
@@ -86,7 +59,6 @@ mod test {
     #[test]
     fn solution() {
         let input = input();
-        assert_eq!(solve_a(&input), 1652);
-        assert_eq!(solve_b(&input), 220);
+        assert_eq!(solve(&input), (1652, 220));
     }
 }
