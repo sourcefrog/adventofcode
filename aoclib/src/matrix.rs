@@ -156,6 +156,38 @@ impl<T> Matrix<T> {
             h: self.h,
         }
     }
+    ///
+    /// Return a vec of all present 8-way neighbors.
+    pub fn neighbor8_points(&self, p: Point) -> Vec<Point> {
+        let mut v: Vec<Point> = Vec::with_capacity(8);
+        let w = self.w as isize;
+        let h = self.h as isize;
+        if p.y > 0 {
+            if p.x > 0 {
+                v.push(p.left().up());
+            }
+            v.push(p.up());
+            if p.x < (w - 1) {
+                v.push(p.right().up());
+            }
+        }
+        if p.x > 0 {
+            v.push(p.left())
+        }
+        if p.x < (w - 1) {
+            v.push(p.right())
+        }
+        if p.y < (h - 1) {
+            if p.x > 0 {
+                v.push(p.left().down())
+            }
+            v.push(p.down());
+            if p.x < (w - 1) {
+                v.push(p.right().down());
+            }
+        }
+        v
+    }
 }
 
 impl<T: Clone> Matrix<T> {
