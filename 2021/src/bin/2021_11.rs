@@ -15,20 +15,20 @@ fn input() -> String {
 
 fn solve(input: &str) -> (usize, usize) {
     let mut m: Matrix<u32> = Matrix::from_digit_lines(input);
-    let mut tf = 0;
+    let mut total_flashes = 0;
     let mut sol_a = None;
     for step in 1.. {
-        let mut n = m.map(|&v| v + 1);
+        m.update(|v| *v += 1);
         let mut flashed = Matrix::same_size(&m, false);
         loop {
             let mut found = false;
-            for p in n.iter_points() {
-                if n[p] > 9 && !flashed[p] {
+            for p in m.iter_points() {
+                if m[p] > 9 && !flashed[p] {
                     flashed[p] = true;
-                    tf += 1;
+                    total_flashes += 1;
                     found = true;
-                    for q in n.neighbor8_points(p) {
-                        n[q] += 1;
+                    for q in m.neighbor8_points(p) {
+                        m[q] += 1;
                     }
                 }
             }
@@ -38,12 +38,11 @@ fn solve(input: &str) -> (usize, usize) {
         }
         for (p, &v) in flashed.point_values() {
             if v {
-                n[p] = 0;
+                m[p] = 0;
             }
         }
-        m = n;
         if step == 100 {
-            sol_a = Some(tf);
+            sol_a = Some(total_flashes);
         }
         if flashed.values().all(|&x| x) {
             return (sol_a.unwrap(), step);

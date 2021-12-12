@@ -134,6 +134,16 @@ impl<T> Matrix<T> {
         }
     }
 
+    /// Apply a cell-at-a-time update to this matrix.
+    pub fn update<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&mut T),
+    {
+        for val in &mut self.d {
+            f(val)
+        }
+    }
+
     pub fn contains_point(&self, p: Point) -> bool {
         p.x >= 0 && p.y >= 0 && p.x < self.w as isize && p.y < self.h as isize
     }
