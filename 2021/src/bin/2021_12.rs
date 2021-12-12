@@ -22,6 +22,10 @@ fn input() -> String {
     std::fs::read_to_string("input/12.txt").unwrap()
 }
 
+fn small(s: &str) -> bool {
+    s.chars().all(|c| c.is_ascii_lowercase())
+}
+
 fn solve(input: &str) -> (usize, usize) {
     let mut from: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     input
@@ -37,7 +41,7 @@ fn solve(input: &str) -> (usize, usize) {
     while let Some(p) = inc.pop() {
         let last = p.last().unwrap();
         for next in &from[last] {
-            if p.contains(next) && next.chars().all(|c| c.is_ascii_lowercase()) {
+            if p.contains(next) && small(next) {
                 continue;
             }
             let mut q = p.clone();
@@ -51,8 +55,52 @@ fn solve(input: &str) -> (usize, usize) {
             }
         }
     }
+    let sol_a = compl.len();
 
-    (compl.len(), 0)
+    let mut inc: Vec<Vec<&str>> = vec![vec!["start"]];
+    let mut compl: Vec<Vec<&str>> = Vec::new();
+    while let Some(p) = inc.pop() {
+        let last = p.last().unwrap();
+        for next in &from[last] {
+            let mut q = p.clone();
+            q.push(next);
+            if *next == "end" {
+                println!("found {q:?}");
+                compl.push(q);
+                continue;
+            }
+            if *next == "start" {
+                continue;
+            }
+            if small(next) {
+                let cntnext = p.iter().filter(|w| *w == next).count();
+                if cntnext >= 2 {
+                    continue;
+                }
+                if cntnext == 1 && anytwo(&p) {
+                    continue;
+                }
+            }
+
+            inc.push(q);
+        }
+    }
+
+    (sol_a, compl.len())
+}
+
+// True if there is already any small room occurring twice
+fn anytwo(p: &Vec<&str>) -> bool {
+    for w in p {
+        if small(w) {
+            let c = p.iter().filter(|x| *x == w).count();
+            assert!(c >= 1 && c <= 2, "more than two {:?} in {:?}", w, p);
+            if c == 2 {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 #[cfg(test)]
