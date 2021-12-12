@@ -13,9 +13,9 @@ fn input() -> String {
     std::fs::read_to_string("input/12.txt").unwrap()
 }
 
-/// True if the room is all lowercase, indicating a small room.
+/// True if the room is small (in lowercase).
 fn small(s: &str) -> bool {
-    s.chars().all(|c| c.is_ascii_lowercase())
+    s.chars().next().unwrap().is_ascii_lowercase()
 }
 
 fn solve(input: &str) -> (usize, usize) {
@@ -33,14 +33,10 @@ fn solve(input: &str) -> (usize, usize) {
     let mut inc: Vec<Vec<&str>> = vec![vec!["start"]];
     let mut sol_a = 0;
     while let Some(p) = inc.pop() {
-        let last = p.last().unwrap();
-        for next in &from[last] {
-            if p.contains(next) && small(next) {
-                continue;
-            }
+        for next in &from[p.last().unwrap()] {
             if *next == "end" {
                 sol_a += 1;
-            } else {
+            } else if !p.contains(next) || !small(next) {
                 let mut q = p.clone();
                 q.push(next);
                 inc.push(q);
@@ -54,33 +50,23 @@ fn solve(input: &str) -> (usize, usize) {
         for next in &from[p.last().unwrap()] {
             if *next == "end" {
                 sol_b += 1;
-                continue;
-            } else if *next == "start" {
-                continue;
-            } else if small(next) {
-                let cntnext = p.iter().filter(|w| *w == next).count();
-                if cntnext >= 2 || (cntnext == 1 && has_two_small(&p)) {
-                    continue;
-                }
+            } else if *next != "start" && (!small(next) || !p.contains(next) || !has_two_small(&p))
+            {
+                let mut q = p.clone();
+                q.push(next);
+                inc.push(q);
             }
-            let mut q = p.clone();
-            q.push(next);
-            inc.push(q);
         }
     }
 
     (sol_a, sol_b)
 }
 
-// True if there is already any small room occurring twice
+/// True if there is already any small room occurring twice
 fn has_two_small(p: &[&str]) -> bool {
-    for w in p {
-        if small(w) {
-            let c = p.iter().filter(|x| *x == w).count();
-            assert!(c <= 2, "more than two {:?} in {:?}", w, p);
-            if c == 2 {
-                return true;
-            }
+    for (i, w) in p.iter().enumerate() {
+        if small(w) && p.iter().skip(i + 1).any(|x| *x == *w) {
+            return true;
         }
     }
     false
