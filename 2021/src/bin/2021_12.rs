@@ -31,32 +31,29 @@ fn solve(input: &str) -> (usize, usize) {
         });
 
     let mut inc: Vec<Vec<&str>> = vec![vec!["start"]];
-    let mut compl: Vec<Vec<&str>> = Vec::new();
+    let mut sol_a = 0;
     while let Some(p) = inc.pop() {
         let last = p.last().unwrap();
         for next in &from[last] {
             if p.contains(next) && small(next) {
                 continue;
             }
-            let mut q = p.clone();
-            q.push(next);
             if *next == "end" {
-                compl.push(q);
+                sol_a += 1;
             } else {
+                let mut q = p.clone();
+                q.push(next);
                 inc.push(q);
             }
         }
     }
-    let sol_a = compl.len();
 
     let mut inc: Vec<Vec<&str>> = vec![vec!["start"]];
-    let mut compl: Vec<Vec<&str>> = Vec::new();
+    let mut sol_b = 0;
     while let Some(p) = inc.pop() {
         for next in &from[p.last().unwrap()] {
             if *next == "end" {
-                let mut q = p.clone();
-                q.push(next);
-                compl.push(q);
+                sol_b += 1;
                 continue;
             } else if *next == "start" {
                 continue;
@@ -71,7 +68,6 @@ fn solve(input: &str) -> (usize, usize) {
             inc.push(q);
         }
     }
-    let sol_b = compl.len();
 
     (sol_a, sol_b)
 }
