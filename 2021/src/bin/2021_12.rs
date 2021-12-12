@@ -50,8 +50,7 @@ fn solve(input: &str) -> (usize, usize) {
         for next in &from[p.last().unwrap()] {
             if *next == "end" {
                 sol_b += 1;
-            } else if *next != "start" && (!small(next) || !p.contains(next) || !has_two_small(&p))
-            {
+            } else if *next != "start" && !(small(next) && p.contains(next) && has_two_small(&p)) {
                 let mut q = p.clone();
                 q.push(next);
                 inc.push(q);
