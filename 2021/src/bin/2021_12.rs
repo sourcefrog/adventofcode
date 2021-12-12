@@ -2,19 +2,10 @@
 
 //! https://adventofcode.com/2021/day/12
 
-use aoclib::Matrix;
 use std::collections::BTreeMap;
 
 fn main() {
     let input = input();
-    // let input = "start-A
-    // start-b
-    // A-c
-    // A-b
-    // b-d
-    // A-end
-    // b-end
-    // ";
     println!("{:?}", solve(&input));
 }
 
@@ -22,11 +13,14 @@ fn input() -> String {
     std::fs::read_to_string("input/12.txt").unwrap()
 }
 
+/// True if the room is all lowercase, indicating a small room.
 fn small(s: &str) -> bool {
     s.chars().all(|c| c.is_ascii_lowercase())
 }
 
 fn solve(input: &str) -> (usize, usize) {
+    // Connections from room k. (Connections are bidirectional; entries are added in each
+    // direction.)
     let mut from: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     input
         .lines()
@@ -35,7 +29,7 @@ fn solve(input: &str) -> (usize, usize) {
             from.entry(a).or_default().push(b);
             from.entry(b).or_default().push(a);
         });
-    dbg!(&from);
+
     let mut inc: Vec<Vec<&str>> = vec![vec!["start"]];
     let mut compl: Vec<Vec<&str>> = Vec::new();
     while let Some(p) = inc.pop() {
@@ -46,9 +40,7 @@ fn solve(input: &str) -> (usize, usize) {
             }
             let mut q = p.clone();
             q.push(next);
-
             if *next == "end" {
-                println!("found {q:?}");
                 compl.push(q);
             } else {
                 inc.push(q);
@@ -60,41 +52,36 @@ fn solve(input: &str) -> (usize, usize) {
     let mut inc: Vec<Vec<&str>> = vec![vec!["start"]];
     let mut compl: Vec<Vec<&str>> = Vec::new();
     while let Some(p) = inc.pop() {
-        let last = p.last().unwrap();
-        for next in &from[last] {
-            let mut q = p.clone();
-            q.push(next);
+        for next in &from[p.last().unwrap()] {
             if *next == "end" {
-                println!("found {q:?}");
+                let mut q = p.clone();
+                q.push(next);
                 compl.push(q);
                 continue;
-            }
-            if *next == "start" {
+            } else if *next == "start" {
                 continue;
-            }
-            if small(next) {
+            } else if small(next) {
                 let cntnext = p.iter().filter(|w| *w == next).count();
-                if cntnext >= 2 {
-                    continue;
-                }
-                if cntnext == 1 && anytwo(&p) {
+                if cntnext >= 2 || (cntnext == 1 && has_two_small(&p)) {
                     continue;
                 }
             }
-
+            let mut q = p.clone();
+            q.push(next);
             inc.push(q);
         }
     }
+    let sol_b = compl.len();
 
-    (sol_a, compl.len())
+    (sol_a, sol_b)
 }
 
 // True if there is already any small room occurring twice
-fn anytwo(p: &Vec<&str>) -> bool {
+fn has_two_small(p: &[&str]) -> bool {
     for w in p {
         if small(w) {
             let c = p.iter().filter(|x| *x == w).count();
-            assert!(c >= 1 && c <= 2, "more than two {:?} in {:?}", w, p);
+            assert!(c <= 2, "more than two {:?} in {:?}", w, p);
             if c == 2 {
                 return true;
             }
@@ -110,6 +97,6 @@ mod test {
     #[test]
     fn solution() {
         let input = input();
-        assert_eq!(solve(&input), (0, 0));
+        assert_eq!(solve(&input), (5756, 144603));
     }
 }
