@@ -24,7 +24,7 @@ fn solve_a() -> usize {
     loop {
         let mut newmap = map.clone();
         let mut changed = false;
-        for p in map.iter_points() {
+        for p in map.points() {
             if map[p] == 'L' && map.neighbors8(p).iter().all(|(_p, &c)| c != '#') {
                 newmap[p] = '#';
                 changed = true;
@@ -52,7 +52,7 @@ fn solve_b() -> usize {
     loop {
         let mut newmap = map.clone();
         let mut changed = false;
-        for p in map.iter_points() {
+        for p in map.points() {
             if map[p] == 'L' && visible_occupied_seats(&map, p) == 0 {
                 newmap[p] = '#';
                 changed = true;
@@ -63,7 +63,7 @@ fn solve_b() -> usize {
         }
         map = newmap;
         if !changed {
-            return map.iter_points().filter(|p| map[*p] == '#').count();
+            return map.points().filter(|p| map[*p] == '#').count();
         }
     }
 }

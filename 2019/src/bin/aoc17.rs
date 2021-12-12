@@ -40,7 +40,7 @@ fn solve_a() -> isize {
     let mut align = 0;
     // Count neighbors by looking at every point to see if it is a beam
     // and there is a beam above, below, left, and right.
-    for p in mat.iter_points() {
+    for p in mat.points() {
         if is_scaffold(mat.try_get(p))
             && is_scaffold(mat.try_get(p.left()))
             && is_scaffold(mat.try_get(p.right()))

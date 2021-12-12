@@ -86,7 +86,7 @@ impl<T> Matrix<T> {
     }
 
     /// Iterate all point addresses in this matrix.
-    pub fn iter_points(&self) -> impl Iterator<Item = Point> {
+    pub fn points(&self) -> impl Iterator<Item = Point> {
         let h: isize = self.h as isize;
         let w: isize = self.w as isize;
         (0..h).flat_map(move |y| (0..w).map(move |x| point(x, y)))

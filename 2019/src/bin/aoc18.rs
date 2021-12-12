@@ -120,8 +120,7 @@ fn solve_type_a(s: &str) -> usize {
     let mat = Matrix::from_string_lines(s);
     let mut all_keys = KeySet::new();
     let mut key_pos: BTreeMap<char, Point> = BTreeMap::new();
-    for p in mat.iter_points() {
-        let c = mat[p];
+    for (p, &c) in mat.point_values() {
         if c.is_ascii_lowercase() {
             all_keys.set(c);
             key_pos.insert(c, p);
@@ -168,8 +167,7 @@ fn solve_type_b(s: &str) -> usize {
     let mut mat = Matrix::from_string_lines(s);
     let mut all_keys = KeySet::new();
     let mut key_pos: BTreeMap<char, Point> = BTreeMap::new();
-    for p in mat.iter_points() {
-        let c = mat[p];
+    for (p, &c) in mat.point_values() {
         if c.is_ascii_lowercase() {
             all_keys.set(c);
             key_pos.insert(c, p);

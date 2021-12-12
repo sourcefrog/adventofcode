@@ -101,7 +101,7 @@ fn ifbug(m: &Map, p: Point) -> usize {
 
 fn stacked_next_state(m0: &Map, m1: &Map, m2: &Map) -> Map {
     let mut nm = Map::new(5, 5, UNKNOWN);
-    for p in m1.iter_points() {
+    for p in m1.points() {
         let om = m1[p];
         // Up into the enclosing map
         let m2up = || ifbug(m2, point(2, 1));
@@ -160,12 +160,12 @@ fn stackcell(s: char, nbugs: usize) -> char {
 }
 
 fn count_bugs(m: &Map) -> usize {
-    m.iter_points().filter(|p| m[*p] == BUG).count()
+    m.values().filter(|&&v| v == BUG).count()
 }
 
 fn next_state(m: &Map) -> Map {
     let mut next = Matrix::new(5, 5, '?');
-    for p1 in m.iter_points() {
+    for p1 in m.points() {
         let ch1 = m[p1];
         let bug_count = m
             .neighbors4(p1)
@@ -182,11 +182,10 @@ fn next_state(m: &Map) -> Map {
 }
 
 fn biodiversity(m: &Map) -> isize {
-    // iter_points goes row at a time from top to bottom
-    m.iter_points()
-        .map(|p| m[p])
+    // Matrix::values goes row at a time from top to bottom
+    m.values()
         .enumerate()
-        .filter(|(_i, ch)| *ch == BUG)
+        .filter(|(_i, &ch)| ch == BUG)
         .map(|(i, _ch)| 1 << i)
         .sum()
 }

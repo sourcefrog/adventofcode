@@ -22,7 +22,7 @@ fn solve(input: &str) -> (usize, usize) {
         let mut flashed = Matrix::same_size(&m, false);
         loop {
             let mut found = false;
-            for p in m.iter_points() {
+            for p in m.points() {
                 if m[p] > 9 && !flashed[p] {
                     flashed[p] = true;
                     total_flashes += 1;

@@ -387,7 +387,7 @@ fn mark_monsters(image: &mut Matrix<char>, monster: &Matrix<char>) -> bool {
     let monsth = monster.height() as isize;
     // which pixels are lit in the monster?
     let monst_lit = monster
-        .iter_points()
+        .points()
         .filter(|p| monster[*p] == '#')
         .collect_vec();
     dbg!(&monst_lit);

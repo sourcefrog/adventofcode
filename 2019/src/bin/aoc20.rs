@@ -248,7 +248,7 @@ fn find_labels(mat: &Matrix<char>) -> HashMap<Label, Vec<Point>> {
     // a '.' marker, which tells us the location of the actual portal.
     let mut found = |name: Label, p: Point| v.entry(name).or_default().push(p);
 
-    for p in mat.iter_points() {
+    for p in mat.points() {
         let c1 = mat[p];
         if !c1.is_ascii_uppercase() {
             continue;
