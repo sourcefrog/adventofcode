@@ -63,12 +63,10 @@ fn solve(input: &str) -> (usize, usize) {
 
 /// True if there is already any small room occurring twice
 fn has_two_small(p: &[&str]) -> bool {
-    for (i, w) in p.iter().enumerate() {
-        if small(w) && p.iter().skip(i + 1).any(|x| *x == *w) {
-            return true;
-        }
-    }
-    false
+    p.iter()
+        .enumerate()
+        .filter(|(_, w)| small(w))
+        .any(|(i, w)| p.iter().skip(i + 1).any(|x| *x == *w))
 }
 
 #[cfg(test)]
