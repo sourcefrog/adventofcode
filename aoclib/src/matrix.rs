@@ -99,7 +99,7 @@ impl<T> Matrix<T> {
         self.d
             .iter()
             .enumerate()
-            .map(move |(i, p)| (point((i % self.w) as isize, (i / self.w) as isize), p))
+            .map(move |(i, p)| (self.offset_to_point(i), p))
     }
 
     /// Iterate all the cells in a given row
