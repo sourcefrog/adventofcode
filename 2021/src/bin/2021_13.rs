@@ -10,8 +10,8 @@ use aoclib::{point, Matrix, Point};
 fn main() {
     let input = input();
     let (a, b) = solve(&input);
-    println!("{a}");
-    println!("{b}");
+    println!("{}", a);
+    println!("{}", b);
 }
 
 fn input() -> String {
