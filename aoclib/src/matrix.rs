@@ -96,9 +96,10 @@ impl<T> Matrix<T> {
 
     /// Iterate all points and their values.
     pub fn point_values(&self) -> impl Iterator<Item = (Point, &T)> {
-        (0..self.h).flat_map(move |y| {
-            (0..self.w).map(move |x| (point(x as isize, y as isize), &self[(x, y)]))
-        })
+        self.d
+            .iter()
+            .enumerate()
+            .map(move |(i, p)| (point((i % self.w) as isize, (i / self.w) as isize), p))
     }
 
     /// Iterate all the cells in a given row
