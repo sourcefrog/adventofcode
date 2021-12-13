@@ -17,6 +17,8 @@
 //!
 //! Matrices are indexed by (row, column) coordinates.
 
+use std::borrow::Borrow;
+use std::cmp::max;
 use std::fmt;
 use std::iter::FromIterator;
 use std::ops::{Index, IndexMut};
@@ -203,11 +205,10 @@ impl<T: Clone> Matrix<T> {
     /// Make a matrix that fits the bounding box of the given points, with a default value `fill`.
     pub fn bounding_box<It, BP>(it: It, fill: T) -> Matrix<T>
     where
-        It: Iterator<Item = BP>,
-        BP: std::borrow::Borrow<Point>,
+        It: IntoIterator<Item = BP>,
+        BP: Borrow<Point>,
     {
-        use std::cmp::max;
-        let (w, h) = it.fold((0, 0), |acc, p| {
+        let (w, h) = it.into_iter().fold((0, 0), |acc, p| {
             (max(acc.0, p.borrow().x), max(acc.1, p.borrow().y))
         });
         Matrix::new(w as usize + 1, h as usize + 1, fill)
@@ -267,6 +268,24 @@ impl Matrix<char> {
             }
         }
         s
+    }
+}
+
+impl Matrix<bool> {
+    /// Build from an iter of points: included points are true.
+    pub fn from_points<It, BP>(it: It) -> Self
+    where
+        It: IntoIterator<Item = BP>,
+        BP: Borrow<Point>,
+    {
+        // Make a copy so that we can calculate the bounding box and then come back to insert the
+        // values...
+        let ps: Vec<Point> = it.into_iter().map(|bp| *bp.borrow()).collect();
+        let mut m = Matrix::bounding_box(&ps, false);
+        for p in ps {
+            m[p] = true;
+        }
+        m
     }
 }
 

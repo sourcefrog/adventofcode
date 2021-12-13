@@ -19,15 +19,13 @@ fn input() -> String {
 }
 
 fn solve(input: &str) -> (usize, String) {
-    let ps: Vec<Point> = input
-        .lines()
-        .take_while(|l| !l.is_empty())
-        .map(|l| l.parse::<Point>().unwrap())
-        .collect();
-    let mut m = Matrix::bounding_box(ps.iter(), false);
-    for p in &ps {
-        m[*p] = true;
-    }
+    let mut m = Matrix::from_points(
+        input
+            .lines()
+            .take_while(|l| !l.is_empty())
+            .map(|l| l.parse::<Point>().unwrap()),
+    );
+
     let mut n = Matrix::new(655, m.height(), false);
     for (p, &v) in m.point_values() {
         if v {
