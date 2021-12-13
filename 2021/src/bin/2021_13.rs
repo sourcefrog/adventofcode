@@ -24,11 +24,7 @@ fn solve(input: &str) -> (usize, String) {
         .take_while(|l| !l.is_empty())
         .map(|l| l.parse::<Point>().unwrap())
         .collect();
-    let mut m = Matrix::new(
-        ps.iter().map(|p| p.x).max().unwrap() as usize + 1,
-        ps.iter().map(|p| p.y).max().unwrap() as usize + 1,
-        false,
-    );
+    let mut m = Matrix::bounding_box(ps.iter(), false);
     for p in &ps {
         m[*p] = true;
     }

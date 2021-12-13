@@ -196,8 +196,21 @@ impl<T: Clone> Matrix<T> {
     }
 
     /// Make a new matrix the same size as `m` with a default value `fill`.
-    pub fn same_size<Q>(m: &Matrix<Q>, d: T) -> Matrix<T> {
-        Matrix::new(m.width(), m.height(), d)
+    pub fn same_size<Q>(m: &Matrix<Q>, fill: T) -> Matrix<T> {
+        Matrix::new(m.width(), m.height(), fill)
+    }
+
+    /// Make a matrix that fits the bounding box of the given points, with a default value `fill`.
+    pub fn bounding_box<It, BP>(it: It, fill: T) -> Matrix<T>
+    where
+        It: Iterator<Item = BP>,
+        BP: std::borrow::Borrow<Point>,
+    {
+        use std::cmp::max;
+        let (w, h) = it.fold((0, 0), |acc, p| {
+            (max(acc.0, p.borrow().x), max(acc.1, p.borrow().y))
+        });
+        Matrix::new(w as usize + 1, h as usize + 1, fill)
     }
 
     pub fn try_get(&self, p: Point) -> Option<T> {
