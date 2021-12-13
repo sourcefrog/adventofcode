@@ -187,6 +187,17 @@ impl<T> Matrix<T> {
             .map(|p| (p, &self[p]))
             .collect()
     }
+
+    /// Find the first point in the matrix where `pred` is true.
+    pub fn find<Pred>(&self, pred: Pred) -> Option<Point>
+    where
+        Pred: FnMut(&T) -> bool,
+    {
+        self.d
+            .iter()
+            .position(pred)
+            .map(|offset| self.offset_to_point(offset))
+    }
 }
 
 impl<T: Clone> Matrix<T> {
@@ -221,22 +232,6 @@ impl<T: Clone> Matrix<T> {
         } else {
             None
         }
-    }
-}
-
-impl<T> Matrix<T>
-where
-    T: PartialEq,
-{
-    /// Find the first point in the matrix where `pred` is true.
-    pub fn find<Pred>(&self, pred: Pred) -> Option<Point>
-    where
-        Pred: FnMut(&T) -> bool,
-    {
-        self.d
-            .iter()
-            .position(pred)
-            .map(|offset| self.offset_to_point(offset))
     }
 }
 
