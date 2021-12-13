@@ -67,7 +67,7 @@ fn solve(input: &str) -> (usize, String) {
             }
         }
     }
-    let sol_b = m.map(|&v| if v { '#' } else { '.' }).to_string();
+    let sol_b = m.to_string_lines();
 
     (sol_a, sol_b)
 }

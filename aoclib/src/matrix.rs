@@ -283,6 +283,21 @@ impl Matrix<bool> {
         }
         m
     }
+
+    pub fn to_string_lines(&self) -> String {
+        let mut s = String::new();
+        for r in self.rows() {
+            for &v in r {
+                if v {
+                    s.push('#')
+                } else {
+                    s.push('.')
+                }
+            }
+            s.push('\n')
+        }
+        s
+    }
 }
 
 impl Matrix<u32> {
