@@ -248,7 +248,7 @@ impl Matrix<char> {
         let lines: Vec<&str> = s.lines().filter(|l| !l.is_empty()).collect();
         let w = lines.iter().map(|s| s.len()).min().unwrap();
         let h = lines.len();
-        let d: Vec<char> = lines.iter().map(|s| s.chars()).flatten().collect();
+        let d: Vec<char> = lines.iter().flat_map(|s| s.chars()).collect();
         Matrix { w, h, d }
     }
 
@@ -317,12 +317,11 @@ where
         use std::any::TypeId;
         use std::fmt::Write;
         let mstrings = self.map(ToString::to_string);
-        let max_len: usize;
-        if TypeId::of::<T>() == TypeId::of::<char>() {
-            max_len = 1;
+        let max_len: usize = if TypeId::of::<T>() == TypeId::of::<char>() {
+            1
         } else {
-            max_len = mstrings.values().map(|s| s.len()).max().unwrap_or(0) + 1;
-        }
+            mstrings.values().map(|s| s.len()).max().unwrap_or(0) + 1
+        };
         for r in mstrings.rows() {
             for c in r {
                 write!(f, "{:1$}", c, max_len)?;
