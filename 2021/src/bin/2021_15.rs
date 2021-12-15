@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 
 use itertools::Itertools;
 
-use aoclib::{Matrix, Point,point};
+use aoclib::{point, Matrix, Point};
 
 fn main() {
     let input = input();
@@ -20,58 +20,46 @@ fn input() -> String {
     std::fs::read_to_string("input/15.txt").unwrap()
 }
 
-fn solve(input: &str) -> (u32,u32) {
-    let m = Matrix::from_string_lines(input).map(
-        |c| c.to_digit(10).unwrap());
-    // The lowest known total risk to get to each cell.
-    let mut best = Matrix::same_size(&m, u32::MAX);
-    best[(0usize,0usize)] = 0;
-    let mut active: Vec<Point> = vec![point(0,0)];
-    // while let Some(p) = active.pop() {
-    //     let prisk = best[p];
-    //     for (q, &qrisk) in m.neighbors4(p) {
-    //         // dbg!(q, qrisk);
-    //         if prisk + qrisk < best[q] {
-    //             best[q] = prisk + qrisk;
-    //             active.push(q);
-    //         }
-    //     }
-    // }
-    let sol_a = best[(best.width()-1, best.height()-1)];
+fn solve(input: &str) -> (u32, u32) {
+    let m = Matrix::from_string_lines(input).map(|c| c.to_digit(10).unwrap());
 
-    let mut m2 = Matrix::new(m.width() * 5, m.height() * 5, u32::MAX);
-    for (p, &v) in m.point_values() {
-        for mx in 0usize..5 {
-            for my in 0usize..5 {
-                let mut u = v + mx as u32 + my as u32;
-                while u > 9 { 
-                    u-=9;
-                }
-                m2[(mx * m.width() + p.x as usize, my*m.height() + p.y as usize)] = u;
-            }
+    let sol_a = walk(&m);
+
+    let mw = m.width() as isize;
+    let mh = m.height() as isize;
+    let m2 = Matrix::from_fn(m.width() * 5, m.height() * 5, |p| {
+        let mut v = m[(p.x % mw, p.y % mh)] + (p.x / mw) as u32 + (p.y / mh) as u32;
+        while v > 9 {
+            v -= 9
         }
-    }
-    let mut best = Matrix::same_size(&m2, u32::MAX);
-    best[(0usize,0usize)] = 0;
+        v
+    });
+    let sol_b = walk(&m2);
+
+    (sol_a, sol_b)
+}
+
+/// Return the total risk (cost) of a walk from the top-left to bottom right.
+fn walk(m: &Matrix<u32>) -> u32 {
+    // Best known risk of a walk to this point.
+    let mut best = Matrix::same_size(&m, u32::MAX);
+    best[(0usize, 0usize)] = 0;
+    // Points whose neighbors we need to consider, with the cost negated because Rust BinaryHeap
+    // is a max-heap (that returns the largest first) and we want to look at the cheapest option first.
+    // This is corny.
     let mut active = std::collections::BinaryHeap::new();
-    active.push((0i32, point(0,0)));
-    while let Some((neg_prisk,p)) = active.pop() {
+    active.push((0i32, point(0, 0)));
+    while let Some((neg_prisk, p)) = active.pop() {
         let prisk = (-neg_prisk) as u32;
-        for (q, &qrisk) in m2.neighbors4(p) {
-            // dbg!(q, qrisk);
+        for (q, &qrisk) in m.neighbors4(p) {
             let tot = prisk + qrisk;
             if tot < best[q] {
                 best[q] = tot;
-                dbg!(best[q]);
                 active.push((-(tot as i32), q));
             }
         }
     }
-    dbg!(best.width(),best.height());
-    let sol_b = best[(best.width()-1, best.height()-1)];
-    // 4294967295 is wrong
-
-    (sol_a,sol_b)
+    best[(best.width() - 1, best.height() - 1)]
 }
 
 #[cfg(test)]
@@ -86,7 +74,7 @@ mod test {
     #[test]
     fn solution() {
         let (a, b) = solve(&input());
-        // assert_eq!(a, 2194);
-        // assert_eq!(b, 2360298895777);
+        assert_eq!(a, 652);
+        assert_eq!(b, 2938);
     }
 }
