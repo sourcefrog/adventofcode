@@ -4,3 +4,4 @@ perf.data.old
 tags
 target
 .vscode/.ropeproject/objectdb
+callgrind.out.*
