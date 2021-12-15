@@ -169,7 +169,6 @@ fn next_state(m: &Map) -> Map {
         let ch1 = m[p1];
         let bug_count = m
             .neighbors4(p1)
-            .iter()
             .filter(|(_p2, ch2)| **ch2 == BUG)
             .count();
         next[p1] = if bug_count == 1 || (ch1 == EMPTY && bug_count == 2) {

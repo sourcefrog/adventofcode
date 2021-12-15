@@ -36,17 +36,15 @@ fn solve(input: &str) -> (u32, usize) {
     let mut basins: HashMap<Point, usize> = HashMap::new();
 
     for (p, &v) in map.point_values() {
-        let ns = map.neighbors4(p);
-        if ns.iter().all(|(_np, nv)| **nv > v) {
+        if map.neighbors4(p).all(|(_np, nv)| *nv > v) {
             // Everything is higher: it's a low point.
             sol_a += v + 1;
             in_basin[p] = Some(p);
             basins.insert(p, 1);
         } else if v < 9 {
-            downhill[p] = ns
-                .iter()
+            downhill[p] = map.neighbors4(p)
                 .filter(|(_, nv)| **nv < v)
-                .map(|(np, _)| *np)
+                .map(|(np, _)| np)
                 .collect();
             active.push_back(p);
         }

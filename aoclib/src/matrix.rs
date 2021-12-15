@@ -171,15 +171,14 @@ impl<T> Matrix<T> {
     /// values.
     ///
     /// p may have negative coordinates.
-    pub fn neighbors4(&self, p: Point) -> Vec<(Point, &T)> {
-        let mut v: Vec<(Point, &T)> = Vec::with_capacity(4);
-        for (dx, dy) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
-            let q = p.delta(dx, dy);
-            if self.contains_point(q) {
-                v.push((q, &self[q]));
-            }
-        }
-        v
+    pub fn neighbors4<'m>(&'m self, p: Point) -> impl Iterator<Item = (Point, &T)> + 'm {
+        // Call this way to get the 2021 behavior of iteating values in 2018 Rust.
+        IntoIterator::into_iter([(0isize, -1), (0, 1), (-1, 0), (1, 0)]).flat_map(
+            move |(dx, dy)| {
+                let q = p.delta(dx, dy);
+                self.try_get(q).map(|v| (q, v))
+            },
+        )
     }
 
     /// Return a vec of all present 8-way neighbors.
