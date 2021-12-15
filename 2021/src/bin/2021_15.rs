@@ -42,7 +42,7 @@ fn solve(input: &str) -> (u32, u32) {
 /// Return the total risk (cost) of a walk from the top-left to bottom right.
 fn walk(m: &Matrix<u32>) -> u32 {
     // Best known risk of a walk to this point.
-    let mut best = Matrix::same_size(&m, u32::MAX);
+    let mut best = Matrix::same_size(m, u32::MAX);
     best[(0usize, 0usize)] = 0;
     // Points whose neighbors we need to consider, with the cost negated because Rust BinaryHeap
     // is a max-heap (that returns the largest first) and we want to look at the cheapest option first.
