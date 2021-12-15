@@ -22,8 +22,8 @@ pub fn main() {
     println!("17b: {}", solve_b());
 }
 
-fn is_scaffold(ch: Option<char>) -> bool {
-    if let Some(ch) = ch {
+fn is_scaffold(ch: Option<&char>) -> bool {
+    if let Some(&ch) = ch {
         match ch {
             '#' | '^' | 'v' | '<' | '>' => true,
             '.' | 'X' => false,

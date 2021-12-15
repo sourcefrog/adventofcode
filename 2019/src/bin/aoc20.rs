@@ -185,7 +185,7 @@ impl Maze {
     /// That is: immediately neighboring other passage squares, or if there is a neighboring portal
     /// that has a twin, you can warp to the square outside its twin. All of these are one step.
     fn single_level_neighbors(&self, p: Point) -> Vec<(Point, isize)> {
-        debug_assert_eq!(self.matrix.try_get(p).unwrap(), PASSAGE);
+        debug_assert_eq!(self.matrix[p], PASSAGE);
         let mut n: Vec<(Point, isize)> =
             self.flat_neighbors(p).into_iter().map(|p| (p, 1)).collect();
         if let Some(out_p) = self.warps.get(&p) {
@@ -255,13 +255,13 @@ fn find_labels(mat: &Matrix<char>) -> HashMap<Label, Vec<Point>> {
         }
         let pright = p.right();
         let pdown = p.down();
-        if let Some(cright) = mat.try_get(pright) {
+        if let Some(&cright) = mat.try_get(pright) {
             if cright.is_ascii_uppercase() {
                 let name: String = [c1, cright].iter().collect();
                 // Is there a dot to the left of these, or to the right?
-                if mat.try_get(p.left()) == Some(PASSAGE) {
+                if mat.try_get(p.left()) == Some(&PASSAGE) {
                     found(name, p.left());
-                } else if mat.try_get(pright.right()) == Some(PASSAGE) {
+                } else if mat.try_get(pright.right()) == Some(&PASSAGE) {
                     found(name, pright.right());
                 } else {
                     panic!("confused at {:?}", p);
@@ -269,12 +269,12 @@ fn find_labels(mat: &Matrix<char>) -> HashMap<Label, Vec<Point>> {
                 continue;
             }
         }
-        if let Some(cdown) = mat.try_get(pdown) {
+        if let Some(&cdown) = mat.try_get(pdown) {
             if cdown.is_ascii_uppercase() {
                 let name = [c1, cdown].iter().collect();
-                if mat.try_get(p.up()) == Some(PASSAGE) {
+                if mat.try_get(p.up()) == Some(&PASSAGE) {
                     found(name, p.up());
-                } else if mat.try_get(pdown.down()) == Some(PASSAGE) {
+                } else if mat.try_get(pdown.down()) == Some(&PASSAGE) {
                     found(name, pdown.down());
                 } else {
                     panic!("portal at {:?} does not seem to be near a passage", p);

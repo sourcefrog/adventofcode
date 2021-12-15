@@ -214,6 +214,14 @@ impl<T> Matrix<T> {
             .position(pred)
             .map(|offset| self.offset_to_point(offset))
     }
+
+    pub fn try_get(&self, p: Point) -> Option<&T> {
+        if p.x >= 0 && p.y >= 0 && p.x < self.w as isize && p.y < self.h as isize {
+            Some(&self.d[self.offset(p)])
+        } else {
+            None
+        }
+    }
 }
 
 impl<T: Clone> Matrix<T> {
@@ -240,14 +248,6 @@ impl<T: Clone> Matrix<T> {
             (max(acc.0, p.borrow().x), max(acc.1, p.borrow().y))
         });
         Matrix::new(w as usize + 1, h as usize + 1, fill)
-    }
-
-    pub fn try_get(&self, p: Point) -> Option<T> {
-        if p.x >= 0 && p.y >= 0 && p.x < self.w as isize && p.y < self.h as isize {
-            Some(self.d[self.offset(p)].clone())
-        } else {
-            None
-        }
     }
 }
 
