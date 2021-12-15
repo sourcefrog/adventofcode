@@ -42,7 +42,8 @@ fn solve(input: &str) -> (u32, usize) {
             in_basin[p] = Some(p);
             basins.insert(p, 1);
         } else if v < 9 {
-            downhill[p] = map.neighbors4(p)
+            downhill[p] = map
+                .neighbors4(p)
                 .filter(|(_, nv)| **nv < v)
                 .map(|(np, _)| np)
                 .collect();

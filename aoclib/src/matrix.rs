@@ -181,26 +181,35 @@ impl<T> Matrix<T> {
         )
     }
 
-    /// Return a vec of all present 8-way neighbors.
-    pub fn neighbor8_points(&self, p: Point) -> Vec<Point> {
-        let mut v: Vec<Point> = Vec::with_capacity(8);
-        for dx in [-1, 0, 1] {
-            for dy in [-1, 0, 1] {
-                let q = p.delta(dx, dy);
-                if p != q && self.contains_point(q) {
-                    v.push(q);
-                }
+    /// Iterate the addresses of all 8-way neighbors that are within the matrix.
+    pub fn neighbor8_points(&self, p: Point) -> impl Iterator<Item = Point> {
+        let w = self.w;
+        let h = self.h;
+        IntoIterator::into_iter([
+            (-1isize, -1isize),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ])
+        .flat_map(move |(dx, dy)| {
+            let q = p.delta(dx, dy);
+            if q.x >= 0 && q.x < w as isize && q.y >= 0 && q.y < h as isize {
+                Some(q)
+            } else {
+                None
             }
-        }
-        v
+        })
     }
 
-    /// Return a vec of all present 8-way neighbors.
-    pub fn neighbors8(&self, p: Point) -> Vec<(Point, &T)> {
+    /// Iterate all present 8-way neighbors.
+    pub fn neighbors8<'m>(&'m self, p: Point) -> impl Iterator<Item=(Point, &T)> + 'm {
         self.neighbor8_points(p)
             .into_iter()
-            .map(|p| (p, &self[p]))
-            .collect()
+            .map(move |p| (p, &self[p]))
     }
 
     /// Find the first point in the matrix where `pred` is true.

@@ -25,11 +25,11 @@ fn solve_a() -> usize {
         let mut newmap = map.clone();
         let mut changed = false;
         for p in map.points() {
-            if map[p] == 'L' && map.neighbors8(p).iter().all(|(_p, &c)| c != '#') {
+            if map[p] == 'L' && map.neighbors8(p).all(|(_p, &c)| c != '#') {
                 newmap[p] = '#';
                 changed = true;
             } else if map[p] == '#'
-                && map.neighbors8(p).iter().filter(|(_p, &c)| c == '#').count() >= 4
+                && map.neighbors8(p).filter(|(_p, &c)| c == '#').count() >= 4
             {
                 newmap[p] = 'L';
                 changed = true;
