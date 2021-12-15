@@ -74,6 +74,10 @@ impl<T> Matrix<T> {
         self.h
     }
 
+    pub fn bottom_right(&self) -> Point {
+        point( self.w as isize - 1, self.h as isize -1)
+    }
+
     /// Return all values in row-major order.
     pub fn values(&self) -> std::slice::Iter<'_, T> {
         self.d.iter()
