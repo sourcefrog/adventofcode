@@ -55,15 +55,15 @@ impl<T> Matrix<T> {
     }
 
     /// Construct from a fn called with each point address.
-    pub fn from_fn<F>(w: usize, h: usize, f: F) -> Matrix<T> 
+    pub fn from_fn<F>(w: usize, h: usize, f: F) -> Matrix<T>
     where
-    F: FnMut(Point) -> T
+        F: FnMut(Point) -> T,
     {
-        let d: Vec<T> = (0..h).flat_map(|y| (0..w).map(
-            move |x| point(x as isize, y as isize)))
+        let d: Vec<T> = (0..h)
+            .flat_map(|y| (0..w).map(move |x| point(x as isize, y as isize)))
             .map(f)
             .collect();
-        Matrix { w,h,d}
+        Matrix { w, h, d }
     }
 
     pub fn width(&self) -> usize {
@@ -75,7 +75,7 @@ impl<T> Matrix<T> {
     }
 
     pub fn bottom_right(&self) -> Point {
-        point( self.w as isize - 1, self.h as isize -1)
+        point(self.w as isize - 1, self.h as isize - 1)
     }
 
     /// Return all values in row-major order.

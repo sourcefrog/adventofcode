@@ -54,7 +54,7 @@ fn walk(m: &Matrix<u32>) -> u32 {
         let prisk = (-neg_prisk) as u32;
         if p == bottom_right {
             // reached it on a lowest-cost-first path, so that's it
-            return prisk
+            return prisk;
         }
         for (q, &qrisk) in m.neighbors4(p) {
             let tot = prisk + qrisk;

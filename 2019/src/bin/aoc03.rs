@@ -15,7 +15,7 @@
 #[macro_use]
 extern crate itertools;
 
-use std::convert::{ TryInto};
+use std::convert::TryInto;
 
 pub fn main() {
     println!("03a: {}", solve_a());
