@@ -54,6 +54,18 @@ impl<T> Matrix<T> {
         Matrix::from_linear_vec(d, w)
     }
 
+    /// Construct from a fn called with each point address.
+    pub fn from_fn<F>(w: usize, h: usize, mut f: F) -> Matrix<T> 
+    where
+    F: FnMut(Point) -> T
+    {
+        let d: Vec<T> = (0..h).flat_map(|y| (0..w).map(
+            move |x| point(x as isize, y as isize)))
+            .map(|p| f(p))
+            .collect();
+        Matrix { w,h,d}
+    }
+
     pub fn width(&self) -> usize {
         self.w
     }
