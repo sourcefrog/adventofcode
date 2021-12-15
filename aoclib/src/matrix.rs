@@ -55,13 +55,13 @@ impl<T> Matrix<T> {
     }
 
     /// Construct from a fn called with each point address.
-    pub fn from_fn<F>(w: usize, h: usize, mut f: F) -> Matrix<T> 
+    pub fn from_fn<F>(w: usize, h: usize, f: F) -> Matrix<T> 
     where
     F: FnMut(Point) -> T
     {
         let d: Vec<T> = (0..h).flat_map(|y| (0..w).map(
             move |x| point(x as isize, y as isize)))
-            .map(|p| f(p))
+            .map(f)
             .collect();
         Matrix { w,h,d}
     }
