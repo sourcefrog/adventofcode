@@ -2,14 +2,7 @@
 
 //! https://adventofcode.com/2021/day/16
 
-#![allow(unused_imports)]
-use std::collections::BTreeMap;
-
 use bitvec::prelude::*;
-
-use itertools::Itertools;
-
-use aoclib::{point, Matrix, Point};
 
 fn main() {
     let input = input();
@@ -23,12 +16,13 @@ fn input() -> String {
 }
 
 fn to_u64(bv: &BitSlice) -> u64 {
-    dbg!(bv.len());
-    // assert!(bv.len() <=64);
+    // dbg!(bv.len());
+    assert!(bv.len() <= 64);
     bv.iter()
         .rev()
         .enumerate()
-        .fold(0u64, |acc, (i, b)| acc | ((*b as u64) << i))
+        .filter(|(_, b)| **b)
+        .fold(0u64, |acc, (i, _)| acc | (1 << i))
 }
 
 struct Pkt {
@@ -58,13 +52,13 @@ impl Pkt {
                 let mut svs = subs.iter().map(|s| s.eval());
                 match ot {
                     0 => svs.sum(),
-                    1 =>svs.product(),
-                    2=>svs.min().unwrap(),
-                    3=> svs.max().unwrap(),
-                    5=> (svs.next().unwrap() > svs.next().unwrap()) as u64,
-                    6=> (svs.next().unwrap() < svs.next().unwrap()) as u64,
-                    7=> (svs.next().unwrap() == svs.next().unwrap()) as u64,
-                    _=>panic!("bad op {}", ot),
+                    1 => svs.product(),
+                    2 => svs.min().unwrap(),
+                    3 => svs.max().unwrap(),
+                    5 => (svs.next().unwrap() > svs.next().unwrap()) as u64,
+                    6 => (svs.next().unwrap() < svs.next().unwrap()) as u64,
+                    7 => (svs.next().unwrap() == svs.next().unwrap()) as u64,
+                    _ => panic!("bad op {}", ot),
                 }
             }
         }
@@ -92,12 +86,11 @@ fn ppkts(bits: &BitSlice, max_pkts: u64) -> (usize, Vec<Pkt>) {
 
 fn ppkt(bits: &BitSlice) -> (usize, Pkt) {
     let mut pos = 0;
-    // Must be at least 6 bits to read another packet; the rest is padding.
     let ver = to_u64(&bits[pos..(pos + 3)]);
     pos += 3;
     let pktype = to_u64(&bits[pos..(pos + 3)]);
     pos += 3;
-    println!("packet ver={ver} type={pktype}");
+    // println!("packet ver={ver} type={pktype}");
     if pktype == 4 {
         let mut literal = bitvec![];
         loop {
@@ -118,12 +111,12 @@ fn ppkt(bits: &BitSlice) -> (usize, Pkt) {
     }
     // length type id
     let ltid = bits[pos];
-    println!("  ltid={ltid}");
+    // println!("  ltid={ltid}");
     pos += 1;
     let subs;
     if !ltid {
         let subpktlen = to_u64(&bits[pos..(pos + 15)]);
-        println!("  subpktlen {subpktlen} {:?}", &bits[pos..(pos + 15)]);
+        // println!("  subpktlen {subpktlen} {:?}", &bits[pos..(pos + 15)]);
         pos += 15;
         let (pq, s) = ppkts(&bits[pos..(pos + subpktlen as usize)], u64::MAX);
         subs = s;
@@ -135,13 +128,13 @@ fn ppkt(bits: &BitSlice) -> (usize, Pkt) {
         subs = s;
         pos += pq;
     }
-    return (
+    (
         pos,
         Pkt {
             ver,
             typ: PktType::Operator(pktype, subs),
         },
-    );
+    )
 }
 
 fn to_bits(input: &str) -> BitVec {
@@ -185,7 +178,7 @@ mod test {
     #[test]
     fn solution() {
         let (a, b) = solve(&input());
-        assert_eq!(a, 652);
-        assert_eq!(b, 2938);
+        assert_eq!(a, 945);
+        assert_eq!(b, 10637009915279);
     }
 }
