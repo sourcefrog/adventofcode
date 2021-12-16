@@ -22,43 +22,64 @@ fn input() -> String {
     std::fs::read_to_string("input/16.txt").unwrap()
 }
 
-fn to_u32(bv: &BitSlice) -> u32 {
+fn to_u64(bv: &BitSlice) -> u64 {
+    dbg!(bv.len());
+    // assert!(bv.len() <=64);
     bv.iter()
         .rev()
         .enumerate()
-        .fold(0u32, |acc, (i, b)| acc | ((*b as u32) << i))
+        .fold(0u64, |acc, (i, b)| acc | ((*b as u64) << i))
 }
 
 struct Pkt {
-    ver: u32,
+    ver: u64,
     typ: PktType,
 }
 
 enum PktType {
-    Literal,
-    Operator(Vec<Pkt>),
+    Literal(u64),
+    Operator(u64, Vec<Pkt>),
 }
 
 impl Pkt {
-    fn total_ver(&self) -> u32 {
-        let mut tv: u32 = self.ver;
-        if let PktType::Operator(subs) = &self.typ {
-            tv += subs.iter().map(|s| s.total_ver()).sum::<u32>();
+    fn total_ver(&self) -> u64 {
+        let mut tv: u64 = self.ver;
+        if let PktType::Operator(_, subs) = &self.typ {
+            tv += subs.iter().map(|s| s.total_ver()).sum::<u64>();
         }
         tv
     }
+
+    fn eval(&self) -> u64 {
+        use PktType::*;
+        match &self.typ {
+            Literal(x) => *x,
+            Operator(ot, subs) => {
+                let mut svs = subs.iter().map(|s| s.eval());
+                match ot {
+                    0 => svs.sum(),
+                    1 =>svs.product(),
+                    2=>svs.min().unwrap(),
+                    3=> svs.max().unwrap(),
+                    5=> (svs.next().unwrap() > svs.next().unwrap()) as u64,
+                    6=> (svs.next().unwrap() < svs.next().unwrap()) as u64,
+                    7=> (svs.next().unwrap() == svs.next().unwrap()) as u64,
+                    _=>panic!("bad op {}", ot),
+                }
+            }
+        }
+    }
 }
 
-fn solve(input: &str) -> (u32, u32) {
-    let sol_b = 0;
-
+fn solve(input: &str) -> (u64, u64) {
     let bits: BitVec = to_bits(input);
-    let (_pos, pkts) = ppkts(&bits, u32::MAX);
+    let (_pos, pkts) = ppkts(&bits, 1);
     let sol_a = pkts.iter().map(|p| p.total_ver()).sum();
+    let sol_b = pkts[0].eval();
     (sol_a, sol_b)
 }
 
-fn ppkts(bits: &BitSlice, max_pkts: u32) -> (usize, Vec<Pkt>) {
+fn ppkts(bits: &BitSlice, max_pkts: u64) -> (usize, Vec<Pkt>) {
     let mut pos = 0;
     let mut pkts = Vec::new();
     while pos < (bits.len() - 6) && pkts.len() < max_pkts as usize {
@@ -72,9 +93,9 @@ fn ppkts(bits: &BitSlice, max_pkts: u32) -> (usize, Vec<Pkt>) {
 fn ppkt(bits: &BitSlice) -> (usize, Pkt) {
     let mut pos = 0;
     // Must be at least 6 bits to read another packet; the rest is padding.
-    let ver = to_u32(&bits[pos..(pos + 3)]);
+    let ver = to_u64(&bits[pos..(pos + 3)]);
     pos += 3;
-    let pktype = to_u32(&bits[pos..(pos + 3)]);
+    let pktype = to_u64(&bits[pos..(pos + 3)]);
     pos += 3;
     println!("packet ver={ver} type={pktype}");
     if pktype == 4 {
@@ -91,41 +112,36 @@ fn ppkt(bits: &BitSlice) -> (usize, Pkt) {
             pos,
             Pkt {
                 ver,
-                typ: PktType::Literal,
+                typ: PktType::Literal(to_u64(&literal)),
             },
         );
-    } else {
-        // length type id
-        let ltid = bits[pos];
-        println!("  ltid={ltid}");
-        pos += 1;
-        if !ltid {
-            let subpktlen = to_u32(&bits[pos..(pos + 15)]);
-            println!("  subpktlen {subpktlen} {:?}", &bits[pos..(pos + 15)]);
-            pos += 15;
-            let (pq, subs) = ppkts(&bits[pos..(pos + subpktlen as usize)], u32::MAX);
-            pos += pq;
-            return (
-                pos,
-                Pkt {
-                    ver,
-                    typ: PktType::Operator(subs),
-                },
-            );
-        } else {
-            let nsubpkts = to_u32(&bits[pos..(pos + 11)]);
-            pos += 11;
-            let (pq, subs) = ppkts(&bits[pos..], nsubpkts);
-            pos += pq;
-            return (
-                pos,
-                Pkt {
-                    ver,
-                    typ: PktType::Operator(subs),
-                },
-            );
-        }
     }
+    // length type id
+    let ltid = bits[pos];
+    println!("  ltid={ltid}");
+    pos += 1;
+    let subs;
+    if !ltid {
+        let subpktlen = to_u64(&bits[pos..(pos + 15)]);
+        println!("  subpktlen {subpktlen} {:?}", &bits[pos..(pos + 15)]);
+        pos += 15;
+        let (pq, s) = ppkts(&bits[pos..(pos + subpktlen as usize)], u64::MAX);
+        subs = s;
+        pos += pq;
+    } else {
+        let nsubpkts = to_u64(&bits[pos..(pos + 11)]);
+        pos += 11;
+        let (pq, s) = ppkts(&bits[pos..], nsubpkts);
+        subs = s;
+        pos += pq;
+    }
+    return (
+        pos,
+        Pkt {
+            ver,
+            typ: PktType::Operator(pktype, subs),
+        },
+    );
 }
 
 fn to_bits(input: &str) -> BitVec {
@@ -150,7 +166,7 @@ mod test {
                 .collect::<String>(),
             "110100101111111000101000"
         );
-        let (pos, pkts) = ppkts(&bits, u32::MAX);
+        let (_pos, pkts) = ppkts(&bits, u64::MAX);
         assert_eq!(pkts.len(), 1);
         // assert_eq!(solve(EX).0, 1588);
     }
@@ -159,7 +175,7 @@ mod test {
     fn example2() {
         let bits = to_bits("38006F45291200");
         let (_, pkt) = ppkt(&bits);
-        if let PktType::Operator(subs) = pkt.typ {
+        if let PktType::Operator(_, subs) = pkt.typ {
             assert_eq!(subs.len(), 2);
         } else {
             panic!()
