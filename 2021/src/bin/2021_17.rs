@@ -2,14 +2,7 @@
 
 //! https://adventofcode.com/2021/day/16
 
-#![allow(unused_imports)]
-
-use std::collections::{BinaryHeap,HashSet,HashMap};
-
-use itertools::Itertools;
-
-use aoclib::{Matrix, Point, point};
-
+#![allow(clippy::comparison_chain)] // bad warning; it's slower and no simpler
 
 fn main() {
     let input = input();
@@ -36,7 +29,7 @@ fn solve(_input: &str) -> (i32, u64) {
             for _step in 0.. {
                 x += vx;
                 y += vy;
-                maxy = std::cmp::max(maxy, y);
+                maxy = max(maxy, y);
                 if vx > 0 {
                     vx -= 1;
                 } else if vx < 0 {
@@ -45,18 +38,41 @@ fn solve(_input: &str) -> (i32, u64) {
                 vy -= 1;
                 if x > 125 || y < -159 {
                     break;
-                } else 
-                if (70..=125).contains(&x) && (-159..=-121).contains(&y) {
+                } else if (70..=125).contains(&x) && (-159..=-121).contains(&y) {
                     besty = max(besty, maxy);
                     break;
                 }
             }
         }
     }
-
-    // not 78
     let sol_a = besty;
-    let sol_b = 0;
+
+    let mut sol_b = 0;
+    for ovx in -1000..1000 {
+        for ovy in -1000i32..1000 {
+            let mut vx = ovx;
+            let mut vy = ovy;
+            let mut x = 0;
+            let mut y = 0;
+            for _step in 0.. {
+                x += vx;
+                y += vy;
+                if vx > 0 {
+                    vx -= 1;
+                } else if vx < 0 {
+                    vx += 1;
+                }
+                vy -= 1;
+                if x > 125 || y < -159 {
+                    break;
+                } else if (70..=125).contains(&x) && (-159..=-121).contains(&y) {
+                    sol_b += 1;
+                    break;
+                }
+            }
+        }
+    }
+
     (sol_a, sol_b)
 }
 
@@ -67,7 +83,7 @@ mod test {
     #[test]
     fn solution() {
         let (a, b) = solve(&input());
-        assert_eq!(a, 945);
-        assert_eq!(b, 10637009915279);
+        assert_eq!(a, 12561);
+        assert_eq!(b, 3785);
     }
 }
