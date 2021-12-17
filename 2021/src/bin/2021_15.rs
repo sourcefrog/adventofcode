@@ -2,12 +2,7 @@
 
 //! https://adventofcode.com/2021/day/15
 
-#![allow(unused_imports)]
-use std::collections::BTreeMap;
-
-use itertools::Itertools;
-
-use aoclib::{point, Matrix, Point};
+use aoclib::{point, Matrix, MinHeap, Point};
 
 fn main() {
     let input = input();
@@ -44,14 +39,11 @@ fn walk(m: &Matrix<u32>) -> u32 {
     // Best known risk of a walk to this point.
     let mut best = Matrix::same_size(m, u32::MAX);
     best[(0usize, 0usize)] = 0;
-    // Points whose neighbors we need to consider, with the cost negated because Rust BinaryHeap
-    // is a max-heap (that returns the largest first) and we want to look at the cheapest option first.
-    // This is corny.
+    // Points whose neighbors we need to consider.
     let bottom_right = m.bottom_right();
-    let mut active = std::collections::BinaryHeap::new();
-    active.push((0i32, point(0, 0)));
-    while let Some((neg_prisk, p)) = active.pop() {
-        let prisk = (-neg_prisk) as u32;
+    let mut active: MinHeap<(u32, Point)> = MinHeap::new();
+    active.push((0, point(0, 0)));
+    while let Some((prisk, p)) = active.pop() {
         if p == bottom_right {
             // reached it on a lowest-cost-first path, so that's it
             return prisk;
@@ -60,7 +52,7 @@ fn walk(m: &Matrix<u32>) -> u32 {
             let tot = prisk + qrisk;
             if tot < best[q] {
                 best[q] = tot;
-                active.push((-(tot as i32), q));
+                active.push((tot, q));
             }
         }
     }
