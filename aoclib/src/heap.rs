@@ -21,6 +21,12 @@
  * will be at `2*i + 1` and `2*i+2`. For any index `j` we can see there is
  * only one `i` such that either `j == 2*i+1` or `j == 2*i+2` and so
  * every index is used and every index has one parent.
+ *
+ * This overlaps a lot with std::collections::BinaryHeap but:
+ *
+ * 1. It's a min-heap which is more useful here.
+ * 2. It's fun to implement.
+ * 3. It's a great example to try proptest.
  */
 
 use std::iter::FromIterator;
@@ -36,6 +42,13 @@ impl<T: Ord> MinHeap<T> {
         MinHeap { v: Vec::new() }
     }
 
+    /// Contruct a heap with a hint to the expected capacity.
+    pub fn with_capacity(capacity: usize) -> MinHeap<T> {
+        MinHeap {
+            v: Vec::with_capacity(capacity),
+        }
+    }
+
     /// Return a reference to the minimum value in the heap,
     /// if there is one, or None if the heap is empty.
     pub fn peek(&self) -> Option<&T> {
@@ -44,7 +57,38 @@ impl<T: Ord> MinHeap<T> {
 
     /// Remove and return the minimum value in the heap, if there is one.
     pub fn pop(&mut self) -> Option<T> {
-        todo!()
+        if self.v.is_empty() {
+            None
+        } else {
+            // To remove the 0th element: swap it to the end and return it. But then
+            // the 0th node is probably too big, so bubble it down to a location
+            // where it's >= both its children.
+            let taken = self.v.swap_remove(0);
+            let mut i = 0;
+            loop {
+                let il = left(i);
+                let ir = right(i);
+                if ir < self.v.len() {
+                    // If it has two children, we must swap with the smaller of them
+                    // so that the new v[i] is smaller than both its children.
+                    if self.v[i] > self.v[ir] && self.v[ir] < self.v[il] {
+                        self.v.swap(i, ir);
+                        i = ir;
+                    } else if self.v[i] > self.v[il] {
+                        self.v.swap(i, il);
+                        i = il;
+                    } else {
+                        break;
+                    }
+                } else if il < self.v.len() && self.v[il] < self.v[i] {
+                    self.v.swap(i, il);
+                    i = il;
+                } else {
+                    break;
+                }
+            }
+            Some(taken)
+        }
     }
 
     /// Return the number of items in the heap.
@@ -62,16 +106,41 @@ impl<T: Ord> MinHeap<T> {
         self.v.clear()
     }
 
+    /// Insert a new item into the heap.
+    pub fn push(&mut self, t: T) {
+        let mut i = self.v.len();
+        self.v.push(t);
+        while i > 0 {
+            let ip = parent(i);
+            if self.v[i] < self.v[ip] {
+                self.v.swap(i, ip);
+                i = ip;
+            } else {
+                break;
+            }
+        }
+    }
+}
+
+impl<T> MinHeap<T>
+where
+    T: Ord + std::fmt::Debug,
+{
     /// Check that the heap invariants are true.
     ///
     /// Panics on failure.
     pub fn assert_valid(&self) {
-        todo!();
-    }
-
-    /// Insert a new item into the heap.
-    pub fn push(&mut self, t: T) {
-        todo!();
+        for i in 1..self.v.len() {
+            let ip = parent(i);
+            debug_assert!(
+                self.v[i] >= self.v[ip],
+                "v[{}]={:?}, v[{}]={:?}",
+                i,
+                self.v[i],
+                ip,
+                self.v[ip]
+            );
+        }
     }
 }
 
@@ -97,18 +166,33 @@ impl<T: Ord> Default for MinHeap<T> {
 }
 
 impl<T: Ord> FromIterator<T> for MinHeap<T> {
-    fn from_iter<It>(i: It) -> MinHeap<T>
+    fn from_iter<It>(into_iter: It) -> MinHeap<T>
     where
         It: IntoIterator<Item = T>,
     {
-        todo!()
+        let iter = into_iter.into_iter();
+        let mut heap: MinHeap<T> = MinHeap::with_capacity(iter.size_hint().0);
+        for v in iter {
+            heap.push(v);
+        }
+        heap
     }
 }
 
 impl<T: Ord> From<Vec<T>> for MinHeap<T> {
-    fn from(v: Vec<T>) -> MinHeap<T> {
-        // TODO: heapify
-        todo!();
+    fn from(mut v: Vec<T>) -> MinHeap<T> {
+        for i in 1..v.len() {
+            let mut j = i;
+            while j > 0 {
+                let jp = parent(j);
+                if v[j] < v[jp] {
+                    v.swap(j, jp);
+                    j = jp;
+                } else {
+                    break;
+                }
+            }
+        }
         MinHeap { v }
     }
 }
@@ -125,6 +209,7 @@ mod test {
         assert!(h.is_empty());
         assert_eq!(h.len(), 0);
         assert!(h.peek().is_none());
+        h.assert_valid();
     }
 
     #[test]
@@ -133,6 +218,7 @@ mod test {
         assert!(h.is_empty());
         assert_eq!(h.len(), 0);
         assert!(h.peek().is_none());
+        h.assert_valid();
     }
 
     proptest! {
@@ -147,6 +233,84 @@ mod test {
                     (left(parent(i)) == i)
                     != (right(parent(i)) == i));
             }
+        }
+
+        #[test]
+        fn push_and_pop_one(v: isize) {
+            let mut heap = MinHeap::new();
+            assert!(heap.is_empty());
+            assert_eq!(heap.peek(), None);
+            heap.push(v);
+            assert_eq!(heap.peek(), Some(&v));
+            assert!(!heap.is_empty());
+            assert_eq!(heap.len(), 1);
+
+            assert_eq!(heap.pop(), Some(v));
+            assert!(heap.is_empty());
+            assert_eq!(heap.len(), 0);
+            assert_eq!(heap.peek(), None);
+            assert_eq!(heap.pop(), None);
+        }
+
+        #[test]
+        fn from_vec_then_pop_everything(vals: Vec<isize>) {
+            let mut heap: MinHeap<isize> = vals.clone().into();
+            assert_eq!(heap.len(), vals.len());
+            assert_eq!(heap.peek(), vals.iter().min());
+            heap.assert_valid();
+            let mut sorted = vals;
+            sorted.sort_unstable();
+            for v in sorted {
+                assert_eq!(heap.peek(), Some(&v));
+                assert_eq!(heap.pop(), Some(v));
+            }
+            assert!(heap.is_empty());
+            assert!(heap.pop().is_none());
+        }
+
+        #[test]
+        fn mixed_push_and_pop(ops: Vec<Option<isize>>) {
+            let mut heap = MinHeap::new();
+            // Keep a reference model as a simple sorted vec.
+            let mut model = Vec::new();
+            for op in ops {
+                match op {
+                    Some(v) => {
+                        heap.push(v);
+                        model.push(v);
+                        model.sort_unstable_by(|a,b| b.cmp(a));
+                    },
+                    None => {
+                        assert_eq!(heap.len(), model.len());
+                        if !heap.is_empty() {
+                            assert_eq!(heap.pop().unwrap(), model.pop().unwrap());
+                        }
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn push(vals: Vec<isize>) {
+            let mut heap: MinHeap<isize> = MinHeap::new();
+            for v in &vals {
+                heap.push(*v);
+            }
+            assert_eq!(heap.len(), vals.len());
+            assert_eq!(heap.peek(), vals.iter().min());
+        }
+
+        #[test]
+        fn from_vec_string_iter(mut vals: Vec<String>) {
+            let mut heap: MinHeap<String> = vals.iter().cloned().collect();
+            heap.assert_valid();
+            assert_eq!(heap.len(), vals.len());
+            assert_eq!(heap.peek(), vals.iter().min());
+            vals.sort_unstable();
+            for v in vals {
+                assert_eq!(heap.pop().unwrap(), v);
+            }
+            assert!(heap.is_empty());
         }
     }
 }
