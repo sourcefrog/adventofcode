@@ -38,7 +38,7 @@ fn solve(_input: &str) -> (i32, u64) {
                 vy -= 1;
                 if x > 125 || y < -159 {
                     break;
-                } else if (70..=125).contains(&x) && (-159..=-121).contains(&y) {
+                } else if x >= 70 && y <= -121 {
                     besty = max(besty, maxy);
                     break;
                 }
@@ -65,7 +65,7 @@ fn solve(_input: &str) -> (i32, u64) {
                 vy -= 1;
                 if x > 125 || y < -159 {
                     break;
-                } else if (70..=125).contains(&x) && (-159..=-121).contains(&y) {
+                } else if x >= 70 && y <= -121 {
                     sol_b += 1;
                     break;
                 }
