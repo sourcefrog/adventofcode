@@ -206,7 +206,7 @@ impl<T> Matrix<T> {
     }
 
     /// Iterate all present 8-way neighbors.
-    pub fn neighbors8<'m>(&'m self, p: Point) -> impl Iterator<Item=(Point, &T)> + 'm {
+    pub fn neighbors8<'m>(&'m self, p: Point) -> impl Iterator<Item = (Point, &T)> + 'm {
         self.neighbor8_points(p)
             .into_iter()
             .map(move |p| (p, &self[p]))
