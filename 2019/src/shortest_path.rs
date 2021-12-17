@@ -15,7 +15,9 @@
 //! Find the shortest path in a graph, using Djikstra's method.
 
 use core::hash::Hash;
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::HashMap;
+
+use aoclib::MinHeap;
 
 type D = isize;
 
@@ -43,9 +45,8 @@ where
     N: FnMut(P) -> Vec<(P, D)>,
     DF: Fn(&P) -> bool,
 {
-    // Next points to visit, indexed by the *negative* distance, so that the
-    // greatest value is the shortest.
-    let mut queue = BinaryHeap::<(D, P)>::new();
+    // Next points to visit, indexed by distance so far.
+    let mut queue = MinHeap::<(D, P)>::new();
     // Shortest known distance to reach any point.
     let mut best = HashMap::<P, D>::new();
     queue.push((0, origin));
@@ -53,7 +54,6 @@ where
         let (d, p) = queue
             .pop()
             .expect("heap is empty without reaching destination");
-        let d = -d;
         if dest_fn(&p) {
             // Found a shortest path to the end
             return d;
@@ -66,7 +66,7 @@ where
                 }
             }
             best.insert(np, nd);
-            queue.push((-nd, np));
+            queue.push((nd, np));
         }
     }
 }

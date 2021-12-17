@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod heap;
 mod matrix;
 mod point;
 mod split_one;
 
+pub use heap::MinHeap;
 pub use matrix::*;
 pub use point::*;
 pub use split_one::{split_one, try_split_one};
