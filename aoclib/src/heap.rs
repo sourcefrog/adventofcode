@@ -14,10 +14,10 @@
  * packed into successive contiguous spans of the vec. Only the last row
  * can be incomplete and it must be packed to the left, so there are
  * no gaps in the vec.
- * 
+ *
  * The vector can be thought of as a series of rows numbered from 0,
- * where row `r` is of length `1<<r`. Row `r` starts at position `(1<<r)-1`: 
- * 0, 1, 3, 7, ... Each node `i` has, potentially two children, which 
+ * where row `r` is of length `1<<r`. Row `r` starts at position `(1<<r)-1`:
+ * 0, 1, 3, 7, ... Each node `i` has, potentially two children, which
  * will be at `2*i + 1` and `2*i+2`. For any index `j` we can see there is
  * only one `i` such that either `j == 2*i+1` or `j == 2*i+2` and so
  * every index is used and every index has one parent.
@@ -76,11 +76,14 @@ impl<T: Ord> MinHeap<T> {
 }
 
 /// Returns the index of the first child of the node at index `i`.
-/// The second child would be in the following slot.
-fn child(parent: usize) -> usize {
+fn left(parent: usize) -> usize {
     parent * 2 + 1
 }
 
+/// Returns the index of the right child of the node at index `i`.
+fn right(parent: usize) -> usize {
+    parent * 2 + 2
+}
 
 /// Return the parent of the node at this index.
 fn parent(child: usize) -> usize {
@@ -114,7 +117,7 @@ impl<T: Ord> From<Vec<T>> for MinHeap<T> {
 mod test {
     use proptest::prelude::*;
 
-    use super::{child, parent, MinHeap};
+    use super::{left, parent, right, MinHeap};
 
     #[test]
     fn new_heap_is_empty() {
@@ -135,11 +138,14 @@ mod test {
     proptest! {
         #[test]
         fn parents_and_children(i in 0..1000usize) {
-            assert_eq!(parent(child(i)), i);
-            assert_eq!(parent(child(i) + 1), i);
+            assert_eq!(parent(left(i)), i);
+            assert_eq!(parent(right(i)), i);
             // These don't hold at 0 which has no parent
             if i > 0 {
-                assert_eq!(child(parent(i)), i);
+                // It's either left or right, not both.
+                assert!(
+                    (left(parent(i)) == i)
+                    != (right(parent(i)) == i));
             }
         }
     }
