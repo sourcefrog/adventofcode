@@ -64,6 +64,7 @@ fn parse(s: &str) -> Num {
 }
 
 impl Num {
+    #[cfg(test)]
     fn to_str(&self) -> String {
         let mut s = String::new();
         for e in &self.v {
@@ -87,13 +88,7 @@ impl Num {
     }
 
     fn reduce(mut self) -> Num {
-        loop {
-            if self.explode1() {
-            } else if self.split1() {
-            } else {
-                break;
-            }
-        }
+        while self.explode1() || self.split1() {}
         self
     }
 
@@ -162,8 +157,7 @@ impl Num {
     }
 
     fn add(&self, other: &Num) -> Num {
-        let mut v = Vec::new();
-        v.push(E::Open);
+        let mut v = vec![E::Open];
         v.extend(self.v.iter().cloned());
         v.extend(other.v.iter().cloned());
         v.push(E::Close);
@@ -171,32 +165,28 @@ impl Num {
     }
 
     fn magnitude(&self) -> u32 {
-        magnitude(&self.v)
-    }
-}
-
-fn magnitude(v: &[E]) -> u32 {
-    let mut st: Vec<Vec<u32>> = vec![vec![]];
-    for e in v {
-        match e {
-            E::Open => st.push(vec![]),
-            E::N(a) => st.last_mut().unwrap().push(*a),
-            E::Close => {
-                let l = st.pop().unwrap();
-                assert_eq!(l.len(), 2);
-                let m = l[0] * 3 + l[1] * 2;
-                st.last_mut().unwrap().push(m);
+        let mut st: Vec<Vec<u32>> = vec![vec![]];
+        for e in &self.v {
+            match e {
+                E::Open => st.push(vec![]),
+                E::N(a) => st.last_mut().unwrap().push(*a),
+                E::Close => {
+                    let l = st.pop().unwrap();
+                    assert_eq!(l.len(), 2);
+                    let m = l[0] * 3 + l[1] * 2;
+                    st.last_mut().unwrap().push(m);
+                }
             }
         }
+        assert_eq!(st.len(), 1);
+        let l = st.pop().unwrap();
+        assert_eq!(l.len(), 1);
+        l[0]
     }
-    assert_eq!(st.len(), 1);
-    let l = st.pop().unwrap();
-    assert_eq!(l.len(), 1);
-    l[0]
 }
 
 fn solve(input: &str) -> (u32, u32) {
-    let nums: Vec<Num> = input.lines().map(|l| parse(l)).collect();
+    let nums: Vec<Num> = input.lines().map(parse).collect();
     let sol_a = nums
         .clone()
         .into_iter()
@@ -208,7 +198,7 @@ fn solve(input: &str) -> (u32, u32) {
     for na in &nums {
         for nb in &nums {
             if na != nb {
-                sol_b = max(sol_b, na.add(&nb).magnitude());
+                sol_b = max(sol_b, na.add(nb).magnitude());
             }
         }
     }
