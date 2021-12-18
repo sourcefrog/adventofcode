@@ -10,6 +10,7 @@ use std::os::unix::prelude::OsStrExt;
 
 use aoclib::{point, Matrix, Point};
 
+#[derive(Debug, PartialEq, Clone, Eq)]
 enum E {
     Open,
     Close,
@@ -17,33 +18,18 @@ enum E {
 }
 
 impl E {
-    fn add(self, b: E) -> E {
-        E::P(Box::new(self), Box::new(b)).reduce()
-    }
-
-    fn reduce(mut self) -> E {
-        loop {
-            if self.fexplode(0) {
-                continue;
-            }
-            break;
-        }
-        self
-    }
-
-    fn fexplode(&mut self, depth: usize) -> bool {
+    fn addeq(&mut self, v: u32) {
         match self {
-            E::V(_) => false,
-            E::P(..) if depth == 4 => {
-                todo!();
-                true
-            }
-            E::P(a, b) => a.fexplode(depth + 1) || b.fexplode(depth + 1),
+            E::N(a) => *a += v,
+            _ => panic!(),
         }
     }
 
-    fn magnitude(&self) -> usize {
-        todo!()
+    fn val(&self) -> u32 {
+        match self {
+            E::N(a) => *a,
+            _ => panic!(),
+        }
     }
 }
 
@@ -55,37 +41,177 @@ fn main() {
 }
 
 fn input() -> String {
-    std::fs::read_to_string("input/16.txt").unwrap()
+    std::fs::read_to_string("input/18.txt").unwrap()
 }
 
-fn parse(s: &[u8]) -> (E, &[u8]) {
-    if s[0] == b'[' {
-        let (left, rest) = parse(&s[1..]);
-        assert_eq!(rest[0], b',');
-        let (right, rest) = parse(&rest[1..]);
-        assert_eq!(rest[0], b']');
-        (E::P(Box::new(left), right.into()), &rest[1..])
-    } else {
-        let v = (s[0] as char).to_digit(10).unwrap();
-        (E::V(v), &s[1..])
+#[derive(Debug, Clone, Eq, PartialEq)]
+struct Num {
+    v: Vec<E>,
+}
+
+fn parse(s: &str) -> Num {
+    let mut v = Vec::new();
+    for c in s.chars() {
+        match c {
+            '[' => v.push(E::Open),
+            ']' => v.push(E::Close),
+            ',' => (),
+            '0'..='9' => v.push(E::N(c.to_digit(10).unwrap())),
+            _ => panic!("unexpected {:?}", c),
+        }
+    }
+    Num { v }
+}
+
+impl Num {
+    fn to_str(&self) -> String {
+        let mut s = String::new();
+        for e in &self.v {
+            match e {
+                E::Open => {
+                    if !s.is_empty() && !s.ends_with('[') {
+                        s.push(',');
+                    }
+                    s.push('[')
+                }
+                E::Close => s.push(']'),
+                E::N(v) => {
+                    if !s.ends_with('[') {
+                        s.push(',');
+                    }
+                    s.push_str(&v.to_string());
+                }
+            }
+        }
+        s
+    }
+
+    fn reduce(mut self) -> Num {
+        loop {
+            if self.explode1() {
+            } else if self.split1() {
+            } else {
+                break;
+            }
+        }
+        self
+    }
+
+    fn explode1(&mut self) -> bool {
+        let mut depth = 0;
+        let v = &mut self.v;
+        for (i, e) in v.iter().enumerate() {
+            match e {
+                E::Open => depth += 1,
+                E::Close => depth -= 1,
+                _ => (),
+            }
+            if depth == 5 {
+                println!("explode {:?}", &v[i..(i + 4)]);
+                assert!(matches!(
+                    &v[i..(i + 4)],
+                    [E::Open, E::N(_), E::N(_), E::Close]
+                ));
+                let a = v[i + 1].val();
+                let b = v[i + 2].val();
+
+                if let Some(left) = v[..i]
+                    .iter()
+                    .enumerate()
+                    .rev()
+                    .filter(|(_i, e)| matches!(e, E::N(_)))
+                    .map(|(i, _)| i)
+                    .next()
+                {
+                    v[left].addeq(a);
+                }
+                if let Some(right) = v
+                    .iter()
+                    .enumerate()
+                    .skip(i + 4)
+                    .filter(|(_, e)| matches!(e, E::N(_)))
+                    .map(|(i, _)| i)
+                    .next()
+                {
+                    v[right].addeq(b);
+                }
+                for _ in 0..3 {
+                    v.remove(i);
+                }
+                v[i] = E::N(0);
+                return true;
+            }
+        }
+        false
+    }
+
+    fn split1(&mut self) -> bool {
+        for (i, e) in self.v.iter().enumerate() {
+            match e {
+                &E::N(a) if a >= 10 => {
+                    self.v[i] = E::Close;
+                    self.v.insert(i, E::N((a + 1) / 2));
+                    self.v.insert(i, E::N((a) / 2));
+                    self.v.insert(i, E::Open);
+                    return true;
+                }
+                _ => (),
+            }
+        }
+        false
+    }
+
+    fn add(&self, other: &Num) -> Num {
+        let mut v = Vec::new();
+        v.push(E::Open);
+        v.extend(self.v.iter().cloned());
+        v.extend(other.v.iter().cloned());
+        v.push(E::Close);
+        Num { v }.reduce()
+    }
+
+    fn magnitude(&self) -> u32 {
+        magnitude(&self.v)
     }
 }
 
-fn parse_line(l: &str) -> E {
-    let (e, rest) = parse(l.as_bytes());
-    assert_eq!(rest.len(), 0);
-    e
+fn magnitude(v: &[E]) -> u32 {
+    let mut st: Vec<Vec<u32>> = vec![vec![]];
+    for e in v {
+        match e {
+            E::Open => st.push(vec![]),
+            E::N(a) => st.last_mut().unwrap().push(*a),
+            E::Close => {
+                let l = st.pop().unwrap();
+                assert_eq!(l.len(), 2);
+                let m = l[0] * 3 + l[1] * 2;
+                st.last_mut().unwrap().push(m);
+            }
+        }
+    }
+    assert_eq!(st.len(), 1);
+    let l = st.pop().unwrap();
+    assert_eq!(l.len(), 1);
+    l[0]
 }
 
-fn solve(input: &str) -> (usize, u64) {
-    let sol_a = input
-        .lines()
-        .map(|l| parse_line(l))
-        .reduce(E::add)
+fn solve(input: &str) -> (u32, u32) {
+    let nums: Vec<Num> = input.lines().map(|l| parse(l)).collect();
+    let sol_a = nums
+        .clone()
+        .into_iter()
+        .reduce(|a, b| a.add(&b))
         .unwrap()
         .magnitude();
 
-    let sol_b = 0;
+    let mut sol_b = 0;
+    for na in &nums {
+        for nb in &nums {
+            if na != nb {
+                sol_b = max(sol_b, na.add(&nb).magnitude());
+            }
+        }
+    }
 
     (sol_a, sol_b)
 }
@@ -103,16 +229,56 @@ mod test {
 [[[[1,2],[3,4]],[[5,6],[7,8]]],9]
 [[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]
 [[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]";
-        for l in ex.lines().map(|l| l.as_bytes()) {
-            let (_e, rest) = parse(l);
-            assert_eq!(rest.len(), 0);
+        for l in ex.lines() {
+            let _num = parse(l);
+        }
+    }
+
+    #[test]
+    fn explode() {
+        let mut num = parse("[[[[[9,8],1],2],3],4]");
+        assert!(num.explode1());
+        assert_eq!(num.to_str(), "[[[[0,9],2],3],4]");
+
+        for (before, after) in [
+            ("[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]"),
+            ("[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]"),
+            (
+                "[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]",
+                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
+            ),
+            (
+                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
+                "[[3,[2,[8,0]]],[9,[5,[7,0]]]]",
+            ),
+        ] {
+            let mut num = parse(before);
+            assert!(num.explode1());
+            assert_eq!(num.to_str(), after);
+        }
+    }
+
+    #[test]
+    fn ex_add() {
+        assert_eq!(
+            parse("[[[[4,3],4],4],[7,[[8,4],9]]]")
+                .add(&parse("[1,1]"))
+                .to_str(),
+            "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
+        );
+    }
+
+    #[test]
+    fn ex_magn() {
+        for (s, m) in [("[[9,1],[1,9]]", 129)] {
+            assert_eq!(parse(s).magnitude(), m);
         }
     }
 
     #[test]
     fn solution() {
         let (a, b) = solve(&input());
-        // assert_eq!(a, 12561);
-        // assert_eq!(b, 3785);
+        assert_eq!(a, 3494);
+        assert_eq!(b, 4712);
     }
 }
