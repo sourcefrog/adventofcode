@@ -1,21 +1,16 @@
 // Copyright 2021 Martin Pool
 
-//! https://adventofcode.com/2021/day/16
+//! https://adventofcode.com/2021/day/17
 
 #![allow(clippy::comparison_chain)] // bad warning; it's slower and no simpler
 
 fn main() {
-    let input = input();
-    let (a, b) = solve(&input);
+    let (a, b) = solve();
     println!("{}", a);
     println!("{}", b);
 }
 
-fn input() -> String {
-    std::fs::read_to_string("input/16.txt").unwrap()
-}
-
-fn solve(_input: &str) -> (i32, u64) {
+fn solve() -> (i32, u64) {
     // target area: x=70..125, y=-159..-121
     use std::cmp::max;
     let mut besty = 0;
@@ -82,7 +77,7 @@ mod test {
 
     #[test]
     fn solution() {
-        let (a, b) = solve(&input());
+        let (a, b) = solve();
         assert_eq!(a, 12561);
         assert_eq!(b, 3785);
     }

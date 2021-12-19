@@ -1,6 +1,6 @@
 // Copyright 2021 Martin Pool
 
-//! https://adventofcode.com/2021/day/16
+//! https://adventofcode.com/2021/day/18
 
 #![allow(clippy::comparison_chain)] // bad warning; it's slower and no simpler
 #![allow(unused_imports)]
