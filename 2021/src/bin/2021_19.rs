@@ -91,7 +91,7 @@ fn solve(input: &str) -> (usize, isize) {
     done[0] = true;
     let mut scannerpos = vec![arr1(&[0, 0, 0]); inp.len()];
     let mut fixed: HashSet<[isize; 3]> = HashSet::new();
-    fixed.extend(inp[0].iter().map(|p| toarr(p)));
+    fixed.extend(inp[0].iter().map(toarr));
     'l: loop {
         for isc in 1..(inp.len()) {
             if done[isc] {
@@ -100,7 +100,7 @@ fn solve(input: &str) -> (usize, isize) {
             for (irot, _rotm) in rots.iter().enumerate() {
                 // println!("try scanner {isc:2} rot {irot:2}");
                 let roted: &[Pt] = &rotpts[isc][irot];
-                if let Some(offset) = overlap(&fixed, &roted) {
+                if let Some(offset) = overlap(&fixed, roted) {
                     println!(
                         "** found overlap: scanner {isc:2} rot {irot:3} matched offset {:?}",
                         offset.as_slice().unwrap()
@@ -314,7 +314,7 @@ mod test {
 
     #[test]
     fn example() {
-        let (a, b) = solve(&EX);
+        let (a, b) = solve(EX);
         assert_eq!(a, 79);
         assert_eq!(b, 3621);
     }
