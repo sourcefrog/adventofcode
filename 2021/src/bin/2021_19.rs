@@ -87,14 +87,15 @@ fn solve(input: &str) -> (usize, isize) {
         rotpts.push(scrots);
     }
 
-    let mut done = vec![false; inp.len()];
-    done[0] = true;
-    let mut scannerpos = vec![arr1(&[0, 0, 0]); inp.len()];
+    // scannerpos[iscanner] is the position of the scanner, if it's known.
+    let mut scannerpos: Vec<Option<Array1<isize>>> = vec![None; inp.len()];
+    scannerpos[0] = Some(arr1(&[0, 0, 0]));
+    // `fixed` is a set of all points whose absolute and final position is known.
     let mut fixed: HashSet<[isize; 3]> = HashSet::new();
     fixed.extend(inp[0].iter().map(toarr));
     'l: loop {
         for isc in 1..(inp.len()) {
-            if done[isc] {
+            if scannerpos[isc].is_some() {
                 continue;
             }
             for (irot, _rotm) in rots.iter().enumerate() {
@@ -105,31 +106,25 @@ fn solve(input: &str) -> (usize, isize) {
                         "** found overlap: scanner {isc:2} rot {irot:3} matched offset {:?}",
                         offset.as_slice().unwrap()
                     );
-                    scannerpos[isc] = offset.clone();
-                    done[isc] = true;
+                    scannerpos[isc] = Some(offset.clone());
                     fixed.extend(roted.iter().map(|p| toarr(&(p - &offset))));
                     // println!("    fixed: {}", fixed.len());
                     continue 'l;
                 }
             }
         }
-        if done.iter().all(|x| *x) {
+        if scannerpos.iter().all(|x| x.is_some()) {
             break;
         } else {
             unreachable!("didn't find anything to do");
         }
     }
 
-    let sol_a = fixed.len();
-    // let mut beacons: Vec<&[isize; 3]> = fixed.iter().collect();
-    // beacons.sort();
-    // beacons
-    //     .iter()
-    //     .for_each(|b| println!("{},{},{}", b[0], b[1], b[2]));
+    let sol_a = fixed.len(); // number of beacons
 
     let mut sol_b = 0;
-    for a in &scannerpos {
-        for b in &scannerpos {
+    for a in scannerpos.iter().map(|x| x.as_ref().unwrap()) {
+        for b in scannerpos.iter().map(|x| x.as_ref().unwrap()) {
             if a != b {
                 let dist = (a[0] - b[0]).abs() + (a[1] - b[1]).abs() + (a[2] - b[2]).abs();
                 // println!("{a:?} {b:?} {dist}");
