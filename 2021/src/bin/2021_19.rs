@@ -39,6 +39,7 @@ fn solve(input: &str) -> (usize, isize) {
         }
     }
     let inp = inp;
+    let nscanners = inp.len();
 
     // Assume scanner 0 is at 0,0,0 with nominal orientation.
     // Treat its points as fixed.
@@ -70,6 +71,7 @@ fn solve(input: &str) -> (usize, isize) {
             }
         }
     }
+    let nrots = rots.len();
     assert_eq!(rots.len(), 24);
 
     // First make a set of rotated points for each scanner, in each of the 24 possible
@@ -78,7 +80,7 @@ fn solve(input: &str) -> (usize, isize) {
     // indexed[scanner][rotation][point]
     let mut rotpts: Vec<Vec<Vec<Pt>>> = Vec::new();
     for sc in &inp {
-        let mut scrots: Vec<Vec<Pt>> = vec![vec![]; 24];
+        let mut scrots: Vec<Vec<Pt>> = vec![vec![]; nrots];
         for (irot, rotm) in rots.iter().enumerate() {
             for p in sc {
                 scrots[irot].push(p.dot(rotm));
@@ -88,43 +90,58 @@ fn solve(input: &str) -> (usize, isize) {
     }
 
     // scannerpos[iscanner] is the position of the scanner, if it's known.
-    let mut scannerpos: Vec<Option<Array1<isize>>> = vec![None; inp.len()];
+    let mut scannerpos: Vec<Option<Array1<isize>>> = vec![None; nscanners];
     scannerpos[0] = Some(arr1(&[0, 0, 0]));
     // `fixed` is a set of all points whose absolute and final position is known.
     let mut fixed: HashSet<[isize; 3]> = HashSet::new();
     fixed.extend(inp[0].iter().map(toarr));
-    'l: loop {
-        for isc in 1..(inp.len()) {
-            if scannerpos[isc].is_some() {
-                continue;
-            }
-            for (irot, _rotm) in rots.iter().enumerate() {
+    // `fixedps[iscanner]` is a vec of the absolute positions of beacons for this scanner.
+    let mut fixedpts: Vec<Vec<Pt>> = vec![vec![]; nscanners];
+    fixedpts[0] = inp[0].clone();
+    // `active` is a vec of scanner ids where we *have* found the location of the scanner,
+    // but we *have not* yet found all its neighbors yet. In other words, these scanners
+    // are the frontier that we can look to attach a new scanner to: or some of them
+    // might find no attachments, and some might find more than one.
+    let mut active: Vec<usize> = vec![0];
+    // `unsolved` is a vec of scanner ids who we have not yet localized.
+    let mut unsolved: Vec<usize> = (1..nscanners).collect();
+    // TODO: Could probably use Rayon pretty well here, to run all candidates against the current
+    // base scanner in parallel.
+    while let Some(base) = active.pop() {
+        debug_assert!(scannerpos[base].is_some());
+        debug_assert!(!fixedpts[base].is_empty());
+        for isc in unsolved.clone() {
+            debug_assert!(scannerpos[isc].is_none());
+            for irot in 0..nrots {
                 // println!("try scanner {isc:2} rot {irot:2}");
                 let roted: &[Pt] = &rotpts[isc][irot];
-                if let Some(offset) = overlap(&fixed, roted) {
+                if let Some(offset) = overlap(&fixedpts[base], roted) {
                     println!(
-                        "** found overlap: scanner {isc:2} rot {irot:3} matched offset {:?}",
+                        "** found overlap: scanner {isc:2} rot {irot:3} matched against scanner {base:2} offset {:?}",
                         offset.as_slice().unwrap()
                     );
-                    scannerpos[isc] = Some(offset.clone());
+                    fixedpts[isc] = roted.iter().map(|p| p - &offset).collect();
                     fixed.extend(roted.iter().map(|p| toarr(&(p - &offset))));
+                    scannerpos[isc] = Some(offset);
+                    unsolved.retain(|x| *x != isc);
+                    active.push(isc);
+                    break;
                     // println!("    fixed: {}", fixed.len());
-                    continue 'l;
                 }
             }
         }
-        if scannerpos.iter().all(|x| x.is_some()) {
-            break;
-        } else {
-            unreachable!("didn't find anything to do");
-        }
     }
+    assert!(
+        scannerpos.iter().all(|x| x.is_some()),
+        "didn't locate all scanners",
+    );
 
     let sol_a = fixed.len(); // number of beacons
 
     let mut sol_b = 0;
-    for a in scannerpos.iter().map(|x| x.as_ref().unwrap()) {
-        for b in scannerpos.iter().map(|x| x.as_ref().unwrap()) {
+    let scannerpos: Vec<Pt> = scannerpos.into_iter().map(|x| x.unwrap()).collect();
+    for a in &scannerpos {
+        for b in &scannerpos {
             if a != b {
                 let dist = (a[0] - b[0]).abs() + (a[1] - b[1]).abs() + (a[2] - b[2]).abs();
                 // println!("{a:?} {b:?} {dist}");
@@ -140,23 +157,28 @@ fn toarr(p: &Pt) -> [isize; 3] {
     [p[0], p[1], p[2]]
 }
 
-fn overlap(ap: &HashSet<[isize; 3]>, bp: &[Pt]) -> Option<Pt> {
+fn overlap(ap: &[Pt], bp: &[Pt]) -> Option<Pt> {
     // Consider every pair of points from a and b as a potential offset.
     // See how many other points in b match against a in with that offset.
     // If there are at least 12, that's a good match, return it.
-    for b in bp {
+    //
+    // We don't need to look at offsets based on every point in bp: if there are
+    // 12 points that match then we can skip the first 11 and still find at
+    // least one anchor to align them.
+    for b in &bp[11..] {
         for a in ap {
             let mut n = 1; // one is already force-aligned
-            let off = b - arr1(a);
+            let off = b - a;
             for c in bp {
-                if c != b {
-                    let d = c - &off;
-                    if ap.contains(&toarr(&d)) {
-                        n += 1;
-                        if n >= 12 {
-                            // println!("found match {off:?} n={n}");
-                            return Some(off);
-                        }
+                if c == b {
+                    break;
+                }
+                let d = c - &off;
+                if ap.contains(&d) {
+                    n += 1;
+                    if n >= 12 {
+                        // println!("found match {off:?} n={n}");
+                        return Some(off);
                     }
                 }
             }
