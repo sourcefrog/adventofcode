@@ -1,6 +1,6 @@
 // Copyright 2021 Martin Pool
 
-//! https://adventofcode.com/2021/day/19
+//! https://adventofcode.com/2021/day/19 -- "Beacon Scanner"
 
 #![allow(clippy::comparison_chain)] // bad warning; it's slower and no simpler
 #![allow(unused_imports)]
@@ -23,56 +23,15 @@ fn input() -> String {
 type Pt = Array1<isize>;
 
 fn solve(input: &str) -> (usize, isize) {
-    let mut inp: Vec<Vec<Pt>> = Vec::new();
-    for l in input.lines() {
-        if l.starts_with("--- scanner ") {
-            inp.push(Vec::new());
-        } else if l.is_empty() {
-        } else {
-            let mut coo = l.split(',').map(|w| w.parse::<isize>().unwrap());
-            let p = array![
-                coo.next().unwrap(),
-                coo.next().unwrap(),
-                coo.next().unwrap(),
-            ];
-            inp.last_mut().unwrap().push(p);
-        }
-    }
-    let inp = inp;
-    let nscanners = inp.len();
-
     // Assume scanner 0 is at 0,0,0 with nominal orientation.
     // Treat its points as fixed.
     // Now try every rotation of every other matrix one by one until all of them are done.
+    let inp: Vec<Vec<Pt>> = parse(input);
+    let nscanners = inp.len();
 
-    // [1, 0] [-1  0]  [ 0  -1]  [ 0  1 ]
-    // [0, 1] [ 0 -1]  [ 1   0]  [ -1 0 ]
-    let rot_x = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
-    let rot_y = arr2(&[[0, 0, 1], [0, 1, 0], [-1, 0, 0]]);
-    let rot_z = arr2(&[[0, 1, 0], [-1, 0, 0], [0, 0, 1]]);
-    let mut rots = Vec::new();
-    for rx in 0..4 {
-        for ry in 0..4 {
-            for rz in 0..4 {
-                let mut m = arr2(&[[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
-                for _ in 0..rx {
-                    m = m.dot(&rot_x);
-                }
-                for _ in 0..ry {
-                    m = m.dot(&rot_y);
-                }
-                for _ in 0..rz {
-                    m = m.dot(&rot_z);
-                }
-                if !rots.contains(&m) {
-                    // println!("add {rx} {ry} {rz}");
-                    rots.push(m);
-                }
-            }
-        }
-    }
-    let nrots = rots.len();
-    assert_eq!(rots.len(), 24);
+    let rots = make_rotations();
+    let nrots = rots.dim().0;
+    assert_eq!(nrots, 24);
 
     // First make a set of rotated points for each scanner, in each of the 24 possible
     // orientations.
@@ -81,9 +40,9 @@ fn solve(input: &str) -> (usize, isize) {
     let mut rotpts: Vec<Vec<Vec<Pt>>> = Vec::new();
     for sc in &inp {
         let mut scrots: Vec<Vec<Pt>> = vec![vec![]; nrots];
-        for (irot, rotm) in rots.iter().enumerate() {
+        for (irot, rotm) in rots.outer_iter().enumerate() {
             for p in sc {
-                scrots[irot].push(p.dot(rotm));
+                scrots[irot].push(p.dot(&rotm));
             }
         }
         rotpts.push(scrots);
@@ -157,6 +116,27 @@ fn toarr(p: &Pt) -> [isize; 3] {
     [p[0], p[1], p[2]]
 }
 
+/// Parse the input into a vector with one entry per scanner, each
+/// containing a list of points relative to that scanner.
+fn parse(input: &str) -> Vec<Vec<Pt>> {
+    let mut inp = Vec::new();
+    for l in input.lines() {
+        if l.starts_with("--- scanner ") {
+            inp.push(Vec::new());
+        } else if l.is_empty() {
+        } else {
+            let mut coo = l.split(',').map(|w| w.parse::<isize>().unwrap());
+            let p = array![
+                coo.next().unwrap(),
+                coo.next().unwrap(),
+                coo.next().unwrap(),
+            ];
+            inp.last_mut().unwrap().push(p);
+        }
+    }
+    inp
+}
+
 fn overlap(ap: &[Pt], bp: &[Pt]) -> Option<Pt> {
     // Consider every pair of points from a and b as a potential offset.
     // See how many other points in b match against a in with that offset.
@@ -185,6 +165,41 @@ fn overlap(ap: &[Pt], bp: &[Pt]) -> Option<Pt> {
         }
     }
     None
+}
+
+/// Generate all the 2d rotation matrices.
+///
+/// The major axis is the rotation index.
+fn make_rotations() -> Array3<isize> {
+    // [1, 0] [-1  0]  [ 0  -1]  [ 0  1 ]
+    // [0, 1] [ 0 -1]  [ 1   0]  [ -1 0 ]
+    let rot_x = arr2(&[[1, 0, 0], [0, 0, -1], [0, 1, 0]]);
+    let rot_y = arr2(&[[0, 0, 1], [0, 1, 0], [-1, 0, 0]]);
+    let rot_z = arr2(&[[0, 1, 0], [-1, 0, 0], [0, 0, 1]]);
+    let mut rots = Array3::zeros([24, 3, 3]);
+    let mut i = 0;
+    for rx in 0..4 {
+        for ry in 0..4 {
+            for rz in 0..4 {
+                let mut m: Array2<isize> = arr2(&[[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+                for _ in 0..rx {
+                    m = m.dot(&rot_x);
+                }
+                for _ in 0..ry {
+                    m = m.dot(&rot_y);
+                }
+                for _ in 0..rz {
+                    m = m.dot(&rot_z);
+                }
+                if !rots.outer_iter().any(|j| j == m) {
+                    rots.outer_iter_mut().nth(i).unwrap().assign(&m);
+                    i += 1;
+                }
+            }
+        }
+    }
+    assert_eq!(rots.outer_iter().len(), 24);
+    rots
 }
 
 #[cfg(test)]
