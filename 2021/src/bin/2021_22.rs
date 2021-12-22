@@ -108,13 +108,15 @@ fn solve(input: &str) -> (usize, u64) {
     }
     println!("built lit");
 
+    let xsz: Vec<isize> = xvals.windows(2).map(|w| w[1] - w[0]).collect();
+    let ysz: Vec<isize> = yvals.windows(2).map(|w| w[1] - w[0]).collect();
+    let zsz: Vec<isize> = zvals.windows(2).map(|w| w[1] - w[0]).collect();
+
     let mut sol_b: u64 = 0;
     let mut cells_set = 0;
     for ((xi, yi, zi), &on) in lit.indexed_iter() {
         if on {
-            sol_b += ((xvals[xi + 1] - xvals[xi])
-                * (yvals[yi + 1] - yvals[yi])
-                * (zvals[zi + 1] - zvals[zi])) as u64;
+            sol_b += (xsz[xi] * ysz[yi] * zsz[zi]) as u64;
             cells_set += 1;
         }
     }
