@@ -59,6 +59,10 @@ fn solve(input: &str) -> (usize, u64) {
     // collect the total volume.
     //
     // (It's still kinda big at 580M elements.)
+    //
+    // Probably something more compact might be possible with a binary
+    // space-partitioning tree? But it could be more complex to
+    // generate.
 
     // Collect the unique x values.
     let mut xvals: Vec<isize> = Vec::new();
