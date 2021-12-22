@@ -89,8 +89,7 @@ fn solve(input: &str) -> (usize, u64) {
     //
     // So we'll track them as semi-open, and convert to that form when
     // generating the array.
-    let mut lit: Array3<bool> =
-        Array3::default((xvals.len() + 1, yvals.len() + 1, zvals.len() + 1));
+    let mut lit: Array3<bool> = Array3::default((xvals.len(), yvals.len(), zvals.len()));
     dbg!(lit.len());
     for (on, [x0, x1, y0, y1, z0, z1]) in insts {
         let xi0 = idx(x0, &xvals);
@@ -109,13 +108,16 @@ fn solve(input: &str) -> (usize, u64) {
     }
 
     let mut sol_b: u64 = 0;
+    let mut cells_set = 0;
     for ((xi, yi, zi), &on) in lit.indexed_iter() {
         if on {
             sol_b += ((xvals[xi + 1] - xvals[xi])
                 * (yvals[yi + 1] - yvals[yi])
                 * (zvals[zi + 1] - zvals[zi])) as u64;
+            cells_set += 1;
         }
     }
+    dbg!(cells_set);
 
     (sol_a, sol_b)
 }
