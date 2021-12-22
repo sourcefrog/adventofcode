@@ -106,6 +106,7 @@ fn solve(input: &str) -> (usize, u64) {
             }
         }
     }
+    println!("built lit");
 
     let mut sol_b: u64 = 0;
     let mut cells_set = 0;
@@ -123,7 +124,7 @@ fn solve(input: &str) -> (usize, u64) {
 }
 
 fn idx(x: isize, vals: &[isize]) -> usize {
-    vals.iter().position(|y| *y == x).unwrap()
+    vals.binary_search(&x).unwrap()
 }
 
 #[cfg(test)]
