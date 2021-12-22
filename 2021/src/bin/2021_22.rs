@@ -109,15 +109,11 @@ fn solve(input: &str) -> (usize, u64) {
     }
 
     let mut sol_b: u64 = 0;
-    for xi in 0..(xvals.len()) {
-        for yi in 0..(yvals.len()) {
-            for zi in 0..(zvals.len()) {
-                if lit[[xi, yi, zi]] {
-                    sol_b += ((xvals[xi + 1] - xvals[xi])
-                        * (yvals[yi + 1] - yvals[yi])
-                        * (zvals[zi + 1] - zvals[zi])) as u64;
-                }
-            }
+    for ((xi, yi, zi), &on) in lit.indexed_iter() {
+        if on {
+            sol_b += ((xvals[xi + 1] - xvals[xi])
+                * (yvals[yi + 1] - yvals[yi])
+                * (zvals[zi + 1] - zvals[zi])) as u64;
         }
     }
 
