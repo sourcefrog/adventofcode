@@ -2,6 +2,12 @@
 
 //! https://adventofcode.com/2021/day/22 "Reactor Reboot"
 
+// TODO: There is a better way to do this, that doesn't require keeping
+// track of such large data volumes.
+//
+// Something like: keep track of the volume of each cuboid turned on;
+// subtract the intersecting volume.
+
 use regex;
 
 use ndarray::prelude::*;

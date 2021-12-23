@@ -15,6 +15,7 @@
 mod heap;
 mod matrix;
 mod point;
+pub mod shortest_path;
 mod split_one;
 
 pub use heap::MinHeap;
