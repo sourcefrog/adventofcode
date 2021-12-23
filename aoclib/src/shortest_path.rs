@@ -16,10 +16,11 @@
 
 use core::hash::Hash;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use crate::MinHeap;
 
-type D = isize;
+type D = usize;
 
 /// Find the shortest path in a graph, using Djikstra's method.
 ///
@@ -49,21 +50,31 @@ where
     let mut queue = MinHeap::<(D, P)>::new();
     // Shortest known distance to reach any point.
     let mut best = HashMap::<P, D>::new();
-    // Best know path to reach any point.
-    let mut path = std::collections::BTreeMap::<P, Vec<P>>::new();
+    // The previous state that leads, on the best path, to this state.
+    let mut path = std::collections::BTreeMap::<P, P>::new();
     queue.push((0, origin));
     best.insert(origin, 0);
-    path.insert(origin, vec![origin]);
+    let mut sample = 0;
     loop {
         let (d, p) = queue
             .pop()
             .expect("heap is empty without reaching destination");
-        // println!("d={}\n{}", d, p);
+        if sample % 1000000 == 0 {
+            println!("d={}\n{}", d, p);
+        }
+        sample += 1;
         if dest_fn(&p) {
             // Found a shortest path to the end
             println!("best path!!!!");
             println!("{}", p);
-            for i in &path[&p] {
+            let mut fwd = vec![p];
+            let mut pred = p;
+            while let Some(next) = path.get(&pred) {
+                fwd.push(*next);
+                pred = *next;
+            }
+            fwd.reverse();
+            for i in &fwd {
                 println!("cost={}\n{}", best[i], i);
             }
             return d;
@@ -77,14 +88,7 @@ where
             }
             best.insert(np, nd);
             queue.push((nd, np));
-            let mut newp = path[&p].clone();
-            newp.push(np.clone());
-            if dest_fn(&np) {
-                for i in &newp {
-                    println!("cost={}\n{}", best[&i], i);
-                }
-            }
-            path.insert(np, newp);
+            path.insert(np, p);
         }
     }
 }
