@@ -30,7 +30,7 @@ fn regidx(name: &str) -> usize {
     (c as u32 - 'w' as u32) as usize
 }
 
-fn run(program: &[&str], mut regs: Regs, input: &mut Vec<isize>) -> Regs {
+fn run(program: &[&str], regs: &mut Regs, input: &mut Vec<isize>) {
     for l in program {
         // println!("{}", l);
         let w: Vec<&str> = l.split_whitespace().collect();
@@ -52,7 +52,6 @@ fn run(program: &[&str], mut regs: Regs, input: &mut Vec<isize>) -> Regs {
             }
         }
     }
-    regs
 }
 
 fn solve(input: &str) -> (usize, u64) {
@@ -111,7 +110,8 @@ fn solve(input: &str) -> (usize, u64) {
         // would converge on visiting all the numbers, which is infeasible.
         //
         // Interestingly div_z is always 1 or 26. And add_y is always positive,
-        // while add_x may be negative.
+        // while add_x may be negative. And there are div_z = 26 or a reduction
+        // in 7 of the rounds, exactly half.
         //
         // or restating
         //
@@ -129,34 +129,134 @@ fn solve(input: &str) -> (usize, u64) {
         //
         // So we need a prev_z and add_x such that they add up to the input.
         // Add_x is -9; so input digit 9 works if prev_z is 18.
+        //
+        // Generally it's constrained that (z[12] % 26 - 9) == input[12].
+        //
+        // Hm what about going forward from 0, what possible z values do
+        // we generate?
+        //
+        // Round 0, x will always be true because add_x is 11. z ends up at (input+add_y) which
+        // is input+15 so in the range 15..23. As a base-26 number we can
+        // look at z as [input[0]+14].
+        //
+        // Round 1, given z in that range, and add_x of 14. x is also always
+        // true. div_z is 1 so has no effect. So z is multiplied by 26,
+        // we add the input, and then add_y of 6. So z ends up over a big
+        // range from 397 to 613, but perhaps it's still OK because it'll be reduced in the next
+        // round?
+        // So z is then [input[0]+14, input[1]+6].
+        //
+        // Chunk 2, we look at (z % 26) + add_x, which from the previous round
+        // is input[1] + add_y[1] + add_x[2]. They're all significantly
+        // positive so x is definetly true. z is not divided. We push another
+        // base-26 digit onto z which is now
+        // [input[0]+14, input[1]+6, input[2]+6].
+        //
+        // Chunk 3, again add_x is 13 so x has to be true. We don't divide
+        // z but rather push another digit:
+        // [input[0]+14, input[1]+6, input[2]+6, input[3]+13].
+        //
+        // (So we can kind of look at the use of mul/div/mod 26 as being like
+        // a stack within z.
+        //
+        // Chunk 4, maybe more interesting: add_x is -12, the last digit of z is
+        // input[3] + 13, so x *can* be false if input[4] = input[3] + 1?
+        // Would we *want* it to be false? It seems like it makes things
+        // simpler later? In fact it seems like if we don't take the
+        // opportunity to pop off z when we can, it won't get back to 0.
+        // So, let's say that input[4] must be input[3]+1 and then after
+        // this the rightmost digit of z is dropped leaving it at
+        // [input[0]+14, input[1]+6, input[2]+6].
     }
     assert_eq!(chunks.len(), 14);
 
-    println!("final round:");
-    let mut prev = one_round(
-        &chunks[13],
-        &[St {
-            digits: Vec::new(),
-            z: 0,
-        }],
-    );
-    dbg!(&prev);
+    let mut regs = [0; 4];
+    for round in 0..=3 {
+        run(&chunks[round], &mut regs, &mut vec![7]);
+    }
+    assert_eq!(regs[3], mkbase26(&[7 + 14, 7 + 6, 7 + 6, 7 + 13]));
 
-    // println!("2nd last round:");
-    // for iround in (0..=12).rev() {
-    //     prev = one_round(&chunks[iround], &prev);
-    //     println!("round {}, {} options", iround, prev.len());
+    // Theory that chunk[4] pops
+    let regs = run_chunks(&chunks[..=4], &[8, 8, 8, 8, 9]);
+    assert_eq!(regs[1], 0);
+    assert_eq!(regs[3], mkbase26(&[8 + 14, 8 + 6, 8 + 6]));
+
+    // Chunk 5, add_x is +10, x is always true, don't divide, push
+    // input[5] + 8 so z is
+    // [input[0]+14, input[1]+6, input[2]+6, input[5] + 8]
+
+    // Chunk 6, add_x is -15 so x can be false if input[6] = (input[5]+ 8 - 15)
+    // i.e. input[6] = input[5] - 7. Then we can pop one. Leaving.
+    // [input[0]+14, input[1]+6, input[2]+6]
+    let regs = run_chunks(&chunks[..=6], &[8, 8, 8, 8, 9, 9, 2]);
+    assert_eq!(regs[1], 0);
+    assert_eq!(regs[3], mkbase26(&[8 + 14, 8 + 6, 8 + 6]));
+
+    // Chunk 7, halfway there, also push
+    // [input[0]+14, input[1]+6, input[2]+6, input[7] + 10]
+
+    // z: [input[0]+14, input[1]+6, input[2]+6, input[7] + 10, input[8] + 8]
+    println!("Chunk 8, also push.");
+    let regs = run_chunks(&chunks[..=8], &[8, 8, 8, 8, 9, 9, 2, 9, 9]);
+    assert_eq!(regs[3], mkbase26(&[8 + 14, 8 + 6, 8 + 6, 9 + 10, 9 + 8]));
+
+    // Chunk 9, pop with add_x=-13, so input[9] = input[8] + 8 - 13, i.e.
+    // input[8] - 5.
+    // z: [input[0]+14, input[1]+6, input[2]+6, input[7] + 10]
+    println!("Chunk 9, pop");
+    let regs = run_chunks(&chunks[..=9], &[8, 8, 8, 8, 9, 9, 2, 9, 9, 4]);
+    assert_eq!(regs[3], mkbase26(&[8 + 14, 8 + 6, 8 + 6, 9 + 10]));
+
+    // Chunk 10, pop with add_x = -13, so input[10] = input[7] + 10 - 13.
+    // z: [input[0]+14, input[1]+6, input[2]+6]
+    println!("Chunk 10, pop");
+    let regs = run_chunks(&chunks[..=10], &[8, 8, 8, 8, 9, 9, 2, 9, 9, 4, 6]);
+    assert_eq!(regs[3], mkbase26(&[8 + 14, 8 + 6, 8 + 6,]));
+
+    // I randomly added 8s to start with, but here we need to subtract 14 so
+    // the right answer for input[3] must be 9, and input[11] can be 1.
+    println!("Chunk 11, pop");
+    let regs = run_chunks(&chunks[..=11], &[8, 8, 9, 8, 9, 9, 2, 9, 9, 4, 6, 1]);
+    assert_eq!(regs[3], mkbase26(&[8 + 14, 8 + 6,]));
+
+    // The input is input[1] + 6 - 2 so the input1[1] must be 5 so that this can be 9.
+    println!("Chunk 12, pop");
+    let regs = run_chunks(&chunks[..=12], &[9, 5, 9, 8, 9, 9, 2, 9, 9, 4, 6, 1, 9]);
+    assert_eq!(regs[3], mkbase26(&[9 + 14,]));
+
+    // input[0] + 14 - 9, so input[0] = 4 and input[13] = 9
+    println!("Chunk 13, pop");
+    let regs = run_chunks(&chunks[..=13], &[4, 5, 9, 8, 9, 9, 2, 9, 9, 4, 6, 1, 9, 9]);
+    assert_eq!(regs[3], mkbase26(&[]));
+
+    println!("part b");
+    let regs = run_chunks(&chunks[..=13], &[1, 1, 9, 8, 9, 9, 2, 9, 9, 4, 6, 1, 5, 6]);
+    assert_eq!(regs[3], mkbase26(&[]));
+
+    let regs = run_chunks(&chunks[..=13], &[1, 1, 9, 8, 9, 9, 2, 4, 9, 4, 1, 1, 5, 6]);
+    assert_eq!(regs[3], mkbase26(&[]));
+
+    let regs = run_chunks(&chunks[..=13], &[1, 1, 9, 8, 9, 9, 2, 4, 6, 1, 1, 1, 5, 6]);
+    assert_eq!(regs[3], mkbase26(&[]));
+
+    let regs = run_chunks(&chunks[..=13], &[1, 1, 9, 1, 2, 9, 2, 4, 6, 1, 1, 1, 5, 6]);
+    assert_eq!(regs[3], mkbase26(&[]));
+
+    let regs = run_chunks(&chunks[..=13], &[1, 1, 9, 1, 2, 8, 1, 4, 6, 1, 1, 1, 5, 6]);
+    assert_eq!(regs[3], mkbase26(&[]));
+
+    // for input in 1..=9 {
+    //     let regs = run(&chunks[0], [0; 4], &mut vec![input]);
+    //     println!("round 0 input {input} => {}", regs[3]);
     // }
 
-    // for input in (1..=9).rev() {
-    //     for goal in 10..=18 {
-    //         for prev_z in 0..100 {
-    //             let regs = run(&chunks[13], [0, 0, 0, prev_z], &mut vec![input]);
-    //             if regs[3] == goal {
-    //                 println!("input digit {}, prev_z = {prev_z} -> {:?}", input, regs);
-    //             }
-    //         }
+    // println!("round 1");
+    // for z in 15..=23 {
+    //     for input in 1..=9 {
+    //         let regs = run(&chunks[1], [0, 0, 0, z], &mut vec![input]);
+    //         print!("{:4} ", regs[3]);
     //     }
+    //     println!();
     // }
 
     // let mut input = vec![9; 14];
@@ -169,31 +269,52 @@ fn solve(input: &str) -> (usize, u64) {
     (sol_a, sol_b)
 }
 
-#[derive(Debug)]
-struct St {
-    digits: Vec<isize>,
-    z: isize,
+fn run_chunks(chunks: &[&[&str]], input: &[isize]) -> Regs {
+    assert_eq!(chunks.len(), input.len());
+    let mut regs = [0; 4];
+    let mut input: Vec<isize> = input.into();
+    for ch in chunks {
+        run(&ch, &mut regs, &mut input);
+    }
+    assert!(input.is_empty());
+    dbg!(&regs);
+    regs
 }
 
-// Given a program and the list of acceptable z outputs, return a list of all
-// predecessor z values and the inputs that would work with them.
-fn one_round(program: &[&str], goal_sts: &[St]) -> Vec<St> {
-    let mut r = Vec::new();
-    'input: for input in (1..=9).rev() {
-        for st in goal_sts {
-            for prev_z in 0..26 {
-                let regs = run(&program, [0, 0, 0, prev_z], &mut vec![input]);
-                if regs[3] == st.z {
-                    // println!("input digit {}, prev_z = {prev_z} -> {:?}", input, regs);
-                    let mut digits = vec![input];
-                    digits.extend_from_slice(&st.digits);
-                    r.push(St { digits, z: prev_z });
-                }
-            }
-        }
+fn mkbase26(a: &[isize]) -> isize {
+    let mut r = 0;
+    for x in a {
+        r *= 26;
+        r += x;
     }
     r
 }
+
+// #[derive(Debug)]
+// struct St {
+//     digits: Vec<isize>,
+//     z: isize,
+// }
+
+// // Given a program and the list of acceptable z outputs, return a list of all
+// // predecessor z values and the inputs that would work with them.
+// fn one_round(program: &[&str], goal_sts: &[St]) -> Vec<St> {
+//     let mut r = Vec::new();
+//     'input: for input in (1..=9).rev() {
+//         for st in goal_sts {
+//             for prev_z in 0..26 {
+//                 let regs = run(&program, [0, 0, 0, prev_z], &mut vec![input]);
+//                 if regs[3] == st.z {
+//                     // println!("input digit {}, prev_z = {prev_z} -> {:?}", input, regs);
+//                     let mut digits = vec![input];
+//                     digits.extend_from_slice(&st.digits);
+//                     r.push(St { digits, z: prev_z });
+//                 }
+//             }
+//         }
+//     }
+//     r
+// }
 
 #[cfg(test)]
 mod test {
