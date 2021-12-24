@@ -8,6 +8,7 @@ bitvec = "0.19"
 itertools = "0.10.3"
 ndarray = "0.15.4"
 regex = "1.5.4"
+similar = "2.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
