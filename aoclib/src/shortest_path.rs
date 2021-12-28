@@ -14,12 +14,12 @@
 
 //! Find the shortest path in a graph, using Djikstra's method.
 
-use core::hash::Hash;
 use std::collections::HashMap;
+use std::fmt::Debug;
+use std::hash::Hash;
+use std::ops::Add;
 
 use crate::MinHeap;
-
-type D = usize;
 
 /// Find the shortest path in a graph, using Djikstra's method.
 ///
@@ -30,20 +30,22 @@ type D = usize;
 /// This takes a callback which returns all the neighbors from `p: P` and
 /// the incremental distance to them, as tuples. The neighbor callback is mut to allow
 /// for internal caching.
-pub fn shortest_distance<P, N>(origin: P, dest: P, nbr_fn: N) -> D
+pub fn shortest_distance<P, N, D>(origin: P, dest: P, nbr_fn: N) -> D
 where
     P: Eq + Ord + Copy + Hash + std::fmt::Display,
     N: Fn(P) -> Vec<(P, D)>,
+    D: Ord + Add<Output = D> + Clone + Default + Debug,
 {
     shortest_distance_fn(origin, |&p| dest == p, nbr_fn)
 }
 
 /// Calculate the shortest distance, with a callback that says whether a point is the destination.
-pub fn shortest_distance_fn<P, N, DF>(origin: P, dest_fn: DF, nbr_fn: N) -> D
+pub fn shortest_distance_fn<P, N, DF, D>(origin: P, dest_fn: DF, nbr_fn: N) -> D
 where
     P: Eq + Ord + Copy + Hash + std::fmt::Display,
     N: Fn(P) -> Vec<(P, D)>,
     DF: Fn(&P) -> bool,
+    D: Ord + Add<Output = D> + Clone + Default + Debug,
 {
     // Next points to visit, indexed by distance so far.
     let mut queue = MinHeap::<(D, P)>::new();
@@ -51,15 +53,15 @@ where
     let mut best = HashMap::<P, D>::new();
     // The previous state that leads, on the best path, to this state.
     let mut path = std::collections::BTreeMap::<P, P>::new();
-    queue.push((0, origin));
-    best.insert(origin, 0);
+    queue.push((Default::default(), origin));
+    best.insert(origin, Default::default());
     let mut sample = 0;
     loop {
         let (d, p) = queue
             .pop()
             .expect("heap is empty without reaching destination");
         if sample % 1000000 == 0 {
-            println!("d={}\n{}", d, p);
+            println!("d={:?}\n{}", d, p);
         }
         sample += 1;
         if dest_fn(&p) {
@@ -73,19 +75,19 @@ where
                 pred = *next;
             }
             fwd.reverse();
-            for i in &fwd {
-                println!("cost={}\n{}", best[i], i);
-            }
+            // for i in &fwd {
+            //     println!("cost={:?}\n{}", best[i], i);
+            // }
             return d;
         }
         for (np, step) in nbr_fn(p) {
-            let nd = step + d;
+            let nd = step + d.clone();
             if let Some(prev_d) = best.get(&np) {
                 if nd >= *prev_d {
                     continue; // Already found a shorter path; don't revisit.
                 }
             }
-            best.insert(np, nd);
+            best.insert(np, nd.clone());
             queue.push((nd, np));
             path.insert(np, p);
         }
