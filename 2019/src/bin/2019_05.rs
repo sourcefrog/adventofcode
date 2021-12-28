@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use mbp_aoc2019::intcode::{parse_string, Computer};
+use mbpaoc2019::intcode::{parse_string, Computer};
 
 pub fn main() {
     println!("05a: {}", solve_a());

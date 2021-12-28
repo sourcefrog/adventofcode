@@ -18,7 +18,7 @@ use std::fmt;
 
 use num_integer::Integer;
 
-use mbp_aoc2019::ordering_to_int;
+use mbpaoc2019::ordering_to_int;
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Debug)]
 struct Moon {

@@ -14,7 +14,7 @@
 
 use std::cmp::max;
 
-use mbp_aoc2019::intcode::Computer;
+use mbpaoc2019::intcode::Computer;
 
 pub fn main() {
     println!("19a: {}", solve_a());

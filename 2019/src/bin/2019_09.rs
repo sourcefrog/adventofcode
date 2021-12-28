@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use mbp_aoc2019::intcode::Computer;
+use mbpaoc2019::intcode::Computer;
 
 pub fn main() {
     println!("09a: {}", solve_a());

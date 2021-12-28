@@ -14,8 +14,8 @@
 
 use std::convert::TryInto;
 
-use mbp_aoc2019::intcode::{parse_string, Computer};
-use mbp_aoc2019::permute::permutations;
+use mbpaoc2019::intcode::{parse_string, Computer};
+use mbpaoc2019::permute::permutations;
 
 pub fn main() {
     println!("07a: {:?}", solve_a().0);

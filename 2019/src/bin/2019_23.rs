@@ -14,7 +14,7 @@
 
 use std::convert::TryInto;
 
-use mbp_aoc2019::intcode::Computer;
+use mbpaoc2019::intcode::Computer;
 
 const NCPU: usize = 50;
 

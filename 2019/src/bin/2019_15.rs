@@ -15,7 +15,7 @@
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 
-use mbp_aoc2019::intcode::Computer;
+use mbpaoc2019::intcode::Computer;
 
 pub fn main() {
     println!("15a: {}", solve_a());

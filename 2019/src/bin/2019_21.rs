@@ -14,7 +14,7 @@
 
 use std::convert::TryInto;
 
-use mbp_aoc2019::intcode::Computer;
+use mbpaoc2019::intcode::Computer;
 
 pub fn main() {
     println!("21a: {}", solve_a());

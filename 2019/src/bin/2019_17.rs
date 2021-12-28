@@ -14,8 +14,8 @@
 
 use std::convert::TryFrom;
 
-use mbp_aoc2019::intcode::Computer;
-use mbp_aoc2019::Matrix;
+use mbpaoc2019::intcode::Computer;
+use mbpaoc2019::Matrix;
 
 pub fn main() {
     println!("17a: {}", solve_a());

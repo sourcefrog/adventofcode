@@ -18,8 +18,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use console::Term;
 
-use mbp_aoc2019::intcode::Computer;
-use mbp_aoc2019::ordering_to_int;
+use mbpaoc2019::intcode::Computer;
+use mbpaoc2019::ordering_to_int;
 
 pub fn main() {
     let b = solve_b(true);

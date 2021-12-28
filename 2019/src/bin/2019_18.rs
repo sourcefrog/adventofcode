@@ -17,7 +17,7 @@ use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::fmt;
 
-use mbp_aoc2019::{Matrix, Point};
+use mbpaoc2019::{Matrix, Point};
 
 type Map = Matrix<char>;
 

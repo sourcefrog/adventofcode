@@ -14,7 +14,7 @@
 
 use std::collections::BTreeMap;
 
-use mbp_aoc2019::intcode::Computer;
+use mbpaoc2019::intcode::Computer;
 
 pub fn main() {
     println!("{}", solve_a());

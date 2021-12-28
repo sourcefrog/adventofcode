@@ -17,8 +17,8 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use mbp_aoc2019::shortest_path::shortest_distance;
-use mbp_aoc2019::{point, Matrix, Point};
+use mbpaoc2019::shortest_path::shortest_distance;
+use mbpaoc2019::{point, Matrix, Point};
 
 const PASSAGE: char = '.';
 
