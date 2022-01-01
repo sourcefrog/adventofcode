@@ -13,7 +13,6 @@
 // limitations under the License.
 
 pub mod intcode;
-pub mod permute;
 
 pub use aoclib::{point, Matrix, Point};
 

@@ -14,6 +14,7 @@
 
 mod heap;
 mod matrix;
+pub mod permute;
 mod point;
 pub mod shortest_path;
 mod split_one;
