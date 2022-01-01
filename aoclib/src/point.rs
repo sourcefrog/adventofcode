@@ -80,6 +80,11 @@ impl Point {
     pub fn delta(&self, dx: isize, dy: isize) -> Point {
         point(self.x + dx, self.y + dy)
     }
+
+    #[must_use]
+    pub fn manhattan_distance(&self, other: &Point) -> isize {
+        (other.x - self.x).abs() + (other.y - self.y).abs()
+    }
 }
 
 impl std::str::FromStr for Point {
