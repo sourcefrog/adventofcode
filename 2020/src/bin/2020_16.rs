@@ -16,8 +16,6 @@
 
 use std::collections::HashSet;
 
-use itertools::Itertools;
-
 use aoclib::*;
 
 pub fn main() {
@@ -129,7 +127,7 @@ fn solve_b() -> usize {
             .iter()
             .map(|t| t[field_idx])
             .map(|f| possible_fields(f, &defns))
-            .fold1(|x, y| x.intersection(&y).cloned().collect())
+            .reduce(|x, y| x.intersection(&y).cloned().collect())
         {
             // println!("{} => {:#?}", field_idx, poss);
             narrowing.push(poss);

@@ -15,8 +15,6 @@
 //! Solution to https://adventofcode.com/2020/day/6.
 use std::collections::HashSet;
 
-use itertools::Itertools;
-
 pub fn main() {
     println!("06a: {}", solve_a());
     println!("06b: {}", solve_b());
@@ -46,7 +44,7 @@ fn solve_b() -> usize {
                 .split('\n')
                 .filter(|l| !l.is_empty())
                 .map(|l| l.chars().collect::<HashSet<char>>())
-                .fold1(|ref a, ref b| a & b)
+                .reduce(|ref a, ref b| a & b)
                 .expect("group had no lines")
                 .len()
         })
