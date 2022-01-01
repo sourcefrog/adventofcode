@@ -59,23 +59,24 @@ where
         // Shortest known distance to reach any point.
         let mut best = HashMap::<P, D>::new();
         // The previous state that leads, on the best path, to this state.
-        let mut predecessor = std::collections::BTreeMap::<P, P>::new();
+        let mut predecessor = HashMap::<P, P>::new();
         queue.push((Default::default(), origin.clone()));
         best.insert(origin.clone(), Default::default());
         loop {
-            let (d, p) = queue
+            let (_priority, p) = queue
                 .pop()
                 .expect("heap is empty without reaching destination");
             let est = estimate(&p);
             if est == D::default() {
                 // Reassemble (a) shortest path to the destination by looking backwards
                 // at the step that led to each point.
+                let distance = best[&p].clone();
                 let mut path = vec![p];
                 while let Some(next) = predecessor.get(path.last().unwrap()) {
                     path.push(next.clone());
                 }
                 path.reverse();
-                return ShortestPath { distance: d, path };
+                return ShortestPath { distance, path };
             }
             debug_assert!(
                 est > D::default(),
@@ -84,7 +85,7 @@ where
                 &p
             );
             for (np, step) in neighbors(&p) {
-                let nd = step + d.clone();
+                let nd = step + best[&p].clone();
                 if let Some(prev_d) = best.get(&np) {
                     if nd >= *prev_d {
                         continue; // Already found a shorter path; don't revisit.
@@ -115,7 +116,7 @@ where
         // Shortest known distance to reach any point.
         let mut best = HashMap::<P, D>::new();
         // The previous state that leads, on the best path, to this state.
-        let mut predecessor = std::collections::BTreeMap::<P, P>::new();
+        let mut predecessor = HashMap::<P, P>::new();
         queue.push((Default::default(), origin.clone()));
         best.insert(origin.clone(), Default::default());
         loop {
