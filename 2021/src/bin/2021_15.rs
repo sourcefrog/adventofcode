@@ -36,6 +36,10 @@ fn solve(input: &str) -> (u32, u32) {
 
 /// Return the total risk (cost) of a walk from the top-left to bottom right.
 fn walk(m: &Matrix<u32>) -> u32 {
+    // Note: I tried an A* search here, but it actually seems to make things slower,
+    // maybe because steps towards the left/top are already easily dismissed as
+    // being unlikely to be the shortest path.
+
     // Best known risk of a walk to this point.
     let mut best = Matrix::same_size(m, u32::MAX);
     best[(0usize, 0usize)] = 0;
