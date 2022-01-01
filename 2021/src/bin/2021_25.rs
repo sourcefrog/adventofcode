@@ -6,7 +6,7 @@ use aoclib::{point, Matrix, Point};
 
 fn main() {
     let input = input();
-    let (a, ()) = solve(&input);
+    let a = solve(&input);
     println!("{}", a);
 }
 
@@ -14,7 +14,7 @@ fn input() -> String {
     std::fs::read_to_string("input/25.txt").unwrap()
 }
 
-fn solve(input: &str) -> (usize, ()) {
+fn solve(input: &str) -> usize {
     let mut mat: Matrix<char> = Matrix::from_string_lines(input);
 
     let mut step = 1;
@@ -46,7 +46,7 @@ fn solve(input: &str) -> (usize, ()) {
         step += 1;
     }
 
-    (step, ())
+    step
 }
 
 fn down(p: &Point, mat: &Matrix<char>) -> Point {
@@ -73,8 +73,7 @@ mod test {
 
     #[test]
     fn solution() {
-        let (a, b) = solve(&input());
+        let a = solve(&input());
         assert_eq!(a, 530);
-        assert_eq!(b, ());
     }
 }
