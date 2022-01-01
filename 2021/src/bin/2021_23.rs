@@ -27,7 +27,7 @@ fn letteridx(c: char) -> usize {
     i.try_into().unwrap()
 }
 
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq, Ord, PartialOrd)]
 struct State {
     // So they can never stop outside the rooms; we don't need to model those spaces(?) although we
     // do need to track the cost of moving through them. The hall is then
@@ -186,8 +186,8 @@ impl State {
         for lower in (row + 1)..4 {
             assert_eq!(self.room_char(room, lower), c);
         }
-        let mut hall = self.hall.clone();
-        let mut rooms = self.rooms.clone();
+        let mut hall = self.hall;
+        let mut rooms = self.rooms;
         hall[hi] = '.';
         rooms[room_idx(room, row)] = c;
         (
@@ -201,8 +201,8 @@ impl State {
         let c = self.room_char(room, row);
         assert_ne!(c, '.');
         assert_eq!(self.hall[hi], '.');
-        let mut hall = self.hall.clone();
-        let mut rooms = self.rooms.clone();
+        let mut hall = self.hall;
+        let mut rooms = self.rooms;
         rooms[room_idx(room, row)] = '.';
         hall[hi] = c;
         (
