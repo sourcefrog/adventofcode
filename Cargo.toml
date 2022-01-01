@@ -1,14 +1,10 @@
 [workspace]
-members = [
-    "2016",
-    "2019",
-    "2020",
-    "2021",
-    "aoclib",
-]
+members = ["2016", "2019", "2020", "2021", "aoclib"]
 
 [profile.dev]
 opt-level = 3
 
 [profile.release]
 debug = true
+lto = true
+codegen-units = 1
