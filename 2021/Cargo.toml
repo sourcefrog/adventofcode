@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-bitvec = "0.19"
+bitvec = "0.22"
 itertools = "0.10.3"
 ndarray = "0.15.4"
 regex = "1.5.4"
