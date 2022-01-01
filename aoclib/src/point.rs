@@ -34,6 +34,7 @@ impl fmt::Display for Point {
 }
 
 /// Shorthand to construct a point.
+#[must_use]
 pub fn point(x: isize, y: isize) -> Point {
     Point { x, y }
 }
@@ -50,26 +51,32 @@ impl Point {
         (-1, -1),
     ];
 
+    #[must_use]
     pub fn down(&self) -> Point {
         point(self.x, self.y.checked_add(1).unwrap())
     }
 
+    #[must_use]
     pub fn left(&self) -> Point {
         point(self.x.checked_sub(1).unwrap(), self.y)
     }
 
+    #[must_use]
     pub fn right(&self) -> Point {
         point(self.x.checked_add(1).unwrap(), self.y)
     }
 
+    #[must_use]
     pub fn up(&self) -> Point {
         point(self.x, self.y.checked_sub(1).unwrap())
     }
 
+    #[must_use]
     pub fn neighbors(&self) -> Vec<Point> {
         vec![self.left(), self.right(), self.up(), self.down()]
     }
 
+    #[must_use]
     pub fn delta(&self, dx: isize, dy: isize) -> Point {
         point(self.x + dx, self.y + dy)
     }
