@@ -14,7 +14,6 @@
 
 pub mod intcode;
 pub mod permute;
-pub mod shortest_path;
 
 pub use aoclib::{point, Matrix, Point};
 
