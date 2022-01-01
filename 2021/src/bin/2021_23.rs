@@ -76,7 +76,7 @@ impl State {
         self.rooms[room_idx(room, row)]
     }
 
-    fn next(self) -> Vec<(State, usize)> {
+    fn next(&self) -> Vec<(State, usize)> {
         let mut r = Vec::new();
         // OK to make this tractable we need to only generate sensible suggestions:
         //
@@ -246,7 +246,7 @@ fn solve() -> usize {
     println!("{}", origin.to_str());
     let dest = State::new("ABCDABCDABCDABCD");
     println!("{}", dest.to_str());
-    shortest_path::shortest_distance(origin, |p| *p == dest, State::next)
+    shortest_path::shortest_distance(&origin, |p| *p == dest, State::next)
 }
 
 #[cfg(test)]
@@ -259,7 +259,7 @@ mod test {
         println!("{}", origin.to_str());
         let dest = State::new("ABCDABCDABCDABCD");
         println!("{}", dest.to_str());
-        let sol_b = shortest_path::shortest_distance(origin, |p| *p == dest, State::next);
+        let sol_b = shortest_path::shortest_distance(&origin, |p| *p == dest, State::next);
         assert_eq!(sol_b, 44169);
     }
 

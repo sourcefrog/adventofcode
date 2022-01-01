@@ -30,15 +30,15 @@ use crate::MinHeap;
 ///
 /// `origin` is the starting point.
 ///
-/// `dest_fn` returns true for the destination point.
+/// `is_destination` returns true for the destination point.
 ///
-/// `nbr_fn` returns a `Vec` of neighbors for a given point, and the
+/// `neighbors` returns a `Vec` of neighbors for a given point, and the
 /// incremental distance to them.
-pub fn shortest_distance<P, N, DF, D>(origin: P, dest_fn: DF, nbr_fn: N) -> D
+pub fn shortest_distance<P, N, DF, D>(origin: &P, is_destination: DF, neighbors: N) -> D
 where
-    P: Eq + Ord + Copy + Hash + Debug,
+    P: Eq + Ord + Clone + Hash + Debug,
     D: Ord + Add<Output = D> + Clone + Default + Debug,
-    N: Fn(P) -> Vec<(P, D)>,
+    N: Fn(&P) -> Vec<(P, D)>,
     DF: Fn(&P) -> bool,
 {
     // Next points to visit, indexed by distance so far.
@@ -47,36 +47,31 @@ where
     let mut best = HashMap::<P, D>::new();
     // The previous state that leads, on the best path, to this state.
     let mut path = std::collections::BTreeMap::<P, P>::new();
-    queue.push((Default::default(), origin));
-    best.insert(origin, Default::default());
+    queue.push((Default::default(), origin.clone()));
+    best.insert(origin.clone(), Default::default());
     loop {
         let (d, p) = queue
             .pop()
             .expect("heap is empty without reaching destination");
-        if dest_fn(&p) {
+        if is_destination(&p) {
             // Found a shortest path to the end
-            let mut fwd = vec![p];
-            let mut pred = p;
-            while let Some(next) = path.get(&pred) {
-                fwd.push(*next);
-                pred = *next;
+            let mut forward_path = vec![p];
+            while let Some(next) = path.get(forward_path.last().unwrap()) {
+                forward_path.push(next.clone());
             }
-            fwd.reverse();
-            // for i in &fwd {
-            //     println!("cost={:?}\n{}", best[i], i);
-            // }
+            forward_path.reverse();
             return d;
         }
-        for (np, step) in nbr_fn(p) {
+        for (np, step) in neighbors(&p) {
             let nd = step + d.clone();
             if let Some(prev_d) = best.get(&np) {
                 if nd >= *prev_d {
                     continue; // Already found a shorter path; don't revisit.
                 }
             }
-            best.insert(np, nd.clone());
-            queue.push((nd, np));
-            path.insert(np, p);
+            best.insert(np.clone(), nd.clone());
+            queue.push((nd, np.clone()));
+            path.insert(np, p.clone());
         }
     }
 }

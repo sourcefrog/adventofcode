@@ -222,18 +222,18 @@ impl Maze {
     /// Find the length of the shortest path from AA to ZZ in a single-level maze.
     fn single_level_path(&self) -> isize {
         shortest_distance(
-            self.entrance(),
+            &self.entrance(),
             |p| *p == self.exit(),
-            |p| self.single_level_neighbors(p),
+            |p| self.single_level_neighbors(*p),
         )
     }
 
     /// Find the shortest path in a recursive multi-level maze.
     fn multi_level_path(&self) -> isize {
         shortest_distance(
-            self.entrance3(),
+            &self.entrance3(),
             |p| *p == self.exit3(),
-            |p3| self.multi_level_neighbors(p3),
+            |p3| self.multi_level_neighbors(*p3),
         )
     }
 }
