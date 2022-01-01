@@ -79,6 +79,11 @@ impl<T> Matrix<T> {
         self.d.len()
     }
 
+    /// True if this matrix has 0 elements.
+    pub fn is_empty(&self) -> bool {
+        self.d.is_empty()
+    }
+
     pub fn bottom_right(&self) -> Point {
         point(self.w as isize - 1, self.h as isize - 1)
     }

@@ -123,5 +123,7 @@ proptest! {
         prop_assert_eq!(m.width(), 2);
         prop_assert_eq!(m.height(), 2);
         prop_assert_eq!(m[(x, y)], content[y * 2 + x]);
+        prop_assert_eq!(m.len(), 4);
+        prop_assert_eq!(m.is_empty(), false);
     }
 }
