@@ -74,6 +74,11 @@ impl<T> Matrix<T> {
         self.h
     }
 
+    /// Return the number of points in the matrix.
+    pub fn len(&self) -> usize {
+        self.d.len()
+    }
+
     pub fn bottom_right(&self) -> Point {
         point(self.w as isize - 1, self.h as isize - 1)
     }
