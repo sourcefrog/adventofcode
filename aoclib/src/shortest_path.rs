@@ -23,29 +23,23 @@ use crate::MinHeap;
 
 /// Find the shortest path in a graph, using Djikstra's method.
 ///
-/// Positions are identified by type `P` which might be a `Point` or something
-/// more complicated to describe additional state. Distances are measured
-/// as isizes.
+/// Type `P` identifies a Point or state in the graph.
 ///
-/// This takes a callback which returns all the neighbors from `p: P` and
-/// the incremental distance to them, as tuples. The neighbor callback is mut to allow
-/// for internal caching.
-pub fn shortest_distance<P, N, D>(origin: P, dest: P, nbr_fn: N) -> D
+/// Type `D` is the distance between points: it may be an `isize`,
+/// `usize`, `f64`, etc.
+///
+/// `origin` is the starting point.
+///
+/// `dest_fn` returns true for the destination point.
+///
+/// `nbr_fn` returns a `Vec` of neighbors for a given point, and the
+/// incremental distance to them.
+pub fn shortest_distance<P, N, DF, D>(origin: P, dest_fn: DF, nbr_fn: N) -> D
 where
-    P: Eq + Ord + Copy + Hash + std::fmt::Display,
-    N: Fn(P) -> Vec<(P, D)>,
+    P: Eq + Ord + Copy + Hash + Debug,
     D: Ord + Add<Output = D> + Clone + Default + Debug,
-{
-    shortest_distance_fn(origin, |&p| dest == p, nbr_fn)
-}
-
-/// Calculate the shortest distance, with a callback that says whether a point is the destination.
-pub fn shortest_distance_fn<P, N, DF, D>(origin: P, dest_fn: DF, nbr_fn: N) -> D
-where
-    P: Eq + Ord + Copy + Hash + std::fmt::Display,
     N: Fn(P) -> Vec<(P, D)>,
     DF: Fn(&P) -> bool,
-    D: Ord + Add<Output = D> + Clone + Default + Debug,
 {
     // Next points to visit, indexed by distance so far.
     let mut queue = MinHeap::<(D, P)>::new();
@@ -55,19 +49,12 @@ where
     let mut path = std::collections::BTreeMap::<P, P>::new();
     queue.push((Default::default(), origin));
     best.insert(origin, Default::default());
-    let mut sample = 0;
     loop {
         let (d, p) = queue
             .pop()
             .expect("heap is empty without reaching destination");
-        if sample % 1000000 == 0 {
-            println!("d={:?}\n{}", d, p);
-        }
-        sample += 1;
         if dest_fn(&p) {
             // Found a shortest path to the end
-            println!("best path!!!!");
-            println!("{}", p);
             let mut fwd = vec![p];
             let mut pred = p;
             while let Some(next) = path.get(&pred) {
