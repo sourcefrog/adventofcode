@@ -17,7 +17,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use aoclib::shortest_path::shortest_distance;
+use aoclib::shortest_path::ShortestPath;
 use mbpaoc2019::{point, Matrix, Point};
 
 const PASSAGE: char = '.';
@@ -221,20 +221,22 @@ impl Maze {
 
     /// Find the length of the shortest path from AA to ZZ in a single-level maze.
     fn single_level_path(&self) -> isize {
-        shortest_distance(
+        ShortestPath::find(
             &self.entrance(),
             |p| *p == self.exit(),
             |p| self.single_level_neighbors(*p),
         )
+        .distance()
     }
 
     /// Find the shortest path in a recursive multi-level maze.
     fn multi_level_path(&self) -> isize {
-        shortest_distance(
+        ShortestPath::find(
             &self.entrance3(),
             |p| *p == self.exit3(),
             |p3| self.multi_level_neighbors(*p3),
         )
+        .distance()
     }
 }
 
