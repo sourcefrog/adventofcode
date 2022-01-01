@@ -2,16 +2,6 @@
 
 //! https://adventofcode.com/2021/day/24
 
-#![allow(unused_imports)]
-use std::cmp::max;
-use std::collections::BTreeMap;
-use std::convert::TryInto;
-
-use similar;
-
-use aoclib::{point, Matrix, Point};
-use itertools::Itertools;
-
 fn main() {
     let (a, b) = solve(&input());
     println!("{}", a);
@@ -26,7 +16,7 @@ type Regs = [isize; 4];
 
 fn regidx(name: &str) -> usize {
     let c = name.chars().next().unwrap();
-    assert!(c >= 'w' && c <= 'z', "invalid reg {:?}", name);
+    assert!(('w'..='z').contains(&c), "invalid reg {:?}", name);
     (c as u32 - 'w' as u32) as usize
 }
 
@@ -171,8 +161,8 @@ fn solve(input: &str) -> (usize, u64) {
     assert_eq!(chunks.len(), 14);
 
     let mut regs = [0; 4];
-    for round in 0..=3 {
-        run(&chunks[round], &mut regs, &mut vec![7]);
+    for chunk in &chunks[..4] {
+        run(chunk, &mut regs, &mut vec![7]);
     }
     assert_eq!(regs[3], mkbase26(&[7 + 14, 7 + 6, 7 + 6, 7 + 13]));
 
@@ -191,7 +181,6 @@ fn solve(input: &str) -> (usize, u64) {
     let regs = run_chunks(&chunks[..=6], &[8, 8, 8, 8, 9, 9, 2]);
     assert_eq!(regs[1], 0);
     assert_eq!(regs[3], mkbase26(&[8 + 14, 8 + 6, 8 + 6]));
-
     // Chunk 7, halfway there, also push
     // [input[0]+14, input[1]+6, input[2]+6, input[7] + 10]
 
@@ -274,7 +263,7 @@ fn run_chunks(chunks: &[&[&str]], input: &[isize]) -> Regs {
     let mut regs = [0; 4];
     let mut input: Vec<isize> = input.into();
     for ch in chunks {
-        run(&ch, &mut regs, &mut input);
+        run(ch, &mut regs, &mut input);
     }
     assert!(input.is_empty());
     dbg!(&regs);
