@@ -49,9 +49,10 @@ where
     /// `estimate` returns a *lower bound* on the distance between a candidate
     /// point `p` and the destination. This must be `0` (more precisely, `D::default()`)
     /// for the destination, and greater than `0` for every other point.
-    pub fn find_astar<NbrFn, EstFn>(origin: &P, estimate: EstFn, neighbors: NbrFn) -> Self
+    pub fn find_astar<NbrFn, Nbrs, EstFn>(origin: &P, estimate: EstFn, neighbors: NbrFn) -> Self
     where
-        NbrFn: Fn(&P) -> Vec<(P, D)>,
+        NbrFn: Fn(&P) -> Nbrs,
+        Nbrs: IntoIterator<Item = (P, D)>,
         EstFn: Fn(&P) -> D,
     {
         // Next points to visit, indexed by distance so far.
@@ -106,9 +107,10 @@ where
     ///
     /// `neighbors` returns a `Vec` of neighbors for a given point, and the
     /// incremental distance to them.
-    pub fn find<NbrFn, DestFn>(origin: &P, is_destination: DestFn, neighbors: NbrFn) -> Self
+    pub fn find<NbrFn, Nbrs, DestFn>(origin: &P, is_destination: DestFn, neighbors: NbrFn) -> Self
     where
-        NbrFn: Fn(&P) -> Vec<(P, D)>,
+        NbrFn: Fn(&P) -> Nbrs,
+        Nbrs: IntoIterator<Item = (P, D)>,
         DestFn: Fn(&P) -> bool,
     {
         // Next points to visit, indexed by distance so far.
