@@ -8,8 +8,6 @@
 // Something like: keep track of the volume of each cuboid turned on;
 // subtract the intersecting volume.
 
-use regex;
-
 use ndarray::prelude::*;
 
 fn main() {
@@ -82,11 +80,11 @@ fn solve(input: &str) -> (usize, u64) {
         zvals.push(*z0);
         zvals.push(*z1 + 1);
     }
-    xvals.sort();
+    xvals.sort_unstable();
     xvals.dedup();
-    yvals.sort();
+    yvals.sort_unstable();
     yvals.dedup();
-    zvals.sort();
+    zvals.sort_unstable();
     zvals.dedup();
     dbg!(xvals.len(), yvals.len(), zvals.len());
 
