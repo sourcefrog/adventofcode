@@ -299,7 +299,7 @@ dependencies = [
  "console",
  "itertools 0.8.2",
  "modinverse",
- "nom 6.1.2",
+ "nom 7.1.0",
  "num-integer",
  "pest",
  "pest_derive",
