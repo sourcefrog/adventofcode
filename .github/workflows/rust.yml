@@ -19,6 +19,7 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: beta
+        override: true
     - name: Show version
       run: cargo --version
     - uses: actions-rs/cargo@v1
