@@ -103,9 +103,9 @@ impl<T> Matrix<T> {
     }
 
     fn offset_xy(&self, x: usize, y: usize) -> usize {
-        assert!(x < self.w as usize);
-        assert!(y < self.h as usize);
-        (self.w as usize) * y + x
+        assert!(x < self.w);
+        assert!(y < self.h);
+        self.w * y + x
     }
 
     fn offset_to_point(&self, offset: usize) -> Point {
@@ -181,7 +181,7 @@ impl<T> Matrix<T> {
     /// values.
     ///
     /// p may have negative coordinates.
-    pub fn neighbors4<'m>(&'m self, p: Point) -> impl Iterator<Item = (Point, &T)> + 'm {
+    pub fn neighbors4(&self, p: Point) -> impl Iterator<Item = (Point, &T)> {
         // Call this way to get the 2021 behavior of iteating values in 2018 Rust.
         IntoIterator::into_iter([(0isize, -1), (0, 1), (-1, 0), (1, 0)]).flat_map(
             move |(dx, dy)| {
@@ -216,7 +216,7 @@ impl<T> Matrix<T> {
     }
 
     /// Iterate all present 8-way neighbors.
-    pub fn neighbors8<'m>(&'m self, p: Point) -> impl Iterator<Item = (Point, &T)> + 'm {
+    pub fn neighbors8(&self, p: Point) -> impl Iterator<Item = (Point, &T)> {
         self.neighbor8_points(p)
             .into_iter()
             .map(move |p| (p, &self[p]))
