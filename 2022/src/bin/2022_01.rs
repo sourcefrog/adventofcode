@@ -10,18 +10,12 @@ fn input() -> String {
 }
 
 fn load(input: &str) -> Vec<usize> {
-    let mut sums = Vec::new();
-    let mut c: usize = 0;
-    for line in input.lines() {
-        if line.is_empty() {
-            sums.push(c);
-            c = 0;
-        } else {
-            c += line.parse::<usize>().unwrap();
-        }
-    }
-    sums.push(c);
-    sums
+    input
+        .lines()
+        .collect::<Vec<&str>>()
+        .split(|line| line.is_empty())
+        .map(|group| group.iter().map(|l| l.parse::<usize>().unwrap()).sum())
+        .collect()
 }
 
 fn solve_a(input: &str) -> usize {
