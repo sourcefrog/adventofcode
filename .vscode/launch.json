@@ -53,7 +53,7 @@
         }
       },
       "args": [],
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}/2022"
     },
     {
       "type": "lldb",
