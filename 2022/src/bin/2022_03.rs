@@ -11,37 +11,35 @@ fn input() -> String {
 
 fn solve_a(input: &str) -> usize {
     let mut sum: usize = 0;
-    for ls in input.lines() {
-        let l = ls.as_bytes();
+    'line: for l in input.lines() {
         let ll = l.len();
         assert!(ll % 2 == 0);
-        let a = &l[0..(ll / 2)];
-        let b = &l[(ll / 2)..];
-        for ca in a {
+        let (a, b) = l.split_at(ll / 2);
+        for ca in a.chars() {
             if b.contains(ca) {
-                sum += pri(*ca);
-                break;
+                sum += pri(ca);
+                continue 'line;
             }
         }
     }
     sum
 }
 
-fn pri(ca: u8) -> usize {
+fn pri(ca: char) -> usize {
     (if ca.is_ascii_lowercase() {
-        (ca - b'a') + 1
+        (ca as u8 - b'a') + 1
     } else {
-        (ca - b'A') + 27
+        (ca as u8 - b'A') + 27
     }) as usize
 }
 
 fn solve_b(input: &str) -> usize {
     let mut sum = 0;
-    for ll in input.lines().collect::<Vec<&str>>().chunks(3) {
-        for ca in ll[0].as_bytes() {
-            if ll[1].as_bytes().contains(ca) && ll[2].as_bytes().contains(ca) {
-                sum += pri(*ca);
-                break;
+    'line: for ll in input.lines().collect::<Vec<&str>>().chunks(3) {
+        for ca in ll[0].chars() {
+            if ll[1].contains(ca) && ll[2].contains(ca) {
+                sum += pri(ca);
+                continue 'line;
             }
         }
     }
