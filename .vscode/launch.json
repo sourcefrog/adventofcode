@@ -7,6 +7,15 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "Cargo launch",
+      "cargo": {
+        "args": ["build", "--bin", "2022_03"]
+      },
+      "args": []
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "Debug unit tests in library 'adventofcode2020'",
       "cargo": {
         "args": ["test", "--no-run", "--lib", "--package=adventofcode2020"],
@@ -26,6 +35,20 @@
         "args": ["build", "--bin=dec22", "--package=adventofcode2020"],
         "filter": {
           "name": "dec22",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable '2022_03'",
+      "cargo": {
+        "args": ["build", "--bin=2022_03", "--package=mbpaoc2022"],
+        "filter": {
+          "name": "2022_03",
           "kind": "bin"
         }
       },
