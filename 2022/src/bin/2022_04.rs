@@ -19,14 +19,12 @@ fn solve(input: &str) -> (usize, usize) {
             .map(|s| s.parse::<usize>().unwrap())
             .collect();
         assert_eq!(n.len(), 4);
+        let a = n[0]..=n[1];
+        let b = n[2]..=n[3];
         if (n[0] <= n[2] && n[1] >= n[3]) || (n[2] <= n[0] && n[3] >= n[1]) {
             enclosed += 1;
         }
-        if (n[0] >= n[2] && n[0] <= n[3])
-            || (n[1] >= n[2] && n[1] <= n[3])
-            || (n[2] >= n[0] && n[2] <= n[1])
-            || (n[3] >= n[0] && n[3] <= n[1])
-        {
+        if a.contains(&n[2]) || a.contains(&n[3]) || b.contains(&n[0]) || b.contains(&n[1]) {
             overlap += 1
         }
     }
