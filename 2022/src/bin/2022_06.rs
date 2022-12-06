@@ -12,52 +12,39 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str) -> usize {
-    let mut i = 0;
-    for w in input.chars().collect::<Vec<char>>().windows(4) {
-        let s: HashSet<char> = HashSet::from_iter(w.iter().cloned());
-        i += 1;
-        if s.len() == 4 {
-            break;
-        }
-    }
-    i + 3
+    find_nonrepeating(input, 4)
 }
 
 fn solve_b(input: &str) -> usize {
-    let mut i = 0;
-    let ln = 14;
-    for w in input.chars().collect::<Vec<char>>().windows(ln) {
+    find_nonrepeating(input, 14)
+}
+
+fn find_nonrepeating(input: &str, ln: usize) -> usize {
+    for (i, w) in input.chars().collect::<Vec<char>>().windows(ln).enumerate() {
         let s: HashSet<char> = HashSet::from_iter(w.iter().cloned());
         if s.len() == ln {
             return i + ln;
         }
-        i += 1;
     }
-    // not 4106
-    unreachable!();
-    // i + 14 - 1
+    unreachable!("no nonrepeating sequence found");
 }
-
-// fn find_nonrepeating(input:&str, ln: usize) -> usize {
-
-// }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
-    fn exZ() {
+    fn example() {
         assert_eq!(solve_a("mjqjpqmgbljsphdztnvjfqwrcgsmlb"), 7)
     }
 
-    // #[test]
-    // fn solution_a() {
-    //     assert_eq!(solve_a(&input()), 0);
-    // }
+    #[test]
+    fn solution_a() {
+        assert_eq!(solve_a(&input()), 1034);
+    }
 
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 0);
-    // }
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(&input()), 2472);
+    }
 }
