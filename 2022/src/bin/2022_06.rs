@@ -20,8 +20,15 @@ fn solve_b(input: &str) -> usize {
 }
 
 fn find_nonrepeating(input: &str, ln: usize) -> usize {
+    // We could potentially here keep a vec of counts of each character
+    // and just increment and decrement counts as letters move in and
+    // out of this window.
+    //
+    // It would in theory be faster and avoid building a set every time, but
+    // it would definitely be more code, and this is already very fast on
+    // this input.
     for (i, w) in input.chars().collect::<Vec<char>>().windows(ln).enumerate() {
-        let s: HashSet<char> = HashSet::from_iter(w.iter().cloned());
+        let s: HashSet<char> = w.iter().cloned().collect();
         if s.len() == ln {
             return i + ln;
         }
