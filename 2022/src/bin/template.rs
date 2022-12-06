@@ -10,11 +10,11 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str) -> usize {
-    0
+    input.parse().unwrap()
 }
 
 fn solve_b(input: &str) -> usize {
-    0
+    input.parse().unwrap()
 }
 
 #[cfg(test)]
