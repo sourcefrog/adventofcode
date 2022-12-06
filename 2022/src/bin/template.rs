@@ -10,11 +10,11 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str) -> usize {
-    input.parse().unwrap()
+    input.len()
 }
 
 fn solve_b(input: &str) -> usize {
-    input.parse().unwrap()
+    input.len()
 }
 
 #[cfg(test)]
@@ -23,11 +23,11 @@ mod test {
 
     #[test]
     fn solution_a() {
-        assert_eq!(solve_a(&input()), 0);
+        assert_eq!(solve_a(&input()), 10466);
     }
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(&input()), 0);
+        assert_eq!(solve_b(&input()), 10466);
     }
 }
