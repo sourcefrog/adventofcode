@@ -129,25 +129,25 @@ impl<T> Matrix<T> {
     }
 
     /// Iterate all the cells in a given row
-    pub fn row(&self, y: usize) -> impl Iterator<Item = &T> {
+    pub fn row(&self, y: usize) -> impl DoubleEndedIterator<Item = &T> {
         assert!(y < self.h);
         let off1 = self.w * y;
         let off2 = self.w * (y + 1);
         self.d[off1..off2].iter()
     }
 
-    pub fn rows(&self) -> impl Iterator<Item = impl Iterator<Item = &T>> {
+    pub fn rows(&self) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = &T>> {
         (0..self.h).map(move |y| self.row(y))
     }
 
     /// Iterate all the cells in a given column.
-    pub fn column(&self, x: usize) -> impl Iterator<Item = &T> {
+    pub fn column(&self, x: usize) -> impl DoubleEndedIterator<Item = &T> {
         assert!(x < self.w);
         (0..self.h).map(move |y| &self[(x, y)])
     }
 
     /// Iterate all the columns and their contents.
-    pub fn columns(&self) -> impl Iterator<Item = impl Iterator<Item = &T>> {
+    pub fn columns(&self) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = &T>> {
         (0..self.w).map(move |x| self.column(x))
     }
 
