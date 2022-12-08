@@ -15,28 +15,31 @@ fn solve(input: &str) -> (usize, usize) {
     let mut cwd: Vec<&str> = vec!["/"];
     let mut dir_size: BTreeMap<Vec<&str>, usize> = BTreeMap::new();
     for l in input.lines() {
-        if let Some(dir) = l.strip_prefix("$ cd ") {
-            if dir == ".." {
+        match l.split_ascii_whitespace().collect::<Vec<&str>>().as_slice() {
+            ["$", "cd", "/"] => {
+                /* should only happen at start */
+                assert_eq!(cwd.len(), 1)
+            }
+            ["$", "cd", ".."] => {
                 cwd.pop().unwrap();
-            } else if dir == "/" {
-                // never happens after the start
-            } else {
+            }
+            ["$", "cd", dir] => {
                 cwd.push(dir);
             }
-        } else if l == "$ ls" {
-            assert!(dir_size.insert(cwd.clone(), 0).is_none());
-        } else if l.starts_with("$ ") {
-            panic!("unhandled {l:?}")
-        } else if l.starts_with("dir") {
-            // nothing for now
-        } else {
-            let size = l.split(' ').next().unwrap().parse::<usize>().unwrap();
-            // Add to every enclosing parent.
-            let mut p = cwd.clone();
-            while !p.is_empty() {
-                *dir_size.get_mut(&p).unwrap() += size;
-                p.pop();
+            ["$", "ls"] => {
+                assert!(dir_size.insert(cwd.clone(), 0).is_none());
             }
+            ["dir", _] => (),
+            [size, _name] => {
+                let size = size.parse::<usize>().unwrap();
+                // Add to every enclosing parent.
+                let mut p = cwd.clone();
+                while !p.is_empty() {
+                    *dir_size.get_mut(&p).unwrap() += size;
+                    p.pop();
+                }
+            }
+            a => panic!("unexpected {a:?}"),
         }
     }
     let part1 = dir_size.values().filter(|s| **s <= 100000).sum::<usize>();
