@@ -241,6 +241,34 @@ impl<T> Matrix<T> {
             None
         }
     }
+
+    /// Iterate all the points to the left of some point, in order going left,
+    /// not including the original point.
+    pub fn points_left(&self, p: Point) -> impl DoubleEndedIterator<Item = Point> {
+        (0..(p.x)).rev().map(move |x| point(x, p.y))
+    }
+
+    /// Iterate all the points to the right of some point, in order going right,
+    /// not including the point itself.
+    pub fn points_right(&self, p: Point) -> impl DoubleEndedIterator<Item = Point> {
+        ((p.x + 1)..(self.width() as isize)).map(move |x| point(x, p.y))
+    }
+
+    pub fn points_up(&self, p: Point) -> impl DoubleEndedIterator<Item = Point> {
+        (0..(p.y)).rev().map(move |y| point(p.x, y))
+    }
+
+    pub fn points_down(&self, p: Point) -> impl DoubleEndedIterator<Item = Point> {
+        ((p.y + 1)..(self.h as isize)).map(move |y| point(p.x, y))
+    }
+
+    pub fn row_points(&self, row: usize) -> impl DoubleEndedIterator<Item = Point> {
+        (0..(self.w as isize)).map(move |x| point(x, row as isize))
+    }
+
+    pub fn column_points(&self, column: usize) -> impl DoubleEndedIterator<Item = Point> {
+        (0..(self.h as isize)).map(move |y| point(column as isize, y))
+    }
 }
 
 impl<T: Clone> Matrix<T> {

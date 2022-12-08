@@ -17,36 +17,36 @@ fn solve_a(input: &str) -> usize {
     let mut vis = Matrix::same_size(&mat, false);
     for row in 0..mat.height() {
         let mut h = -1;
-        for col in 0..mat.width() {
-            let c = mat[(col, row)];
+        for p in mat.row_points(row) {
+            let c = mat[p];
             if c > h {
-                vis[(col, row)] = true;
+                vis[p] = true;
                 h = c;
             }
         }
         let mut h = -1;
-        for col in (0..mat.width()).rev() {
-            let c = mat[(col, row)];
+        for p in mat.row_points(row).rev() {
+            let c = mat[p];
             if c > h {
-                vis[(col, row)] = true;
+                vis[p] = true;
                 h = c;
             }
         }
     }
     for col in 0..mat.width() {
         let mut h = -1;
-        for row in 0..mat.height() {
-            let c = mat[(col, row)];
+        for p in mat.column_points(col) {
+            let c = mat[p];
             if c > h {
-                vis[(col, row)] = true;
+                vis[p] = true;
                 h = c;
             }
         }
         let mut h = -1;
-        for row in (0..mat.height()).rev() {
-            let c = mat[(col, row)];
+        for p in mat.column_points(col).rev() {
+            let c = mat[p];
             if c > h {
-                vis[(col, row)] = true;
+                vis[p] = true;
                 h = c;
             }
         }
@@ -62,18 +62,14 @@ fn solve_b(input: &str) -> usize {
     for (p, &c) in mat.point_values() {
         // up
         let mut ups = 0;
-        let mut q = p;
-        while q.y > 0 {
-            q.y -= 1;
+        for q in mat.points_up(p) {
             ups += 1;
             if mat[q] >= c {
                 break;
             }
         }
         let mut downs = 0;
-        q = p;
-        while q.y < mat.height() as isize - 1 {
-            q.y += 1;
+        for q in mat.points_down(p) {
             downs += 1;
             if mat[q] >= c {
                 break;
@@ -81,18 +77,14 @@ fn solve_b(input: &str) -> usize {
         }
 
         let mut lefts = 0;
-        q = p;
-        while q.x > 0 {
-            q.x -= 1;
+        for q in mat.points_left(p) {
             lefts += 1;
             if mat[q] >= c {
                 break;
             }
         }
         let mut rights = 0;
-        q = p;
-        while q.x < mat.width() as isize - 1 {
-            q.x += 1;
+        for q in mat.points_right(p) {
             rights += 1;
             if mat[q] >= c {
                 break;
