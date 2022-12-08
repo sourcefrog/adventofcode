@@ -13,41 +13,41 @@ fn input() -> String {
 
 fn solve_a(input: &str) -> usize {
     let mat = aoclib::Matrix::from_string_lines(input);
-    let mat = mat.map(|c| c.to_digit(10));
+    let mat = mat.map(|c| c.to_digit(10).unwrap() as isize);
     let mut vis = Matrix::same_size(&mat, false);
     for row in 0..mat.height() {
-        let mut h = None;
+        let mut h = -1;
         for col in 0..mat.width() {
             let c = mat[(col, row)];
-            if h.map(|h| c > h).unwrap_or(true) {
+            if c > h {
                 vis[(col, row)] = true;
-                h = Some(c);
+                h = c;
             }
         }
-        let mut h = None;
+        let mut h = -1;
         for col in (0..mat.width()).rev() {
             let c = mat[(col, row)];
-            if h.map(|h| c > h).unwrap_or(true) {
+            if c > h {
                 vis[(col, row)] = true;
-                h = Some(c);
+                h = c;
             }
         }
     }
     for col in 0..mat.width() {
-        let mut h = None;
+        let mut h = -1;
         for row in 0..mat.height() {
             let c = mat[(col, row)];
-            if h.map(|h| c > h).unwrap_or(true) {
+            if c > h {
                 vis[(col, row)] = true;
-                h = Some(c);
+                h = c;
             }
         }
-        let mut h = None;
+        let mut h = -1;
         for row in (0..mat.height()).rev() {
             let c = mat[(col, row)];
-            if h.map(|h| c > h).unwrap_or(true) {
+            if c > h {
                 vis[(col, row)] = true;
-                h = Some(c);
+                h = c;
             }
         }
     }
