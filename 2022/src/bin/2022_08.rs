@@ -51,12 +51,56 @@ fn solve_a(input: &str) -> usize {
             }
         }
     }
-    println!("{}", vis.to_string_lines());
+    // println!("{}", vis.to_string_lines());
     vis.values().filter(|x| **x).count()
 }
 
 fn solve_b(input: &str) -> usize {
-    input.len()
+    let mat = aoclib::Matrix::from_string_lines(input);
+    let mat = mat.map(|c| c.to_digit(10).unwrap());
+    let mut best = 0;
+    for (p, &c) in mat.point_values() {
+        // up
+        let mut ups = 0;
+        let mut q = p;
+        while q.y > 0 {
+            q.y -= 1;
+            ups += 1;
+            if mat[q] >= c {
+                break;
+            }
+        }
+        let mut downs = 0;
+        q = p;
+        while q.y < mat.height() as isize - 1 {
+            q.y += 1;
+            downs += 1;
+            if mat[q] >= c {
+                break;
+            }
+        }
+
+        let mut lefts = 0;
+        q = p;
+        while q.x > 0 {
+            q.x -= 1;
+            lefts += 1;
+            if mat[q] >= c {
+                break;
+            }
+        }
+        let mut rights = 0;
+        q = p;
+        while q.x < mat.width() as isize - 1 {
+            q.x += 1;
+            rights += 1;
+            if mat[q] >= c {
+                break;
+            }
+        }
+        best = std::cmp::max(best, ups * downs * lefts * rights);
+    }
+    best
 }
 
 #[cfg(test)]
@@ -65,11 +109,11 @@ mod test {
 
     #[test]
     fn solution_a() {
-        assert_eq!(solve_a(&input()), 10466);
+        assert_eq!(solve_a(&input()), 1681);
     }
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(&input()), 10466);
+        assert_eq!(solve_b(&input()), 201684);
     }
 }
