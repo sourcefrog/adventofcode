@@ -1,4 +1,4 @@
-//! https://adventofcode.com/2022/day/
+//! https://adventofcode.com/2022/day/8
 
 fn main() {
     println!("{}", solve_a(&input()));
@@ -6,7 +6,7 @@ fn main() {
 }
 
 fn input() -> String {
-    std::fs::read_to_string("input/01.txt").unwrap()
+    std::fs::read_to_string("input/08.txt").unwrap()
 }
 
 fn solve_a(input: &str) -> usize {
