@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 bitvec = "0.22"
-itertools = "0.10.3"
+itertools = "0.10"
 ndarray = "0.15.4"
 regex = "1.5.5"
 similar = "2.1.0"
