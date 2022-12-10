@@ -20,7 +20,7 @@ fn exec(input: &str) -> impl Iterator<Item = (isize, isize)> {
             x += v.parse::<isize>().unwrap();
         }
     }
-    xs.into_iter().enumerate().map(|(i, x)| (i as isize + 1, x))
+    (1..).zip(xs)
 }
 
 fn solve_a(input: &str) -> isize {
