@@ -23,11 +23,11 @@ mod test {
 
     #[test]
     fn solution_a() {
-        assert_eq!(solve_a(&input()), 10466);
+        assert_eq!(solve_a(&input()), 9900);
     }
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(&input()), 10466);
+        assert_eq!(solve_b(&input()), 9900);
     }
 }
