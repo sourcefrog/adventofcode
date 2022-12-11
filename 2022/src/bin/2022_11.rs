@@ -86,6 +86,9 @@ fn solve_a(input: &str) -> usize {
     let mut ms = parse(input);
     for _round in 0..20 {
         for im in 0..(ms.len()) {
+            // Reference by index, and keep using the index, because
+            // we need to read and write different elements of the array
+            // from inside the one iteration.
             while let Some(mut item) = ms[im].items.pop_front() {
                 match ms[im].op {
                     Op::Add(a) => item += a,
