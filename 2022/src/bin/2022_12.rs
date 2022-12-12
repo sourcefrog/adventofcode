@@ -1,6 +1,5 @@
 //! https://adventofcode.com/2022/day/12
 
-use aoclib::shortest_path::ShortestPath;
 use aoclib::Matrix;
 use itertools::Itertools;
 
@@ -14,32 +13,23 @@ fn input() -> String {
 }
 
 /// True if you can step from level x to level y.
-fn can_step(mut x: char, mut y: char) -> bool {
-    if x == 'S' {
-        x = 'a'
+fn can_move(mut x: &char, mut y: &char) -> bool {
+    if *x == 'S' {
+        x = &'a'
     };
-    if y == 'E' {
-        y = 'z'
+    if *y == 'E' {
+        y = &'z'
     };
-    (y as u16) <= (x as u16 + 1)
+    (*y as u16) <= (*x as u16 + 1)
 }
 
 fn solve_a(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
     let start = map.find_single_value(&'S');
     let end = map.find_single_value(&'E');
-    ShortestPath::find(
-        &start,
-        |p| *p == end,
-        |p| {
-            map.neighbors4(*p)
-                .filter(|(_q, c)| can_step(map[*p], **c))
-                .map(|(q, _c)| (q, 1)) // distance 1
-                .collect_vec()
-        },
-    )
-    .unwrap()
-    .distance()
+    map.shortest_path(start, end, can_move)
+        .expect("no path")
+        .distance()
 }
 
 fn solve_b(input: &str) -> usize {
@@ -47,16 +37,7 @@ fn solve_b(input: &str) -> usize {
     let mut best = usize::MAX;
     let end = map.find_single_value(&'E');
     for (start, _) in map.point_values().filter(|(_, c)| matches!(**c, 'S' | 'a')) {
-        if let Some(path) = ShortestPath::find(
-            &start,
-            |p| *p == end,
-            |p| {
-                map.neighbors4(*p)
-                    .filter(|(_q, c)| can_step(map[*p], **c))
-                    .map(|(q, _c)| (q, 1)) // distance 1
-                    .collect_vec()
-            },
-        ) {
+        if let Some(path) = map.shortest_path(start, end, can_move) {
             best = std::cmp::min(best, path.distance());
         }
     }

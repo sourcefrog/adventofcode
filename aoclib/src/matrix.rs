@@ -23,6 +23,7 @@ use std::fmt;
 use std::iter::FromIterator;
 use std::ops::{Index, IndexMut};
 
+use crate::shortest_path::ShortestPath;
 use crate::{point, Point};
 
 #[derive(Clone, Eq, PartialEq)]
@@ -268,6 +269,34 @@ impl<T> Matrix<T> {
 
     pub fn column_points(&self, column: usize) -> impl DoubleEndedIterator<Item = Point> {
         (0..(self.h as isize)).map(move |y| point(column as isize, y))
+    }
+
+    /// Find the shortest path from one point in a matrix to another,
+    /// using a callback to determine whether it's possible to move from
+    /// one point to another given the cell values.
+    ///
+    /// Only moves in the four cardinal directions are permitted.
+    ///
+    /// All permitted moves have unit cost.
+    pub fn shortest_path<F>(
+        &self,
+        start: Point,
+        end: Point,
+        can_move: F,
+    ) -> Option<ShortestPath<Point, usize>>
+    where
+        F: Fn(&T, &T) -> bool,
+    {
+        ShortestPath::find(
+            &start,
+            |p| *p == end,
+            |p| {
+                self.neighbors4(*p)
+                    .filter(|(_q, c)| can_move(&self[*p], *c))
+                    .map(|(q, _c)| (q, 1))
+                    .collect::<Vec<(Point, usize)>>()
+            },
+        )
     }
 }
 
