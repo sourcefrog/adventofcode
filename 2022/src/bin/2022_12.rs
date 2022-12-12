@@ -26,8 +26,8 @@ fn step_from(mut x: char, mut y: char) -> bool {
 
 fn solve_a(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
-    let start = map.point_values().find(|(_p, c)| **c == 'S').unwrap().0;
-    let end = map.point_values().find(|(_p, c)| **c == 'E').unwrap().0;
+    let start = map.find_values(&'S').next().unwrap();
+    let end = map.find_values(&'E').next().unwrap();
     ShortestPath::find(
         &start,
         |p| *p == end,
@@ -50,12 +50,8 @@ fn solve_a(input: &str) -> usize {
 fn solve_b(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
     let mut best = usize::MAX;
-    for start in map
-        .point_values()
-        .filter(|(_, c)| **c == 'S' || **c == 'a')
-        .map(|(p, _)| p)
-    {
-        let end = map.point_values().find(|(_p, c)| **c == 'E').unwrap().0;
+    let end = map.find_values(&'E').next().unwrap();
+    for (start, _) in map.point_values().filter(|(_, c)| matches!(**c, 'S' | 'a')) {
         if let Some(path) = ShortestPath::find(
             &start,
             |p| *p == end,
