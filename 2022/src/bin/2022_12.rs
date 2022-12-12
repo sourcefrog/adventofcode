@@ -1,7 +1,6 @@
 //! https://adventofcode.com/2022/day/12
 
 use aoclib::Matrix;
-use itertools::Itertools;
 
 fn main() {
     println!("{}", solve_a(&input()));
@@ -34,14 +33,13 @@ fn solve_a(input: &str) -> usize {
 
 fn solve_b(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
-    let mut best = usize::MAX;
     let end = map.find_single_value(&'E');
-    for (start, _) in map.point_values().filter(|(_, c)| matches!(**c, 'S' | 'a')) {
-        if let Some(path) = map.shortest_path(start, end, can_move) {
-            best = std::cmp::min(best, path.distance());
-        }
-    }
-    best
+    map.find_values(&'S')
+        .chain(map.find_values(&'a'))
+        .flat_map(|start| map.shortest_path(start, end, can_move))
+        .map(|path| path.distance())
+        .min()
+        .expect("no paths found")
 }
 
 #[cfg(test)]
