@@ -26,8 +26,8 @@ fn can_step(mut x: char, mut y: char) -> bool {
 
 fn solve_a(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
-    let start = map.find_values(&'S').next().unwrap();
-    let end = map.find_values(&'E').next().unwrap();
+    let start = map.find_single_value(&'S');
+    let end = map.find_single_value(&'E');
     ShortestPath::find(
         &start,
         |p| *p == end,
@@ -45,7 +45,7 @@ fn solve_a(input: &str) -> usize {
 fn solve_b(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
     let mut best = usize::MAX;
-    let end = map.find_values(&'E').next().unwrap();
+    let end = map.find_single_value(&'E');
     for (start, _) in map.point_values().filter(|(_, c)| matches!(**c, 'S' | 'a')) {
         if let Some(path) = ShortestPath::find(
             &start,

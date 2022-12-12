@@ -1,5 +1,5 @@
 // Copyright 2020 Google LLC
-// Copyright 2021 Martin Pool
+// Copyright 2021, 2022 Martin Pool
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -302,6 +302,16 @@ impl<T: Eq> Matrix<T> {
     /// Return all positions containing values equal to `v`.
     pub fn find_values<'a>(&'a self, v: &'a T) -> impl Iterator<Item = Point> + 'a {
         self.points().filter(|p| self[*p] == *v)
+    }
+
+    /// Find the unique position containing a value.
+    ///
+    /// Panics if the value is not present, or is present more than once.
+    pub fn find_single_value(&self, v: &T) -> Point {
+        let mut it = self.find_values(v);
+        let p = it.next().expect("value is not present");
+        assert!(it.next().is_none(), "value is present more than once");
+        p
     }
 }
 
