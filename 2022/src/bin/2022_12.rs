@@ -13,6 +13,17 @@ fn input() -> String {
     std::fs::read_to_string("input/12.txt").unwrap()
 }
 
+/// True if you can step from level x to level y.
+fn step_from(mut x: char, mut y: char) -> bool {
+    if x == 'S' {
+        x = 'a'
+    };
+    if y == 'E' {
+        y = 'z'
+    };
+    (y as u16) <= (x as u16 + 1)
+}
+
 fn solve_a(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
     let start = map.point_values().find(|(_p, c)| **c == 'S').unwrap().0;
@@ -23,15 +34,7 @@ fn solve_a(input: &str) -> usize {
         |p| {
             map.neighbors4(*p)
                 .flat_map(|(q, c)| {
-                    let mut a = map[*p];
-                    if a == 'S' {
-                        a = 'a'
-                    };
-                    let mut c = *c;
-                    if c == 'E' {
-                        c = 'z'
-                    };
-                    if (c as u16) <= (a as u16 + 1) {
+                    if step_from(map[*p], *c) {
                         Some((q, 1))
                     } else {
                         None
@@ -53,22 +56,13 @@ fn solve_b(input: &str) -> usize {
         .map(|(p, _)| p)
     {
         let end = map.point_values().find(|(_p, c)| **c == 'E').unwrap().0;
-        dbg!(start, end);
-        let path = ShortestPath::find(
+        if let Some(path) = ShortestPath::find(
             &start,
             |p| *p == end,
             |p| {
                 map.neighbors4(*p)
                     .flat_map(|(q, c)| {
-                        let mut a = map[*p];
-                        if a == 'S' {
-                            a = 'a'
-                        };
-                        let mut c = *c;
-                        if c == 'E' {
-                            c = 'z'
-                        };
-                        if (c as u16) <= (a as u16 + 1) {
+                        if step_from(map[*p], *c) {
                             Some((q, 1))
                         } else {
                             None
@@ -76,8 +70,7 @@ fn solve_b(input: &str) -> usize {
                     })
                     .collect_vec()
             },
-        );
-        if let Some(path) = path {
+        ) {
             best = std::cmp::min(best, path.distance());
         }
     }
