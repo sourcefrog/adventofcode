@@ -298,6 +298,13 @@ impl<T: Clone> Matrix<T> {
     }
 }
 
+impl<T: Eq> Matrix<T> {
+    /// Return all positions containing values equal to `v`.
+    pub fn find_values<'a>(&'a self, v: &'a T) -> impl Iterator<Item = Point> + 'a {
+        self.points().filter(|p| self[*p] == *v)
+    }
+}
+
 impl Matrix<char> {
     /// Build a matrix of chars from a file containing a rectangle.
     pub fn from_file<P: AsRef<std::path::Path>>(path: P) -> Self {
