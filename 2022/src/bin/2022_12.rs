@@ -14,7 +14,7 @@ fn input() -> String {
 }
 
 /// True if you can step from level x to level y.
-fn step_from(mut x: char, mut y: char) -> bool {
+fn can_step(mut x: char, mut y: char) -> bool {
     if x == 'S' {
         x = 'a'
     };
@@ -33,13 +33,8 @@ fn solve_a(input: &str) -> usize {
         |p| *p == end,
         |p| {
             map.neighbors4(*p)
-                .flat_map(|(q, c)| {
-                    if step_from(map[*p], *c) {
-                        Some((q, 1))
-                    } else {
-                        None
-                    }
-                })
+                .filter(|(_q, c)| can_step(map[*p], **c))
+                .map(|(q, _c)| (q, 1)) // distance 1
                 .collect_vec()
         },
     )
@@ -57,13 +52,8 @@ fn solve_b(input: &str) -> usize {
             |p| *p == end,
             |p| {
                 map.neighbors4(*p)
-                    .flat_map(|(q, c)| {
-                        if step_from(map[*p], *c) {
-                            Some((q, 1))
-                        } else {
-                            None
-                        }
-                    })
+                    .filter(|(_q, c)| can_step(map[*p], **c))
+                    .map(|(q, _c)| (q, 1)) // distance 1
                     .collect_vec()
             },
         ) {
