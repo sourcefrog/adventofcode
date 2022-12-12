@@ -106,10 +106,7 @@ fn solve_a(input: &str) -> usize {
             }
         }
     }
-    let mut tops = ms.iter().map(|m| m.inspected).enumerate().collect_vec();
-    tops.sort_by_key(|a| a.1);
-    tops.reverse();
-    tops[0].1 * tops[1].1
+    monkey_business(&ms)
 }
 
 fn solve_b(input: &str) -> usize {
@@ -134,10 +131,17 @@ fn solve_b(input: &str) -> usize {
             }
         }
     }
-    let mut tops = ms.iter().map(|m| m.inspected).enumerate().collect_vec();
-    tops.sort_by_key(|a| a.1);
-    tops.reverse();
-    tops[0].1 * tops[1].1
+    monkey_business(&ms)
+}
+
+fn monkey_business(monkeys: &[Monkey]) -> usize {
+    monkeys
+        .iter()
+        .map(|m| m.inspected)
+        .sorted()
+        .rev()
+        .take(2)
+        .product()
 }
 
 #[cfg(test)]
