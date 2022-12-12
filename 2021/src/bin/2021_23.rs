@@ -246,7 +246,9 @@ fn solve() -> usize {
     println!("{}", origin.to_str());
     let dest = State::new("ABCDABCDABCDABCD");
     println!("{}", dest.to_str());
-    ShortestPath::find(&origin, |p| *p == dest, State::next).distance()
+    ShortestPath::find(&origin, |p| *p == dest, State::next)
+        .unwrap()
+        .distance()
 }
 
 #[cfg(test)]
@@ -259,7 +261,9 @@ mod test {
         println!("{}", origin.to_str());
         let dest = State::new("ABCDABCDABCDABCD");
         println!("{}", dest.to_str());
-        let sol_b = ShortestPath::find(&origin, |p| *p == dest, State::next).distance();
+        let sol_b = ShortestPath::find(&origin, |p| *p == dest, State::next)
+            .unwrap()
+            .distance();
         assert_eq!(sol_b, 44169);
     }
 

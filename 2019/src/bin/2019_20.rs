@@ -226,6 +226,7 @@ impl Maze {
             |p| *p == self.exit(),
             |p| self.single_level_neighbors(*p),
         )
+        .unwrap()
         .distance()
     }
 
@@ -236,6 +237,7 @@ impl Maze {
             |p| *p == self.exit3(),
             |p3| self.multi_level_neighbors(*p3),
         )
+        .unwrap()
         .distance()
     }
 }

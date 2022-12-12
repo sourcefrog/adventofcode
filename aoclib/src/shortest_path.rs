@@ -107,7 +107,11 @@ where
     ///
     /// `neighbors` returns a `Vec` of neighbors for a given point, and the
     /// incremental distance to them.
-    pub fn find<NbrFn, Nbrs, DestFn>(origin: &P, is_destination: DestFn, neighbors: NbrFn) -> Self
+    pub fn find<NbrFn, Nbrs, DestFn>(
+        origin: &P,
+        is_destination: DestFn,
+        neighbors: NbrFn,
+    ) -> Option<Self>
     where
         NbrFn: Fn(&P) -> Nbrs,
         Nbrs: IntoIterator<Item = (P, D)>,
@@ -122,29 +126,30 @@ where
         queue.push((Default::default(), origin.clone()));
         best.insert(origin.clone(), Default::default());
         loop {
-            let (d, p) = queue
-                .pop()
-                .expect("heap is empty without reaching destination");
-            if is_destination(&p) {
-                // Reassemble (a) shortest path to the destination by looking backwards
-                // at the step that led to each point.
-                let mut path = vec![p];
-                while let Some(next) = predecessor.get(path.last().unwrap()) {
-                    path.push(next.clone());
-                }
-                path.reverse();
-                return ShortestPath { distance: d, path };
-            }
-            for (np, step) in neighbors(&p) {
-                let nd = step + d.clone();
-                if let Some(prev_d) = best.get(&np) {
-                    if nd >= *prev_d {
-                        continue; // Already found a shorter path; don't revisit.
+            if let Some((d, p)) = queue.pop() {
+                if is_destination(&p) {
+                    // Reassemble (a) shortest path to the destination by looking backwards
+                    // at the step that led to each point.
+                    let mut path = vec![p];
+                    while let Some(next) = predecessor.get(path.last().unwrap()) {
+                        path.push(next.clone());
                     }
+                    path.reverse();
+                    return Some(ShortestPath { distance: d, path });
                 }
-                best.insert(np.clone(), nd.clone());
-                queue.push((nd, np.clone()));
-                predecessor.insert(np, p.clone());
+                for (np, step) in neighbors(&p) {
+                    let nd = step + d.clone();
+                    if let Some(prev_d) = best.get(&np) {
+                        if nd >= *prev_d {
+                            continue; // Already found a shorter path; don't revisit.
+                        }
+                    }
+                    best.insert(np.clone(), nd.clone());
+                    queue.push((nd, np.clone()));
+                    predecessor.insert(np, p.clone());
+                }
+            } else {
+                return None;
             }
         }
     }
