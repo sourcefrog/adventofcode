@@ -54,27 +54,26 @@ impl Item {
 
 impl PartialOrd for Item {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        // dbg!(self, other);
-        match (self, other) {
-            (Item::N(a), Item::N(b)) => a.partial_cmp(b),
-            (Item::L(a), Item::L(b)) => {
-                for (x, y) in a.iter().zip(b) {
-                    let c = x.partial_cmp(y).unwrap();
-                    if c != Ordering::Equal {
-                        return Some(c);
-                    }
-                }
-                Some(a.len().cmp(&b.len()))
-            }
-            (Item::L(_), Item::N(_)) => self.partial_cmp(&Item::L(vec![other.clone()])),
-            (Item::N(_), Item::L(_)) => Item::L(vec![self.clone()]).partial_cmp(other),
-        }
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Item {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        match (self, other) {
+            (Item::N(a), Item::N(b)) => a.cmp(b),
+            (Item::L(a), Item::L(b)) => {
+                for (x, y) in a.iter().zip(b) {
+                    let c = x.cmp(y);
+                    if c != Ordering::Equal {
+                        return c;
+                    }
+                }
+                a.len().cmp(&b.len())
+            }
+            (Item::L(_), Item::N(_)) => self.cmp(&Item::L(vec![other.clone()])),
+            (Item::N(_), Item::L(_)) => Item::L(vec![self.clone()]).cmp(other),
+        }
     }
 }
 
