@@ -1,8 +1,8 @@
 //! https://adventofcode.com/2022/day/14
 
-use std::cmp::{max, min};
-
 use aoclib::{line_between, point, Matrix, Point};
+
+static TAP: Point = point(500, 0);
 
 fn main() {
     println!("{}", solve_a(&input()));
@@ -31,9 +31,8 @@ fn load(input: &str) -> Matrix<char> {
 
 fn solve_a(input: &str) -> usize {
     let mut mat = load(input);
-    let tap = point(500, 0);
-    's: while mat[tap] == '.' {
-        let mut sp = tap;
+    's: while mat[TAP] == '.' {
+        let mut sp = TAP;
         loop {
             if (sp.y + 1) >= mat.height() as isize {
                 // fell off the bottom
@@ -59,9 +58,8 @@ fn solve_a(input: &str) -> usize {
 fn solve_b(input: &str) -> usize {
     let mut mat = load(input);
     let bottom = mat.find_values(&'#').map(|p| p.y).max().unwrap() + 1;
-    let tap = point(500, 0);
-    's: while mat[tap] == '.' {
-        let mut sp = tap;
+    's: while mat[TAP] == '.' {
+        let mut sp = TAP;
         loop {
             if sp.y == bottom {
                 assert_eq!(mat[sp], '.');

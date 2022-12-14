@@ -36,7 +36,7 @@ impl fmt::Display for Point {
 
 /// Shorthand to construct a point.
 #[must_use]
-pub fn point(x: isize, y: isize) -> Point {
+pub const fn point(x: isize, y: isize) -> Point {
     Point { x, y }
 }
 
