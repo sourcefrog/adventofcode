@@ -16,15 +16,16 @@ fn input() -> String {
 fn load(input: &str) -> Matrix<char> {
     let mut draw: Vec<Vec<Point>> = Vec::new();
     for l in input.lines() {
-        draw.push(Vec::new());
+        let mut shape = Vec::new();
         for ps in l.split(" -> ") {
             let (x, y) = ps.split_once(',').unwrap();
             let x: isize = x.parse().unwrap();
             let y: isize = y.parse().unwrap();
-            draw.last_mut().unwrap().push(point(x, y));
+            shape.push(point(x, y));
         }
+        draw.push(shape);
     }
-    let mut mat = Matrix::new(1200, 600, '.');
+    let mut mat = Matrix::new(1200, 600, '.'); // empirical/guessed size
     for shape in draw {
         for pair in shape.windows(2) {
             if let [p1, p2] = pair {
@@ -71,14 +72,12 @@ fn solve_a(input: &str) -> usize {
             }
         }
     }
-
-    mat.values().filter(|c| **c == 'o').count()
+    mat.find_values(&'o').count()
 }
 
 fn solve_b(input: &str) -> usize {
     let mut mat = load(input);
-    let mut bottom = mat.find_values(&'#').map(|p| p.y).max().unwrap();
-    bottom += 1;
+    let bottom = mat.find_values(&'#').map(|p| p.y).max().unwrap() + 1;
     let tap = point(500, 0);
     's: while mat[tap] == '.' {
         let mut sp = tap;
@@ -103,7 +102,7 @@ fn solve_b(input: &str) -> usize {
             }
         }
     }
-    mat.values().filter(|c| **c == 'o').count()
+    mat.find_values(&'o').count()
 }
 
 #[cfg(test)]
