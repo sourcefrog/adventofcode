@@ -13,6 +13,7 @@
 // limitations under the License.
 
 //! Simple 2D integer-indexed point.
+use std::cmp::{max, min};
 use std::fmt;
 
 #[derive(Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
@@ -96,5 +97,21 @@ impl std::str::FromStr for Point {
             x.parse().map_err(|_| "parse x")?,
             y.parse().map_err(|_| "parse y")?,
         ))
+    }
+}
+
+/// Return the points on a horizontal or vertical line between two points,
+/// including those two points.
+pub fn line_between(p: Point, q: Point) -> Vec<Point> {
+    if p.x == q.x {
+        (min(p.y, q.y)..=max(p.y, q.y))
+            .map(|y| point(p.x, y))
+            .collect()
+    } else if p.y == q.y {
+        (min(p.x, q.x)..=max(p.x, q.x))
+            .map(|x| point(x, p.y))
+            .collect()
+    } else {
+        panic!("points are not in a horizontal or vertical line");
     }
 }

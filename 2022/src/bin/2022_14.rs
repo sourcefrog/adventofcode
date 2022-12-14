@@ -2,7 +2,7 @@
 
 use std::cmp::{max, min};
 
-use aoclib::{point, Matrix, Point};
+use aoclib::{line_between, point, Matrix, Point};
 
 fn main() {
     println!("{}", solve_a(&input()));
@@ -14,34 +14,15 @@ fn input() -> String {
 }
 
 fn load(input: &str) -> Matrix<char> {
-    let mut draw: Vec<Vec<Point>> = Vec::new();
-    for l in input.lines() {
-        let mut shape = Vec::new();
-        for ps in l.split(" -> ") {
-            let (x, y) = ps.split_once(',').unwrap();
-            let x: isize = x.parse().unwrap();
-            let y: isize = y.parse().unwrap();
-            shape.push(point(x, y));
-        }
-        draw.push(shape);
-    }
+    let draw: Vec<Vec<Point>> = input
+        .lines()
+        .map(|l| l.split(" -> ").map(|xy| xy.parse().unwrap()).collect())
+        .collect();
     let mut mat = Matrix::new(1200, 600, '.'); // empirical/guessed size
     for shape in draw {
         for pair in shape.windows(2) {
-            if let [p1, p2] = pair {
-                if p1.x == p2.x {
-                    for iy in min(p1.y, p2.y)..=max(p1.y, p2.y) {
-                        mat[point(p1.x, iy)] = '#';
-                    }
-                } else if p1.y == p2.y {
-                    for ix in min(p1.x, p2.x)..=max(p1.x, p2.x) {
-                        mat[point(ix, p1.y)] = '#';
-                    }
-                } else {
-                    panic!()
-                }
-            } else {
-                unreachable!()
+            for pq in line_between(pair[0], pair[1]) {
+                mat[pq] = '#'
             }
         }
     }
