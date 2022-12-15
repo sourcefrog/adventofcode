@@ -1,6 +1,5 @@
 //! https://adventofcode.com/2022/day/15
 
-use std::cmp::{max, min};
 use std::collections::BTreeSet;
 
 use aoclib::{point, Point};
@@ -8,7 +7,7 @@ use itertools::Itertools;
 use regex::Regex;
 
 fn main() {
-    // println!("{}", solve_a(&input(), 2000000));
+    println!("{}", solve_a(&input(), 2000000));
     println!("{}", solve_b(&input(), 4000000));
 }
 
@@ -27,11 +26,11 @@ fn solve_a(input: &str, tgt: isize) -> usize {
         assert_eq!(c.len(), 4);
         sbs.push((point(c[0], c[1]), point(c[2], c[3])));
     }
-    dbg!(&sbs);
+    // dbg!(&sbs);
     let mut not: BTreeSet<isize> = Default::default();
     // points that are not a beacon
     // and no further from a sensor than its beacon.
-    let mut maxcnt = 0;
+    // let mut maxcnt = 0;
     for (s, b) in &sbs {
         let rad = (s.x - b.x).abs() + (s.y - b.y).abs();
         let dy = (s.y - tgt).abs();
@@ -39,26 +38,26 @@ fn solve_a(input: &str, tgt: isize) -> usize {
         if mx < 0 {
             continue;
         }
-        dbg!(s, b, rad, dy, mx);
+        // dbg!(s, b, rad, dy, mx);
         let mut cnt = 0;
         for ix in (s.x - mx)..=(s.x + mx) {
             if not.insert(ix) {
-                maxcnt += 1
+                // maxcnt += 1
             };
             cnt += 1;
             // maxcnt += 1;
         }
         assert_eq!(cnt, 2 * mx + 1);
-        dbg!(not.len());
+        // dbg!(not.len());
     }
     for (_, b) in &sbs {
         if b.y == tgt {
             not.remove(&b.x);
-            dbg!(&b);
+            // dbg!(&b);
         }
     }
     // it's not 4704090
-    dbg!(&maxcnt);
+    // dbg!(&maxcnt);
     not.len()
 }
 
@@ -132,30 +131,31 @@ fn solve_b(input: &str, maxco: isize) -> isize {
             }
         }
         ok.push((u, v));
-        println!("maybe ok u={u},v={v}");
+        // println!("maybe ok u={u},v={v}");
     }
-    let mut really = Vec::new();
+    let mut really = BTreeSet::new();
     'uv: for (u, v) in ok {
         let x = (u + v) / 2;
         let y = u - x;
         assert_eq!(x + y, *u);
-        assert_eq!(x - y, *v);
+        // assert_eq!(x - y, *v);
         if !((0..=maxco).contains(&x) && (0..=maxco).contains(&y)) {
-            println!("{x},{y} out of range");
+            // println!("{x},{y} out of range");
             continue;
         }
         for (s, b) in &sbs {
             let rad = (s.x - b.x).abs() + (s.y - b.y).abs();
             if (x - s.x).abs() + (y - s.y).abs() <= rad {
-                println!("{x},{y} too close to {s:?}");
+                // println!("{x},{y} too close to {s:?}");
                 continue 'uv;
             }
         }
-        println!("{x},{y} is ok?");
-        really.push((x, y));
+        // println!("{x},{y} is ok?");
+        really.insert((x, y));
     }
-    assert_eq!(really.len(), 1);
-    really[0].0 * 4_000_000 + really[0].1
+    assert_eq!(really.len(), 1, "too many answers {really:?}");
+    let ans = really.pop_first().unwrap();
+    ans.0 * 4_000_000 + ans.1
     // 717757712462 is too low
 }
 
@@ -187,13 +187,13 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
         assert_eq!(solve_b(EXAMPLE, 20), 56000011);
     }
 
-    // #[test]
-    // fn solution_a() {
-    //     assert_eq!(solve_a(&input()), 9900);
-    // }
+    #[test]
+    fn solution_a() {
+        assert_eq!(solve_a(&input(), 2000000), 4886370);
+    }
 
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 9900);
-    // }
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(&input(), 4_000_000), 11374534948438);
+    }
 }
