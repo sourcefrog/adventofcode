@@ -61,12 +61,17 @@ where
         let mut best = HashMap::<P, D>::new();
         // The previous state that leads, on the best path, to this state.
         let mut predecessor = HashMap::<P, P>::new();
+        let mut cycles = 0;
         queue.push((Default::default(), origin.clone()));
         best.insert(origin.clone(), Default::default());
         loop {
             let (_priority, p) = queue
                 .pop()
                 .expect("heap is empty without reaching destination");
+            cycles += 1;
+            if cycles % 100000 == 0 {
+                dbg!(&p);
+            }
             let est = estimate(&p);
             if est == D::default() {
                 // Reassemble (a) shortest path to the destination by looking backwards
@@ -125,8 +130,13 @@ where
         let mut predecessor = HashMap::<P, P>::new();
         queue.push((Default::default(), origin.clone()));
         best.insert(origin.clone(), Default::default());
+        let mut cycles = 0;
         loop {
+            cycles += 1;
             if let Some((d, p)) = queue.pop() {
+                if cycles % 100000 == 0 {
+                    dbg!(&d, &p);
+                }
                 if is_destination(&p) {
                     // Reassemble (a) shortest path to the destination by looking backwards
                     // at the step that led to each point.

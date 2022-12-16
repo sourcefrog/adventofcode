@@ -1,13 +1,16 @@
 //! https://adventofcode.com/2022/day/16
 
+#![allow(unused_imports)]
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 
+use aoclib::shortest_path::ShortestPath;
+use itertools::Itertools;
 use regex::Regex;
 
 fn main() {
     // println!("{}", solve_a(&input()));
-    // println!("{}", solve_b(&input()));
-    println!("{}", solve_b(EX));
+    println!("{}", solve_b(&input()));
+    // println!("{}", solve_b(EX));
     // println!("{}", solve_b(&input()));
 }
 
@@ -20,19 +23,152 @@ fn input() -> String {
     std::fs::read_to_string("input/16.txt").unwrap()
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
-struct Opt<'a> {
+#[derive(Ord, PartialOrd, Clone, Debug, Eq, PartialEq, Hash)]
+struct St<'a> {
+    clk: usize,
     opened: Vec<&'a str>,
     pos: [&'a str; 2],
-    flow: usize,
-    rem: usize,
-    whose: usize,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-struct SKy<'a> {
-    opened: Vec<&'a str>,
-    pos: [&'a str; 2],
+impl<'a> St<'a> {
+    #[must_use]
+    fn open(&self, name: &'a str) -> St<'a> {
+        let mut opened = self.opened.clone();
+        opened.push(name);
+        opened.sort();
+        St {
+            opened,
+            ..self.clone()
+        }
+    }
+
+    #[must_use]
+    fn move_to(&self, actor: usize, name: &'a str) -> St<'a> {
+        let mut pos = self.pos.clone();
+        pos[actor] = name;
+        St {
+            pos,
+            ..self.clone()
+        }
+    }
+
+    #[must_use]
+    fn sit(&self) -> St<'a> {
+        St { ..self.clone() }
+    }
+}
+
+fn parse(input: &str) -> BTreeMap<&str, Valve> {
+    let mut vs: BTreeMap<&str, Valve> = BTreeMap::new();
+    let re =
+        Regex::new(r"Valve (..) has flow rate=([0-9]+); tunnels? leads? to valves? ([ ,A-Z]*)")
+            .unwrap();
+    for l in input.lines() {
+        // dbg!(l);
+        let caps = re.captures(l).unwrap();
+        let name = caps.get(1).unwrap().as_str();
+        let rate = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
+        let tun = caps
+            .get(3)
+            .unwrap()
+            .as_str()
+            .split(", ")
+            .map(|s| s.to_owned())
+            .collect();
+        vs.insert(name, Valve { rate, tun });
+    }
+    vs
+}
+
+fn solve_b(input: &str) -> usize {
+    /* OK it's essentially a shortest-path where the states are encoded as
+       the set of positions of the two actors, the valves that are already open,
+       and the clock. The cost of any step is the sum of the flows of the
+       valves that are open at the *start* of the step regardless where we move to.
+    */
+    let vs = parse(input);
+    let rates: BTreeMap<&str, usize> = vs
+        .iter()
+        .map(|(k, v)| (*k, v.rate))
+        .filter(|(_, flow)| *flow > 0)
+        .collect();
+    let start = St {
+        opened: Vec::new(),
+        pos: ["AA", "AA"],
+        clk: 0,
+    };
+    let dur = 26;
+    let path = ShortestPath::<St<'_>, usize>::find(
+        &start,
+        |st| st.clk == dur || rates.keys().all(|v| st.opened.contains(v)),
+        |st| {
+            let cost: usize = rates
+                .iter()
+                .filter(|(k, _v)| !st.opened.contains(k))
+                .map(|(_, v)| v)
+                .sum();
+            let mut a = vec![st.clone()];
+            // each actor can either open a valve at their current location (if there is one) or move to any neighboring location or stay still
+            // generate the combinations of all these moves
+            for i in 0..2 {
+                let mut b = Vec::new();
+                for s in a {
+                    let p = s.pos[i];
+                    if rates.contains_key(p) && !s.opened.contains(&p) {
+                        b.push(s.open(p));
+                    }
+                    for neig in &vs[p].tun {
+                        b.push(s.move_to(i, neig));
+                    }
+                    b.push(s.sit());
+                }
+                a = b;
+            }
+            for s in &mut a {
+                s.clk += 1;
+                s.pos.sort();
+            }
+            a.sort();
+            a.dedup();
+            a.into_iter().map(move |st| (st, cost))
+        },
+    )
+    .unwrap();
+    let path_states: Vec<_> = path.path().collect_vec();
+    dbg!(&path_states);
+    dur * rates.values().sum::<usize>() - path.distance()
+}
+
+static EX: &str = "\
+Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
+Valve BB has flow rate=13; tunnels lead to valves CC, AA
+Valve CC has flow rate=2; tunnels lead to valves DD, BB
+Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
+Valve EE has flow rate=3; tunnels lead to valves FF, DD
+Valve FF has flow rate=0; tunnels lead to valves EE, GG
+Valve GG has flow rate=0; tunnels lead to valves FF, HH
+Valve HH has flow rate=22; tunnel leads to valve GG
+Valve II has flow rate=0; tunnels lead to valves AA, JJ
+Valve JJ has flow rate=21; tunnel leads to valve II
+";
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn ex2() {
+        assert_eq!(solve_b(&EX), 1707);
+    }
+
+    // #[test]
+    // fn solution_a() {
+    //     assert_eq!(solve_a(&input()), 9900);
+    // }
+
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(&input()), 2171);
+    }
 }
 
 // The problem maybe is that if we treat it as a search tree it's very deep, 52 half-steps,
@@ -78,154 +214,3 @@ struct SKy<'a> {
  they possibly should move past some easy option to leave it for the other?
 
 */
-
-fn solve_b(input: &str) -> usize {
-    let mut vs: BTreeMap<&str, Valve> = BTreeMap::new();
-    let re =
-        Regex::new(r"Valve (..) has flow rate=([0-9]+); tunnels? leads? to valves? ([ ,A-Z]*)")
-            .unwrap();
-    for l in input.lines() {
-        // dbg!(l);
-        let caps = re.captures(l).unwrap();
-        let name = caps.get(1).unwrap().as_str();
-        let rate = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
-        let tun = caps
-            .get(3)
-            .unwrap()
-            .as_str()
-            .split(", ")
-            .map(|s| s.to_owned())
-            .collect();
-        vs.insert(name, Valve { rate, tun });
-    }
-    // If we have managed to get to the same positions, with more flow, there's no point looking any deeper.
-    let mut seen: HashMap<SKy, usize> = Default::default();
-    let mut que = Vec::from([Opt {
-        opened: Default::default(),
-        flow: 0,
-        pos: ["AA".into(), "AA".into()],
-        rem: 26,
-        whose: 0,
-    }]);
-    // let mut best_opt = None;
-    let mut best = 0;
-    // let mut all_seen: HashSet<Vec<String>> = Default::default();
-    let mut cnt = 0;
-    let mut seen_hits = 0;
-    while let Some(o) = que.pop() {
-        // println!("{o:?}");
-        cnt += 1;
-        // if cnt % 100000 == 0 {
-        //     println!("{o:?}");
-        //     println!("{best}");
-        // }
-        if o.flow > best {
-            best = o.flow;
-            // best_opt = Some(o.clone());
-            println!("new best opt {o:#?}");
-            println!("queue {}, seen {}, hits {seen_hits}", que.len(), seen.len());
-        }
-        if o.rem == 0 {
-            continue;
-        }
-        // let sk = SKy {
-        //     opened: o.opened.clone(),
-        //     pos: o.pos.clone(),
-        // };
-        // if let Some(seen_flow) = seen.get(&sk) {
-        //     if *seen_flow > o.flow {
-        //         seen_hits += 1;
-        //         continue;
-        //     }
-        // }
-        // seen.insert(sk, o.flow);
-        let rem = o.rem - o.whose;
-        let loc = o.pos[o.whose];
-        let here = &vs[&loc];
-        let whose_next = 1 - o.whose;
-        let mut next_opts = Vec::new();
-        if !o.opened.contains(&loc) && here.rate > 0 {
-            // open this valve
-            let mut opened = o.opened.clone();
-            opened.push(loc.clone());
-            opened.sort();
-            let pos = o.pos.clone();
-            next_opts.push(Opt {
-                opened,
-                flow: o.flow + (here.rate * (o.rem - 1)),
-                pos,
-                rem,
-                whose: 1 - o.whose,
-            })
-        }
-        for n in &here.tun {
-            // if o.pos[1 - o.whose] == *n {
-            //     continue;
-            // }
-            // it might be worth revisiting a place that's already open, to get somewhere else
-            let mut pos = o.pos.clone();
-            pos[o.whose] = n.as_str();
-            next_opts.push(Opt {
-                opened: o.opened.clone(),
-                rem,
-                flow: o.flow,
-                pos,
-                whose: 1 - o.whose,
-            })
-        }
-        // also an option to just sit here!
-        next_opts.push(Opt {
-            whose: whose_next,
-            rem,
-            ..o
-        });
-        for o in next_opts {
-            let sk = SKy {
-                opened: o.opened.clone(),
-                pos: o.pos.clone(),
-            };
-            if seen.get(&sk).cloned().unwrap_or(0) <= o.flow {
-                //&& !que.contains(&o) {
-                seen.insert(sk, o.flow);
-                que.push(o);
-            }
-        }
-        que.sort_by_key(|o| o.flow);
-    }
-    // not 974
-    // not 2007
-    best
-}
-
-static EX: &str = "\
-Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
-Valve BB has flow rate=13; tunnels lead to valves CC, AA
-Valve CC has flow rate=2; tunnels lead to valves DD, BB
-Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
-Valve EE has flow rate=3; tunnels lead to valves FF, DD
-Valve FF has flow rate=0; tunnels lead to valves EE, GG
-Valve GG has flow rate=0; tunnels lead to valves FF, HH
-Valve HH has flow rate=22; tunnel leads to valve GG
-Valve II has flow rate=0; tunnels lead to valves AA, JJ
-Valve JJ has flow rate=21; tunnel leads to valve II
-";
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn ex2() {
-        assert_eq!(solve_b(&EX), 1707);
-    }
-
-    // #[test]
-    // fn solution_a() {
-    //     assert_eq!(solve_a(&input()), 9900);
-    // }
-
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 9900);
-
-    // }
-}
