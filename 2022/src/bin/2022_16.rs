@@ -35,6 +35,50 @@ struct SKy<'a> {
     pos: [&'a str; 2],
 }
 
+// The problem maybe is that if we treat it as a search tree it's very deep, 52 half-steps,
+// so even modest branching makes it too expensive.
+//
+// It's not true that we can take the best step in early minutes? (Suppose we want
+// to walk past a valve to turn a more valuable one on, then come back to it?)).
+//
+// I notice there are lots of zeros that we can walk through but there's no point turning
+// them on: we already don't turn them on.
+//
+// We could try to simplify the graph cutting out zeros that are not on shortest
+// paths, but that seems a bit indirect.
+//
+// There are 15 valves we could turn on; naively we could turn them on in 15! orders.
+// That's ~1e12, possible but a bit high.
+//
+// We could calculate the shortest path from AA to each valve. Or, all the shortest paths
+// between non-zero valves.
+//
+/*
+ Essentially we're trading off:
+
+ - We'd rather turn on larger valves sooner.
+ - Travelling to turn on one valve may put us further away from others that we want to turn on
+ - Possibly it's better to turn on a smaller valve if it's closer; or possibly it's better
+   to come back and get it later: it depends on the weight.
+
+ This seems like a shortest-path-like optimization but not in the nominally literal
+ space. Maybe under some transformation?
+
+ The most promising option all else being equal is one that turns on the most valves
+ at the earliest time.
+
+ With 2 actors and 26 steps we probably can eventually turn on all the valves. Maybe it's
+ just a question of the ordering and timing of turning them on? But, if they're far away
+ maybe it's just not possible?
+
+ Maybe we should preprocess it to throw out the zeros and calculate the shortest paths
+ between non-zero valves. It would make it more complicated to play the steps maybe?
+
+ It probably _won't_ work to greedily calculate the best steps for one actor at a time;
+ they possibly should move past some easy option to leave it for the other?
+
+*/
+
 fn solve_b(input: &str) -> usize {
     let mut vs: BTreeMap<&str, Valve> = BTreeMap::new();
     let re =
@@ -56,7 +100,7 @@ fn solve_b(input: &str) -> usize {
     }
     // If we have managed to get to the same positions, with more flow, there's no point looking any deeper.
     let mut seen: HashMap<SKy, usize> = Default::default();
-    let mut que = VecDeque::from([Opt {
+    let mut que = Vec::from([Opt {
         opened: Default::default(),
         flow: 0,
         pos: ["AA".into(), "AA".into()],
@@ -68,7 +112,7 @@ fn solve_b(input: &str) -> usize {
     // let mut all_seen: HashSet<Vec<String>> = Default::default();
     let mut cnt = 0;
     let mut seen_hits = 0;
-    while let Some(o) = que.pop_front() {
+    while let Some(o) = que.pop() {
         // println!("{o:?}");
         cnt += 1;
         // if cnt % 100000 == 0 {
@@ -84,21 +128,18 @@ fn solve_b(input: &str) -> usize {
         if o.rem == 0 {
             continue;
         }
-        let sk = SKy {
-            opened: o.opened.clone(),
-            pos: o.pos.clone(),
-        };
-        if let Some(seen_flow) = seen.get(&sk) {
-            if *seen_flow > o.flow {
-                seen_hits += 1;
-                continue;
-            }
-        }
-        seen.insert(sk, o.flow);
+        // let sk = SKy {
+        //     opened: o.opened.clone(),
+        //     pos: o.pos.clone(),
+        // };
+        // if let Some(seen_flow) = seen.get(&sk) {
+        //     if *seen_flow > o.flow {
+        //         seen_hits += 1;
+        //         continue;
+        //     }
+        // }
+        // seen.insert(sk, o.flow);
         let rem = o.rem - o.whose;
-        // The possible next states are the combinations of one move each for the
-        // two actors. No point in them making the same move.
-
         let loc = o.pos[o.whose];
         let here = &vs[&loc];
         let whose_next = 1 - o.whose;
@@ -121,6 +162,7 @@ fn solve_b(input: &str) -> usize {
             // if o.pos[1 - o.whose] == *n {
             //     continue;
             // }
+            // it might be worth revisiting a place that's already open, to get somewhere else
             let mut pos = o.pos.clone();
             pos[o.whose] = n.as_str();
             next_opts.push(Opt {
@@ -138,10 +180,17 @@ fn solve_b(input: &str) -> usize {
             ..o
         });
         for o in next_opts {
-            if !que.contains(&o) {
-                que.push_back(o);
+            let sk = SKy {
+                opened: o.opened.clone(),
+                pos: o.pos.clone(),
+            };
+            if seen.get(&sk).cloned().unwrap_or(0) <= o.flow {
+                //&& !que.contains(&o) {
+                seen.insert(sk, o.flow);
+                que.push(o);
             }
         }
+        que.sort_by_key(|o| o.flow);
     }
     // not 974
     // not 2007
