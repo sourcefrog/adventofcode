@@ -139,6 +139,7 @@ fn solve_b(input: &str) -> usize {
     dur * rates.values().sum::<usize>() - path.distance()
 }
 
+#[allow(dead_code)]
 static EX: &str = "\
 Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
 Valve BB has flow rate=13; tunnels lead to valves CC, AA
