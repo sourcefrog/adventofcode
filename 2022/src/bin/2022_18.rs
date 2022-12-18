@@ -128,11 +128,11 @@ mod test {
 
     #[test]
     fn solution_a() {
-        assert_eq!(solve_a(&input()), 9900);
+        assert_eq!(solve_a(&input()), 4504);
     }
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(&input()), 9900);
+        assert_eq!(solve_b(&input()), 2556);
     }
 }
