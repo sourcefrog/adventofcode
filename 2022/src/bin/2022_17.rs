@@ -178,15 +178,34 @@ etc.
 So maybe the simplest thing is to cut it off when we find a fully populated row.
 This will at least be sufficient to know if the reachable map is in the same state?
 
+It seems like the example data is contrived so that it never generates a fully-filled
+row across the map even after many thousands of iterations. Maybe we need a different
+approach...
+
+We can see there are points in this grid where there's a solid connection across and
+so nothing can fall below there. Maybe we could use this kind of reachability to
+truncate it. It seems like this is getting a bit complicated though. Maybe there's a
+simpler path?
+
+A simpler path to detect cycles? Or something simpler than detecting cycles?
+
+I guess rather than remembering all of the points on the map we could really just
+remember where each rock ended up, relative to where it started from. The concatenation
+of those values fully determines the content of the map.
+
+OK, new attempt: a more sophisticated attempt to detect where to truncate the map, based
+on cells that are reachable from either above or the sides.
+
 
 */
 
 fn main() {
-    // println!("{}", solve_a(EX, 2022));
+    println!("{}", solve_a(EX, 30));
+    // println!("{}", solve_a(EX, TRILLION));
     // println!("{}", solve_a(&input(), 2022));
     // println!("{}", solve_b(&input(), TRILLION));
     // println!("{}", solve_b(&input(), 2022));
-    println!("{}", solve_b(EX, 2022));
+    // println!("{}", solve_b(EX, 2022));
     // println!("{}", solve_b(&input(), TRILLION));
 }
 
@@ -225,9 +244,19 @@ fn input() -> String {
 
 fn solve_a(input: &str, rounds: usize) -> usize {
     let mut game = Game::new(input);
-    let mut rrs = Vec::with_capacity(rounds);
-    for _i_round in 1..=rounds {
-        rrs.push(game.drop_next());
+    // let mut rrs = Vec::with_capacity(rounds);
+
+    for i_round in 1..=rounds {
+        if i_round % 10000 == 0 {
+            println!(
+                "round {i_round} tower_height {} grid height {}",
+                game.tower_height,
+                game.map.grid_height()
+            );
+            // println!("{}", game.map.to_string());
+        }
+        let _rr = game.drop_next();
+        // rrs.push(rr);
 
         // for dy in 0..game.tower_height {
         //     let my = game.map.height() + dy - game.tower_height;
@@ -242,10 +271,10 @@ fn solve_a(input: &str, rounds: usize) -> usize {
         //     }
         // }
     }
-    assert_eq!(
-        rrs.iter().map(|rr| rr.growth).sum::<usize>(),
-        game.tower_height
-    );
+    // assert_eq!(
+    //     rrs.iter().map(|rr| rr.growth).sum::<usize>(),
+    //     game.tower_height
+    // );
     game.tower_height
 }
 
@@ -340,25 +369,36 @@ impl Map {
     /// If there is a solid row across the map at any point, remove everything below it.
     /// Returns the number of rows removed, which may be zero.
     fn truncate(&mut self) -> usize {
+        // Find the lowest reachable row by blocks falling from above or moving sideways.
+        let mut rcells = [true; MAP_WIDTH];
         // Find the highest row that is set all the way across.
         // No point truncating below row 0.
-        let mut cy = None;
-        for y in (1..self.grid_height()).rev() {
-            if self.cols.iter().all(|col| col[y]) {
-                cy = Some(y);
+        let mut cy = self.grid_height() - 1;
+        while cy > 0 {
+            // cells on the next line down are reachable if they're not occupied, and
+            // the cell directly above is not occupied, or either of the cells
+            // diagonally above are reachable. (It's not quite precise.)
+            let mut ncells = [false; MAP_WIDTH];
+            for x in 0..MAP_WIDTH {
+                ncells[x] = !self.get(x, cy - 1)
+                    && (rcells[x]
+                        || (x > 0) && rcells[x - 1]
+                        || (x + 1 < MAP_WIDTH) && rcells[x + 1])
+            }
+            cy -= 1;
+            if !ncells.iter().any(|x| *x) {
+                // no cells here are reachable; we can stop
                 break;
+            } else {
+                rcells = ncells;
             }
         }
-        if let Some(cy) = cy {
+        if cy > 0 {
             for i in 0..MAP_WIDTH {
                 self.cols[i] = self.cols[i].split_off(cy)
             }
-            // The bottom row should now all be set.
-            assert!(self.cols.iter().all(|col| col[0]));
-            cy
-        } else {
-            0
         }
+        cy
     }
 
     fn to_string(&self) -> String {
@@ -481,7 +521,7 @@ impl Game {
         let rock = &self.rocks[self.i_rock];
         let mut y = self.map.max_block_height() + rock.height() + 2;
         let mut x = 2;
-        // println!("drop from {x}, {y}\n{}", rock.to_string_lines());
+        println!("drop from {x}, {y}\n{}", rock.to_string_lines());
         let mut moves = String::new();
         let orig_block_height = self.map.max_block_height();
         loop {
@@ -493,22 +533,21 @@ impl Game {
                 && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
                 && !self.map.hit_test(rock, (x + dx) as usize, y)
             {
-                // println!("move {move_ch}");
+                println!("move {move_ch}");
                 x += dx;
             } else {
-                // println!("can't move {move_ch}");
+                println!("can't move {move_ch}");
             }
             if !(self.base_height == 0 && y == 0) && !self.map.hit_test(rock, x as usize, y - 1) {
                 y -= 1;
-                // println!("fall to {x}, {y}");
+                println!("fall to {x}, {y}");
             } else {
-                // println!("stopped at {x}, {y}");
+                println!("stopped at {x}, {y}");
                 break;
             }
-            // draw_temp(rock, &map, x, y);
         }
         self.map.paint(rock, x as usize, y);
-        // println!("{}\n", self.map.to_string());
+        println!("{}\n", self.map.to_string());
         let growth = self.map.max_block_height() - orig_block_height;
         self.tower_height += growth;
         let r = RoundResult {
@@ -522,7 +561,11 @@ impl Game {
         self.i_round += 1;
         let truncated = self.map.truncate();
         if truncated > 0 {
-            println!("truncated {truncated} rows in {}", self.i_round);
+            println!(
+                "truncated {truncated} rows in {}, now\n{}",
+                self.i_round,
+                self.map.to_string()
+            );
         }
         self.base_height += truncated;
         r
