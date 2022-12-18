@@ -182,8 +182,8 @@ This will at least be sufficient to know if the reachable map is in the same sta
 */
 
 fn main() {
-    println!("{}", solve_a(EX, 2022));
-    // println!("{}", solve_a(&input(), 2022));
+    // println!("{}", solve_a(EX, 2022));
+    println!("{}", solve_a(&input(), 2022));
     // println!("{}", solve_b(&input(), TRILLION));
     // println!("{}", solve_b(&input(), 2022));
     // println!("{}", solve_b(&input(), TRILLION));
@@ -325,23 +325,28 @@ impl Map {
         }
     }
 
-    /// If there is a solid row across the map at any point, remove that many rows from the bottom
-    /// and return the number removed.
+    /// If there is a solid row across the map at any point, remove everything below it.
+    /// Returns the number of rows removed, which may be zero.
     fn truncate(&mut self) -> usize {
-        let mut cy = 0;
-        for y in (0..self.grid_height()).rev() {
+        // Find the highest row that is set all the way across.
+        // No point truncating below row 0.
+        let mut cy = None;
+        for y in (1..self.grid_height()).rev() {
             if self.cols.iter().all(|col| col[y]) {
-                cy = y + 1;
+                cy = Some(y);
                 break;
             }
         }
-        if cy == 0 {
-            return 0;
+        if let Some(cy) = cy {
+            for i in 0..MAP_WIDTH {
+                self.cols[i] = self.cols[i].split_off(cy)
+            }
+            // The bottom row should now all be set.
+            assert!(self.cols.iter().all(|col| col[0]));
+            cy
+        } else {
+            0
         }
-        for i in 0..MAP_WIDTH {
-            self.cols[i] = self.cols[i].split_off(cy)
-        }
-        cy
     }
 
     fn to_string(&self) -> String {
@@ -506,31 +511,6 @@ impl Game {
         self.base_height += truncated;
         r
     }
-}
-
-fn pint_into_map(rock: &Matrix<char>, map: &mut Matrix<char>, x: isize, y: isize, pc: char) {
-    for (rp, &c) in rock.point_values() {
-        if c != '.' {
-            let mp = rp.delta(x, y);
-            assert_eq!(map[mp], '.');
-            map[mp] = pc;
-        }
-    }
-}
-
-fn on_floor(rock: &Matrix<char>, map: &Matrix<char>, _x: isize, y: isize) -> bool {
-    rock.height() as isize + y > map.height() as isize
-}
-
-fn intersect(rock: &Matrix<char>, map: &Matrix<char>, x: isize, y: isize) -> bool {
-    for rp in rock.find_values(&'#') {
-        let mp = rp.delta(x, y);
-        if map[mp] != '.' {
-            // println!("hit");
-            return true;
-        }
-    }
-    false
 }
 
 #[cfg(test)]
