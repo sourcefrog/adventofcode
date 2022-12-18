@@ -183,9 +183,10 @@ This will at least be sufficient to know if the reachable map is in the same sta
 
 fn main() {
     // println!("{}", solve_a(EX, 2022));
-    println!("{}", solve_a(&input(), 2022));
+    // println!("{}", solve_a(&input(), 2022));
     // println!("{}", solve_b(&input(), TRILLION));
     // println!("{}", solve_b(&input(), 2022));
+    println!("{}", solve_b(EX, 2022));
     // println!("{}", solve_b(&input(), TRILLION));
 }
 
@@ -249,29 +250,39 @@ fn solve_a(input: &str, rounds: usize) -> usize {
 }
 
 fn solve_b(input: &str, rounds: usize) -> usize {
-    let sample_rounds = 6666;
+    let sample_rounds = 20000;
     let mut game = Game::new(input);
     let mut rrs = Vec::with_capacity(sample_rounds);
     // Number of rounds before the cycle is seen to start.
     let mut initial_rounds = None;
     // Number of rounds in each cycle.
     let mut cycle_rounds = None;
-    for _i_round in 1..=sample_rounds {
+    for i_round in 1..=sample_rounds {
         let rr = game.drop_next();
         // println!("{} {}", rr.i_rock, rr.i_move);
+        // println!("{}", rr.map.to_string());
         // assert_eq!(rr.i_round, i_round);
-        if let Some(x) = rrs.iter().rev().position(|x| *x == rr).map(|x| x + 1) {
+        if let Some(x) = rrs.iter().rposition(|x: &RoundResult| *x == rr) {
             // If the previous rr matches this, then the length would be 1, not 0.
-            println!("repeat? {rr:?} cycle rounds {x}",);
+            println!(
+                "repeat? cycle rounds {x} move {} rock {} moves {}",
+                rr.i_move, rr.i_rock, rr.moves
+            );
+            println!("{}", rr.map.to_string());
+            println!("previous moves\n{}", rrs[x].map.to_string());
             if initial_rounds.is_none() {
                 // Cycle starts on the first occurrence of rr, initial rounds is the number of
                 // rounds prior to that.
-                initial_rounds = Some(rrs.iter().position(|x| *x == rr).unwrap());
+                initial_rounds = Some(x);
             }
             if cycle_rounds.is_none() {
-                cycle_rounds = Some(x);
+                cycle_rounds = Some(i_round - x);
             } else {
-                assert_eq!(cycle_rounds.unwrap(), x, "cycle length is not stable");
+                assert_eq!(
+                    cycle_rounds.unwrap(),
+                    i_round - x,
+                    "cycle length is not stable"
+                );
             }
         }
         rrs.push(rr);
@@ -311,6 +322,7 @@ fn solve_b(input: &str, rounds: usize) -> usize {
     initial_growth + n_cycles * cycle_growth + tail_growth
 }
 
+#[derive(Clone, Eq, PartialEq)]
 struct Map {
     /// The content of each column, where element 0 is at the bottom, and
     /// true values are occupied. All cols must be the same length (i.e. height).
@@ -431,7 +443,7 @@ struct Game {
     base_height: usize,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 struct RoundResult {
     /// How much did the height of the tower increase?
     growth: usize,
@@ -442,6 +454,9 @@ struct RoundResult {
 
     /// What moves?
     moves: String,
+
+    /// What does the reachable map look like after this round?
+    map: Map,
 }
 
 impl Game {
@@ -466,7 +481,7 @@ impl Game {
         let rock = &self.rocks[self.i_rock];
         let mut y = self.map.max_block_height() + rock.height() + 2;
         let mut x = 2;
-        println!("drop from {x}, {y}\n{}", rock.to_string_lines());
+        // println!("drop from {x}, {y}\n{}", rock.to_string_lines());
         let mut moves = String::new();
         let orig_block_height = self.map.max_block_height();
         loop {
@@ -478,22 +493,22 @@ impl Game {
                 && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
                 && !self.map.hit_test(rock, (x + dx) as usize, y)
             {
-                println!("move {move_ch}");
+                // println!("move {move_ch}");
                 x += dx;
             } else {
-                println!("can't move {move_ch}");
+                // println!("can't move {move_ch}");
             }
             if !(self.base_height == 0 && y == 0) && !self.map.hit_test(rock, x as usize, y - 1) {
                 y -= 1;
-                println!("fall to {x}, {y}");
+                // println!("fall to {x}, {y}");
             } else {
-                println!("stopped at {x}, {y}");
+                // println!("stopped at {x}, {y}");
                 break;
             }
             // draw_temp(rock, &map, x, y);
         }
         self.map.paint(rock, x as usize, y);
-        println!("{}\n", self.map.to_string());
+        // println!("{}\n", self.map.to_string());
         let growth = self.map.max_block_height() - orig_block_height;
         self.tower_height += growth;
         let r = RoundResult {
@@ -501,12 +516,13 @@ impl Game {
             i_move: self.i_move,
             moves,
             growth,
+            map: self.map.clone(),
         };
         self.i_rock = (self.i_rock + 1) % self.rocks.len();
         self.i_round += 1;
         let truncated = self.map.truncate();
         if truncated > 0 {
-            println!("truncated {truncated} rows");
+            println!("truncated {truncated} rows in {}", self.i_round);
         }
         self.base_height += truncated;
         r
