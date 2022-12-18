@@ -1,5 +1,6 @@
 //! https://adventofcode.com/2022/day/18
 
+use std::cmp::max;
 use std::collections::HashSet;
 
 fn main() {
@@ -11,30 +12,27 @@ fn input() -> String {
     std::fs::read_to_string("input/18.txt").unwrap()
 }
 
-fn solve_a(input: &str) -> usize {
-    let cubes: HashSet<Vec<isize>> = input
+fn parse(input: &str) -> HashSet<Vec<isize>> {
+    input
         .lines()
         .map(|l| {
             l.split(',')
                 .map(|w| w.parse::<isize>().unwrap())
                 .collect::<Vec<isize>>()
         })
-        .collect();
-    let mut open = 0;
-    for c in &cubes {
-        for dim in 0..=2 {
-            for dir in &[-1, 1] {
-                let mut n = c.clone();
-                n[dim] += dir;
-                if !cubes.contains(&n) {
-                    open += 1;
-                }
-            }
-        }
-    }
-    open
+        .collect()
 }
 
+fn solve_a(input: &str) -> usize {
+    let cubes = parse(input);
+    cubes
+        .iter()
+        .flat_map(nbrs)
+        .filter(|n| !cubes.contains(n))
+        .count()
+}
+
+#[allow(clippy::ptr_arg)] // avoids needing lambdas in callers, and it's always a vec
 fn nbrs(p: &Vec<isize>) -> Vec<Vec<isize>> {
     let mut r = Vec::new();
     for dim in 0..=2 {
@@ -48,26 +46,21 @@ fn nbrs(p: &Vec<isize>) -> Vec<Vec<isize>> {
 }
 
 fn solve_b(input: &str) -> usize {
-    let cubes: HashSet<Vec<isize>> = input
-        .lines()
-        .map(|l| {
-            l.split(',')
-                .map(|w| w.parse::<isize>().unwrap())
-                .collect::<Vec<isize>>()
-        })
-        .collect();
-    let mut bound = vec![0, 0, 0];
+    let cubes = parse(input);
+    let origin = vec![0, 0, 0];
+    // x,y,z of a bounding box with one margin space.
+    let mut bound = origin.clone();
     for c in &cubes {
         for dim in 0..=2 {
-            bound[dim] = std::cmp::max(bound[dim], c[dim] + 1);
+            bound[dim] = max(bound[dim], c[dim] + 1);
         }
     }
     // println!("{bound:?}");
     // Flood fill from 0,0,0 within a bounding box around all cubes.
     let mut steam: HashSet<Vec<isize>> = Default::default();
-    // New is cubes known to contain steam that have not yet been explored.
-    let mut new: Vec<Vec<isize>> = [vec![0, 0, 0]].into();
-    while let Some(s) = new.pop() {
+    // q is cubes known to contain steam that have not yet been explored.
+    let mut q: Vec<Vec<isize>> = [origin].into();
+    while let Some(s) = q.pop() {
         steam.insert(s.clone());
         'n: for n in nbrs(&s) {
             for dim in 0..=2 {
@@ -76,25 +69,17 @@ fn solve_b(input: &str) -> usize {
                     continue 'n;
                 }
             }
-            if !cubes.contains(&n) && !steam.contains(&n) && !new.contains(&n) {
+            if !cubes.contains(&n) && !steam.contains(&n) && !q.contains(&n) {
                 // println!("steam in {n:?}");
-                new.push(n)
+                q.push(n)
             }
         }
     }
-    let mut open = 0;
-    for c in &cubes {
-        for dim in 0..=2 {
-            for dir in &[-1, 1] {
-                let mut n = c.clone();
-                n[dim] += dir;
-                if !cubes.contains(&n) && steam.contains(&n) {
-                    open += 1;
-                }
-            }
-        }
-    }
-    open
+    cubes
+        .iter()
+        .flat_map(nbrs)
+        .filter(|n| steam.contains(n))
+        .count()
 }
 
 #[cfg(test)]
