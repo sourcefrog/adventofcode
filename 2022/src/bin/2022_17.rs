@@ -77,8 +77,37 @@ on the map state.
 
 Assume: the cycle does repeat in this way.
 
+(1e12 - 1749) / 1725 = 579_710_143 whole cycles, for growth of 1584927530962.
+
 (1e12 - 1749) % 1725 leaves a residue of 1576 moves, so we need to know how much it
-grows then.
+grows then. In 1576 moves after starting the first repeating cycle we grow 2510 units.
+
+So, hopefully, the total is 2773 + 1584927530962 + 2510...
+
+So I guessed 1584927536245 but that is too low.
+
+A good way to check this method would be to check the results on a smaller number that still
+includes multiple cycles.
+
+Wonder: Is this just a dumb off-by-one? It seems possible...
+
+For example after 20220 rounds, that's 1749 rounds initially, then 10 cycles, then a remainder
+of (20220 - 1749) % 1725 == 1221. That remainder
+
+OK the problem is that I'm printing at the start of the moves and we want to know the height
+_after_ the moves.
+
+Checking the position _after_ each move, where is still a cycle, and still hitting move 0 rock 3:
+
+Initially 1748 rounds, growing 2770.
+
+Then cycles of 1725 rounds, growing by 2731.
+
+So for 202200 rounds, that's 117 cycles, and a residue of 375 rounds for 596 growth.
+
+So 2770 + 117 * 2731 + 596?
+
+It's not quite right; the brute force result is 320473, off by 2420?
 
 */
 
@@ -97,15 +126,6 @@ fn solve_b(input: &str, rounds: usize) -> usize {
     let mut last_move_0_cycle = 0;
     let mut cycle_growth = 0;
     for i_round in 1..=rounds {
-        if i_move == 0 || (i_round == 1749 + 1576) {
-            println!(
-                "move {i_move}, rock {i_rock}, round {i_round}, rounds in cycle {}, growth in cycle {}, top {top}",
-                i_round - last_move_0_cycle,
-                cycle_growth,
-            );
-            last_move_0_cycle = i_round;
-            cycle_growth = 0;
-        }
         let rock = &rocks[i_rock];
         i_rock = (i_rock + 1) % rocks.len();
         // dbg!(irock);
@@ -140,7 +160,18 @@ fn solve_b(input: &str, rounds: usize) -> usize {
         }
         paint(rock, &mut map, x, y, '#');
         // println!("{}\n", map.to_string_lines());
-        cycle_growth += max(0, top - y);
+        if i_move == 0 || (i_round == 1748 + 375) {
+            println!(
+                "move {i_move}, rock {i_rock}, round {i_round}, rounds in cycle {}, \
+growth in cycle {}, top {top}",
+                i_round - last_move_0_cycle,
+                cycle_growth,
+            );
+            last_move_0_cycle = i_round;
+            cycle_growth = 0;
+        } else {
+            cycle_growth += max(0, top - y);
+        }
         top = std::cmp::min(top, y);
     }
     (mh as isize - top) as usize
@@ -148,7 +179,7 @@ fn solve_b(input: &str, rounds: usize) -> usize {
 
 fn main() {
     // println!("{}", solve_a(&input(), 2022));
-    println!("{}", solve_b(&input(), 20220));
+    println!("{}", solve_b(&input(), 202200));
 }
 
 static ROCKS: &str = "\
