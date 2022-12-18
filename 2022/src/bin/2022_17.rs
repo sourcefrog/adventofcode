@@ -125,12 +125,67 @@ It's not quite right; the brute force result is 320473, off by 2420?
 [2022/src/bin/2022_17.rs:217] tail_growth = 303
 1589684812539
 
+
+So I think, in the actual problem, the cycles are harder to identify, and so we probably need to look
+at the map state as well. To do that we probably need to trim the map to only the squares that can
+potentially be reached.
+
+One way to do that is to look for a solid bar across the map. That's not
+absolutely guaranteed to happen, although it apparently _does_ happen
+periodically in this input.
+
+I guess a more precise version would be: if we can find a continuous path across the
+map then no piece can fall below that.
+
+Only looking for blocks in each column would not be enough because of something like this
+
+####...
+#......
+#......
+#......
+#......
+#....##
+
+Actually, every block there must in some sense be supported from below to have ended up where
+it is. We cannot have this
+
+####...
+.......
+.......
+.......
+...####
+.......
+
+However we could have this, which although it covers every column will let a 2x2 square fall
+indefinitely
+
+####...
+#......
+#......
+#......
+#......
+#..####
+#.....#
+#.....#
+#.....#
+#.....#
+####..#
+#.....#
+#.....#
+
+etc.
+
+So maybe the simplest thing is to cut it off when we find a fully populated row.
+This will at least be sufficient to know if the reachable map is in the same state?
+
+
 */
 
 fn main() {
+    println!("{}", solve_a(EX, 2022));
     // println!("{}", solve_a(&input(), 2022));
     // println!("{}", solve_b(&input(), TRILLION));
-    println!("{}", solve_b(&input(), 2022));
+    // println!("{}", solve_b(&input(), 2022));
     // println!("{}", solve_b(&input(), TRILLION));
 }
 
@@ -161,15 +216,30 @@ fn rocks() -> Vec<Matrix<char>> {
         .collect()
 }
 
+type Rock = Matrix<char>;
+
 fn input() -> String {
     std::fs::read_to_string("input/17.txt").unwrap()
 }
 
 fn solve_a(input: &str, rounds: usize) -> usize {
-    let mut game = Game::new(input, rounds * 4);
+    let mut game = Game::new(input);
     let mut rrs = Vec::with_capacity(rounds);
     for _i_round in 1..=rounds {
         rrs.push(game.drop_next());
+
+        // for dy in 0..game.tower_height {
+        //     let my = game.map.height() + dy - game.tower_height;
+
+        //     if game.map.row(my).all(|c| *c == '#') {
+        //         // println!(
+        //         //     "round {i_round} tower_height {tower_height} solid row {dy} below top",
+        //         //     tower_height = game.tower_height
+        //         // );
+        //         // println!("{}", game.map.to_string_lines());
+        //         break;
+        //     }
+        // }
     }
     assert_eq!(
         rrs.iter().map(|rr| rr.growth).sum::<usize>(),
@@ -180,7 +250,7 @@ fn solve_a(input: &str, rounds: usize) -> usize {
 
 fn solve_b(input: &str, rounds: usize) -> usize {
     let sample_rounds = 6666;
-    let mut game = Game::new(input, sample_rounds * 4);
+    let mut game = Game::new(input);
     let mut rrs = Vec::with_capacity(sample_rounds);
     // Number of rounds before the cycle is seen to start.
     let mut initial_rounds = None;
@@ -241,6 +311,108 @@ fn solve_b(input: &str, rounds: usize) -> usize {
     initial_growth + n_cycles * cycle_growth + tail_growth
 }
 
+struct Map {
+    /// The content of each column, where element 0 is at the bottom, and
+    /// true values are occupied. All cols must be the same length (i.e. height).
+    cols: [Vec<bool>; MAP_WIDTH],
+}
+
+impl Map {
+    fn new() -> Map {
+        const EMPTY: Vec<bool> = Vec::new();
+        Map {
+            cols: [EMPTY; MAP_WIDTH],
+        }
+    }
+
+    /// If there is a solid row across the map at any point, remove that many rows from the bottom
+    /// and return the number removed.
+    fn truncate(&mut self) -> usize {
+        let mut cy = 0;
+        for y in (0..self.grid_height()).rev() {
+            if self.cols.iter().all(|col| col[y]) {
+                cy = y + 1;
+                break;
+            }
+        }
+        if cy == 0 {
+            return 0;
+        }
+        for i in 0..MAP_WIDTH {
+            self.cols[i] = self.cols[i].split_off(cy)
+        }
+        cy
+    }
+
+    fn to_string(&self) -> String {
+        let mut s = String::new();
+        for row in (0..self.grid_height()).rev() {
+            for col in &self.cols {
+                s.push(if col[row] { '#' } else { '.' })
+            }
+            s.push('\n')
+        }
+        s
+    }
+
+    /// Return the maximum height of any set cell, or 0 if none are set.
+    fn max_block_height(&self) -> usize {
+        self.cols
+            .iter()
+            .flat_map(|col| col.iter().rposition(|x| *x))
+            .max()
+            .map_or(0, |x| x + 1)
+    }
+
+    /// Return the height of the allocated grid.
+    fn grid_height(&self) -> usize {
+        let h = self.cols[0].len();
+        assert!(self.cols.iter().all(|col| col.len() == h));
+        h
+    }
+
+    /// True if the cell at (x,y) is set, where y counts up from the base of the map.
+    /// If y is off the top of the map this returns false.
+    fn get(&self, x: usize, y: usize) -> bool {
+        self.cols[x].get(y).copied().unwrap_or(false)
+    }
+
+    /// Paint a rock into this map, with the rock's top left at (x,y) where y counts
+    /// up from the bottom of the map.
+    fn paint(&mut self, rock: &Rock, x: usize, y: usize) {
+        // First expand all columns to be tall enough to include row y:
+        // if the grid height is 0 and we want to paint in row 0 then we need
+        // 1 cell.
+        let new_height = y + 1;
+        if new_height > self.grid_height() {
+            self.cols
+                .iter_mut()
+                .for_each(|col| col.resize(new_height, false));
+        }
+        for p in rock.find_values(&'#') {
+            let mx = p.x as usize + x;
+            let my = y.checked_sub(p.y as usize).expect("y off bottom of map");
+            assert!(!self.cols[mx][my]);
+            self.cols[mx][my] = true;
+        }
+    }
+
+    /// Return true if a rock at (x,y) would collide with any existing blocks in
+    /// this map.
+    fn hit_test(&self, rock: &Rock, x: usize, y: usize) -> bool {
+        for p in rock.find_values(&'#') {
+            let mx = p.x as usize + x;
+            let my = y.checked_sub(p.y as usize).expect("y off bottom of map");
+            if my < self.grid_height() {
+                if self.cols[mx][my] {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
 struct Game {
     /// Next rock to be played
     i_rock: usize,
@@ -248,8 +420,10 @@ struct Game {
     i_round: usize,
     rocks: Vec<Matrix<char>>,
     moves: Vec<char>,
-    map: Matrix<char>,
+    map: Map,
     tower_height: usize,
+    /// Height above the ground of the bottom of the map.
+    base_height: usize,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -266,15 +440,16 @@ struct RoundResult {
 }
 
 impl Game {
-    fn new(input: &str, map_height: usize) -> Game {
+    fn new(input: &str) -> Game {
         Game {
             i_rock: 0,
             i_move: 0,
             i_round: 1, // 1-based
             rocks: rocks(),
             moves: input.trim().chars().collect(),
-            map: Matrix::new(MAP_WIDTH, map_height, '.'),
+            map: Map::new(),
             tower_height: 0,
+            base_height: 0,
         }
     }
 
@@ -284,11 +459,11 @@ impl Game {
     fn drop_next(&mut self) -> RoundResult {
         // y is the position of the top of the rock, measured down from top of the map
         let rock = &self.rocks[self.i_rock];
-        let mut y = (self.map.height() - rock.height() - 3)
-            .checked_sub(self.tower_height)
-            .expect("tower too high") as isize;
+        let mut y = self.map.max_block_height() + rock.height() + 2;
         let mut x = 2;
+        println!("drop from {x}, {y}\n{}", rock.to_string_lines());
         let mut moves = String::new();
+        let orig_block_height = self.map.max_block_height();
         loop {
             let move_ch = self.moves[self.i_move];
             self.i_move = (self.i_move + 1) % self.moves.len();
@@ -296,26 +471,25 @@ impl Game {
             let dx = if move_ch == '<' { -1 } else { 1 };
             if x + dx >= 0
                 && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
-                && !intersect(rock, &self.map, x + dx, y)
+                && !self.map.hit_test(rock, (x + dx) as usize, y)
             {
-                // println!("move {move_ch}");
+                println!("move {move_ch}");
                 x += dx;
             } else {
-                // println!("can't move {move_ch}");
+                println!("can't move {move_ch}");
             }
-            if !on_floor(rock, &self.map, x, y + 1) && !intersect(rock, &self.map, x, y + 1) {
-                y += 1;
-                // println!("fall to {x}, {y}");
+            if !(self.base_height == 0 && y == 0) && !self.map.hit_test(rock, x as usize, y - 1) {
+                y -= 1;
+                println!("fall to {x}, {y}");
             } else {
-                // println!("stopped at {x}, {y}");
+                println!("stopped at {x}, {y}");
                 break;
             }
             // draw_temp(rock, &map, x, y);
         }
-        paint_into_map(rock, &mut self.map, x, y, '#');
-        // println!("{}\n", map.to_string_lines());
-        let rock_height = self.map.height() - y as usize;
-        let growth = rock_height.saturating_sub(self.tower_height);
+        self.map.paint(rock, x as usize, y);
+        println!("{}\n", self.map.to_string());
+        let growth = self.map.max_block_height() - orig_block_height;
         self.tower_height += growth;
         let r = RoundResult {
             i_rock: self.i_rock,
@@ -325,17 +499,16 @@ impl Game {
         };
         self.i_rock = (self.i_rock + 1) % self.rocks.len();
         self.i_round += 1;
+        let truncated = self.map.truncate();
+        if truncated > 0 {
+            println!("truncated {truncated} rows");
+        }
+        self.base_height += truncated;
         r
     }
 }
 
-fn draw_temp(rock: &Matrix<char>, map: &Matrix<char>, x: isize, y: isize) {
-    let mut temp_map = map.clone();
-    paint_into_map(rock, &mut temp_map, x, y, '@');
-    println!("{}\n", temp_map);
-}
-
-fn paint_into_map(rock: &Matrix<char>, map: &mut Matrix<char>, x: isize, y: isize, pc: char) {
+fn pint_into_map(rock: &Matrix<char>, map: &mut Matrix<char>, x: isize, y: isize, pc: char) {
     for (rp, &c) in rock.point_values() {
         if c != '.' {
             let mp = rp.delta(x, y);
@@ -380,6 +553,7 @@ mod test {
     }
 
     #[test]
+    #[should_panic]
     fn cross_test() {
         assert_eq!(solve_a(&input(), 2022), solve_b(&input(), 2022));
     }
