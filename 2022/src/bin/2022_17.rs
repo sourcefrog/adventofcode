@@ -1,11 +1,13 @@
 //! https://adventofcode.com/2022/day/17
 
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports)]
 
 use std::cmp::{max, min};
 
 use aoclib::Matrix;
 use itertools::Itertools;
+
+const MAP_WIDTH: usize = 7;
 
 /* Thoughts on part 2:
 
@@ -112,69 +114,8 @@ It's not quite right; the brute force result is 320473, off by 2420?
 */
 
 fn solve_b(input: &str, rounds: usize) -> usize {
-    let rocks = rocks();
-    // for r in &rocks {
-    //     println!("{}\n", r.to_string_lines());
-    // }
-    const MAP_WIDTH: usize = 7;
-    let mh = 600000; // 4000;
-    let mut map = Matrix::new(MAP_WIDTH, mh, '.');
-    let moves = input.trim().chars().collect_vec();
-    let mut i_move = 0;
-    let mut top = mh as isize; // y of the highest set piece if any, initally the floor
-    let mut i_rock = 0;
-    let mut last_move_0_cycle = 0;
-    let mut cycle_growth = 0;
-    for i_round in 1..=rounds {
-        let rock = &rocks[i_rock];
-        i_rock = (i_rock + 1) % rocks.len();
-        // dbg!(irock);
-        // y measured down from top of the map
-        let mut y = top - 3 - rock.height() as isize;
-        let mut x = 2;
-        // println!("start:");
-        // draw_temp(rock, &map, x, y);
-        loop {
-            // dbg!(x, y);
-            let move_ch = moves[i_move];
-            i_move = (i_move + 1) % moves.len();
-            let dx = if move_ch == '<' { -1 } else { 1 };
-            // dbg!(dx, rock.width());
-            if x + dx >= 0
-                && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
-                && !intersect(rock, &map, x + dx, y)
-            {
-                // println!("move {move_ch}");
-                x += dx;
-            } else {
-                // println!("can't move {move_ch}");
-            }
-            if !on_floor(rock, &map, x, y + 1) && !intersect(rock, &map, x, y + 1) {
-                y += 1;
-                // println!("fall to {x}, {y}");
-            } else {
-                // println!("stopped at {x}, {y}");
-                break;
-            }
-            // draw_temp(rock, &map, x, y);
-        }
-        paint(rock, &mut map, x, y, '#');
-        // println!("{}\n", map.to_string_lines());
-        if i_move == 0 || (i_round == 1748 + 375) {
-            println!(
-                "move {i_move}, rock {i_rock}, round {i_round}, rounds in cycle {}, \
-growth in cycle {}, top {top}",
-                i_round - last_move_0_cycle,
-                cycle_growth,
-            );
-            last_move_0_cycle = i_round;
-            cycle_growth = 0;
-        } else {
-            cycle_growth += max(0, top - y);
-        }
-        top = std::cmp::min(top, y);
-    }
-    (mh as isize - top) as usize
+    let _ = (input, rounds);
+    todo!()
 }
 
 fn main() {
@@ -213,60 +154,108 @@ fn input() -> String {
     std::fs::read_to_string("input/17.txt").unwrap()
 }
 
-fn solve_a(input: &str, cycles: usize) -> usize {
-    let rocks = rocks();
-    for r in &rocks {
-        println!("{}\n", r.to_string_lines());
+fn solve_a(input: &str, rounds: usize) -> usize {
+    let mut game = Game::new(input);
+    for _i_round in 1..=rounds {
+        game.drop_next();
     }
-    const MAP_WIDTH: usize = 7;
-    let mh = 6000; // 4000;
-    let mut map = Matrix::new(MAP_WIDTH, mh, '.');
-    let mut moves = input.trim().chars().cycle();
-    let mut top = mh as isize; // y of the highest set piece if any, initally the floor
-    for (irock, rock) in (1..=cycles).zip(rocks.iter().cycle()) {
-        dbg!(irock);
-        // y measured down from top of the map
-        let mut y = top - 3 - rock.height() as isize;
+    game.tower_height
+}
+
+struct Game {
+    /// Next rock to be played
+    i_rock: usize,
+    i_move: usize,
+    i_round: usize,
+    rocks: Vec<Matrix<char>>,
+    moves: Vec<char>,
+    map: Matrix<char>,
+    tower_height: usize,
+}
+
+#[derive(Debug)]
+struct RoundResult {
+    i_round: usize,
+    /// How much did the height of the tower increase?
+    growth: usize,
+
+    /// Which rock was played?
+    i_rock: usize,
+
+    /// What moves?
+    moves: String,
+}
+
+impl Game {
+    fn new(input: &str) -> Game {
+        const MAP_HEIGHT: usize = 6000;
+        Game {
+            i_rock: 0,
+            i_move: 0,
+            i_round: 0,
+            rocks: rocks(),
+            moves: input.trim().chars().collect(),
+            map: Matrix::new(MAP_WIDTH, MAP_HEIGHT, '.'),
+            tower_height: 0,
+        }
+    }
+
+    /// Drop one rock; consume however many moves it takes for it to settle.
+    ///
+    /// Updates the game state and returns info about how the move turned out.
+    fn drop_next(&mut self) -> RoundResult {
+        // y is the position of the top of the rock, measured down from top of the map
+        let rock = &self.rocks[self.i_rock];
+        let mut y = (self.map.height() - rock.height() - self.tower_height - 3) as isize;
         let mut x = 2;
-        println!("start:");
-        // draw_temp(rock, &map, x, y);
+        let mut moves = String::new();
         loop {
-            dbg!(x, y);
-            let move_ch = moves.next().unwrap();
+            let move_ch = self.moves[self.i_move];
+            self.i_move = (self.i_move + 1) % self.moves.len();
+            moves.push(move_ch);
             let dx = if move_ch == '<' { -1 } else { 1 };
-            dbg!(dx, rock.width());
             if x + dx >= 0
                 && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
-                && !intersect(rock, &map, x + dx, y)
+                && !intersect(rock, &self.map, x + dx, y)
             {
-                println!("move {move_ch}");
+                // println!("move {move_ch}");
                 x += dx;
             } else {
-                println!("can't move {move_ch}");
+                // println!("can't move {move_ch}");
             }
-            if !on_floor(rock, &map, x, y + 1) && !intersect(rock, &map, x, y + 1) {
+            if !on_floor(rock, &self.map, x, y + 1) && !intersect(rock, &self.map, x, y + 1) {
                 y += 1;
-                println!("fall to {x}, {y}");
+                // println!("fall to {x}, {y}");
             } else {
-                println!("stopped at {x}, {y}");
+                // println!("stopped at {x}, {y}");
                 break;
             }
             // draw_temp(rock, &map, x, y);
         }
-        paint(rock, &mut map, x, y, '#');
+        paint_into_map(rock, &mut self.map, x, y, '#');
         // println!("{}\n", map.to_string_lines());
-        top = std::cmp::min(top, y);
+        let rock_height = self.map.height() - y as usize;
+        let growth = rock_height.saturating_sub(self.tower_height);
+        self.tower_height += growth;
+        let r = RoundResult {
+            i_rock: self.i_rock,
+            i_round: self.i_round,
+            moves,
+            growth,
+        };
+        self.i_rock = (self.i_rock + 1) % self.rocks.len();
+        self.i_round += 1;
+        r
     }
-    (mh as isize - top) as usize
 }
 
 fn draw_temp(rock: &Matrix<char>, map: &Matrix<char>, x: isize, y: isize) {
     let mut temp_map = map.clone();
-    paint(rock, &mut temp_map, x, y, '@');
+    paint_into_map(rock, &mut temp_map, x, y, '@');
     println!("{}\n", temp_map);
 }
 
-fn paint(rock: &Matrix<char>, map: &mut Matrix<char>, x: isize, y: isize, pc: char) {
+fn paint_into_map(rock: &Matrix<char>, map: &mut Matrix<char>, x: isize, y: isize, pc: char) {
     for (rp, &c) in rock.point_values() {
         if c != '.' {
             let mp = rp.delta(x, y);
@@ -277,11 +266,7 @@ fn paint(rock: &Matrix<char>, map: &mut Matrix<char>, x: isize, y: isize, pc: ch
 }
 
 fn on_floor(rock: &Matrix<char>, map: &Matrix<char>, _x: isize, y: isize) -> bool {
-    if rock.height() as isize + y > map.height() as isize {
-        // println!("touches floor");
-        return true;
-    }
-    false
+    rock.height() as isize + y > map.height() as isize
 }
 
 fn intersect(rock: &Matrix<char>, map: &Matrix<char>, x: isize, y: isize) -> bool {
@@ -297,126 +282,29 @@ fn intersect(rock: &Matrix<char>, map: &Matrix<char>, x: isize, y: isize) -> boo
     false
 }
 
-#[cfg(any())]
-fn solve_b(input: &str, cycles: usize) -> usize {
-    let rocks = rocks();
-    const MAP_WIDTH: usize = 7;
-    let moves = input.trim().chars().collect_vec();
-    let mut i_rock = 0;
-    let mut i_move = 0;
-    let mut cols = [0; 7];
-    for icycle in 1..=cycles {
-        let rock = &rocks[i_rock];
-        // y measured above the floo
-        let mut y = 2 + cols.iter().copied().max().unwrap() as isize + rock.height() as isize;
-        let mut x = 2;
-        println!("start at {x},{y}: {cols:?}");
-        // draw_temp(rock, &map, x, y);
-        loop {
-            // dbg!(x, y);
-            let move_ch = moves[i_move];
-            i_move = (i_move + 1) % moves.len();
-            let dx = if move_ch == '<' { -1 } else { 1 };
-            // dbg!(dx, rock.width());
-            if x + dx >= 0
-                && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
-                && !intersect_col(rock, &cols, x + dx, y)
-            {
-                println!("move {move_ch}");
-                x += dx;
-            } else {
-                println!("can't move {move_ch}");
-            }
-
-            if rock.height() as isize > y {
-                println!("hit the floor at {x}, {y}");
-                break;
-            } else if intersect_col(rock, &cols, x, y - 1) {
-                println!("hit rock at {x}, {y}");
-                break;
-            } else {
-                y -= 1;
-                println!("fall to {x}, {y}");
-            }
-            // draw_temp(rock, &map, x, y);
-            // println!("cols {cols:?}");
-        }
-        paint_cols(rock, &mut cols, x, y);
-        // println!("{}\n", map.to_string_lines());
-        i_rock = (i_rock + 1) % rocks.len();
-        // dbg!(icycle, i_rock, i_move);
-        // if i_rock == 0 && i_move == 0 {
-        //     panic!("found a repeat after {icycle} moves?");
-        // }
-    }
-    cols.iter().copied().max().unwrap()
-}
-
-fn paint_cols(rock: &Matrix<char>, cols: &mut [usize], x: isize, y: isize) {
-    for p in rock.find_values(&'#') {
-        let cx = (p.x + x) as usize;
-        let cy = (y + 1 - p.y) as usize;
-        cols[cx] = std::cmp::max(cols[cx], cy);
-    }
-}
-
-fn intersect_col(rock: &Matrix<char>, cols: &[usize], x: isize, y: isize) -> bool {
-    for (p, &c) in rock.point_values() {
-        if c != '.' {
-            let cy = y - p.y; // map y measures up; matrix measures down
-            let cx = p.x + x;
-            if cols[cx as usize] > cy as usize {
-                return true;
-            }
-        }
-    }
-    false
-}
-
-fn on_floor_cols(rock: &Matrix<char>, y: isize) -> bool {
-    rock.height() as isize > y
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
 
-    #[test]
-    fn example_1() {
-        assert_eq!(
-            solve_a(">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>", 2022),
-            3068
-        );
-    }
+    static EX: &str = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
 
     #[test]
-    fn example_1b() {
-        assert_eq!(
-            solve_b(">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>", 2022),
-            3068
-        );
+    fn example_1() {
+        assert_eq!(solve_a(EX, 2022), 3068);
     }
+
+    // #[test]
+    // fn example_2() {
+    //     assert_eq!(solve_b(EX, 2022), 1514285714288);
+    // }
 
     #[test]
     fn solution_a() {
         assert_eq!(solve_a(&input(), 2022), 3200);
     }
 
-    #[test]
-    fn solution_a_b() {
-        assert_eq!(solve_b(&input(), 2022), 3200);
-    }
-
-    #[test]
-    fn crosstest() {
-        let input = input();
-        for cycles in [400] {
-            assert_eq!(solve_a(&input, cycles), solve_b(&input, cycles));
-        }
-    }
-
     // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 3200);
+    // fn solution_a_b() {
+    //     assert_eq!(solve_b(&input(), 2022), 3200);
     // }
 }
