@@ -8,6 +8,9 @@ use aoclib::Matrix;
 use itertools::Itertools;
 
 const MAP_WIDTH: usize = 7;
+const TRILLION: usize = 1000000000000;
+
+static EX: &str = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
 
 /* Thoughts on part 2:
 
@@ -111,16 +114,24 @@ So 2770 + 117 * 2731 + 596?
 
 It's not quite right; the brute force result is 320473, off by 2420?
 
-*/
 
-fn solve_b(input: &str, rounds: usize) -> usize {
-    let _ = (input, rounds);
-    todo!()
-}
+1589684812539 is too high for part 2.
+
+[2022/src/bin/2022_17.rs:217] initial_rounds = 1808
+[2022/src/bin/2022_17.rs:217] initial_growth = 2862
+[2022/src/bin/2022_17.rs:217] n_cycles = 573065901
+[2022/src/bin/2022_17.rs:217] cycle_growth = 2774
+[2022/src/bin/2022_17.rs:217] tail_rounds = 947
+[2022/src/bin/2022_17.rs:217] tail_growth = 303
+1589684812539
+
+*/
 
 fn main() {
     // println!("{}", solve_a(&input(), 2022));
-    println!("{}", solve_b(&input(), 202200));
+    // println!("{}", solve_b(&input(), TRILLION));
+    println!("{}", solve_b(&input(), 2022));
+    // println!("{}", solve_b(&input(), TRILLION));
 }
 
 static ROCKS: &str = "\
@@ -155,11 +166,79 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str, rounds: usize) -> usize {
-    let mut game = Game::new(input);
+    let mut game = Game::new(input, rounds * 4);
+    let mut rrs = Vec::with_capacity(rounds);
     for _i_round in 1..=rounds {
-        game.drop_next();
+        rrs.push(game.drop_next());
     }
+    assert_eq!(
+        rrs.iter().map(|rr| rr.growth).sum::<usize>(),
+        game.tower_height
+    );
     game.tower_height
+}
+
+fn solve_b(input: &str, rounds: usize) -> usize {
+    let sample_rounds = 6666;
+    let mut game = Game::new(input, sample_rounds * 4);
+    let mut rrs = Vec::with_capacity(sample_rounds);
+    // Number of rounds before the cycle is seen to start.
+    let mut initial_rounds = None;
+    // Number of rounds in each cycle.
+    let mut cycle_rounds = None;
+    for _i_round in 1..=sample_rounds {
+        let rr = game.drop_next();
+        // println!("{} {}", rr.i_rock, rr.i_move);
+        // assert_eq!(rr.i_round, i_round);
+        if let Some(x) = rrs.iter().rev().position(|x| *x == rr).map(|x| x + 1) {
+            // If the previous rr matches this, then the length would be 1, not 0.
+            println!("repeat? {rr:?} cycle rounds {x}",);
+            if initial_rounds.is_none() {
+                // Cycle starts on the first occurrence of rr, initial rounds is the number of
+                // rounds prior to that.
+                initial_rounds = Some(rrs.iter().position(|x| *x == rr).unwrap());
+            }
+            if cycle_rounds.is_none() {
+                cycle_rounds = Some(x);
+            } else {
+                assert_eq!(cycle_rounds.unwrap(), x, "cycle length is not stable");
+            }
+        }
+        rrs.push(rr);
+    }
+    // So there are three parts to the overall many rounds: some initial rounds, some repetition of
+    // cycles, and then a final incomplete cycle.
+    let cycle_rounds = cycle_rounds.unwrap();
+    let initial_rounds = initial_rounds.unwrap();
+    let initial_growth = rrs
+        .iter()
+        .take(initial_rounds)
+        .map(|rr| rr.growth)
+        .sum::<usize>();
+    let n_cycles = (rounds - initial_rounds) / cycle_rounds;
+    let cycle_growth = rrs
+        .iter()
+        .skip(initial_rounds)
+        .take(cycle_rounds)
+        .map(|rr| rr.growth)
+        .sum::<usize>();
+    let tail_rounds = rounds - initial_rounds - n_cycles * cycle_rounds;
+    let tail_growth = rrs
+        .iter()
+        .skip(initial_rounds)
+        .take(tail_rounds)
+        .map(|rr| rr.growth)
+        .sum::<usize>();
+    dbg!(
+        initial_rounds,
+        initial_growth,
+        cycle_rounds,
+        n_cycles,
+        cycle_growth,
+        tail_rounds,
+        tail_growth
+    );
+    initial_growth + n_cycles * cycle_growth + tail_growth
 }
 
 struct Game {
@@ -173,29 +252,28 @@ struct Game {
     tower_height: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct RoundResult {
-    i_round: usize,
     /// How much did the height of the tower increase?
     growth: usize,
 
     /// Which rock was played?
     i_rock: usize,
+    i_move: usize,
 
     /// What moves?
     moves: String,
 }
 
 impl Game {
-    fn new(input: &str) -> Game {
-        const MAP_HEIGHT: usize = 6000;
+    fn new(input: &str, map_height: usize) -> Game {
         Game {
             i_rock: 0,
             i_move: 0,
-            i_round: 0,
+            i_round: 1, // 1-based
             rocks: rocks(),
             moves: input.trim().chars().collect(),
-            map: Matrix::new(MAP_WIDTH, MAP_HEIGHT, '.'),
+            map: Matrix::new(MAP_WIDTH, map_height, '.'),
             tower_height: 0,
         }
     }
@@ -206,7 +284,9 @@ impl Game {
     fn drop_next(&mut self) -> RoundResult {
         // y is the position of the top of the rock, measured down from top of the map
         let rock = &self.rocks[self.i_rock];
-        let mut y = (self.map.height() - rock.height() - self.tower_height - 3) as isize;
+        let mut y = (self.map.height() - rock.height() - 3)
+            .checked_sub(self.tower_height)
+            .expect("tower too high") as isize;
         let mut x = 2;
         let mut moves = String::new();
         loop {
@@ -239,7 +319,7 @@ impl Game {
         self.tower_height += growth;
         let r = RoundResult {
             i_rock: self.i_rock,
-            i_round: self.i_round,
+            i_move: self.i_move,
             moves,
             growth,
         };
@@ -270,13 +350,11 @@ fn on_floor(rock: &Matrix<char>, map: &Matrix<char>, _x: isize, y: isize) -> boo
 }
 
 fn intersect(rock: &Matrix<char>, map: &Matrix<char>, x: isize, y: isize) -> bool {
-    for (rp, c) in rock.point_values() {
-        if *c == '#' {
-            let mp = rp.delta(x, y);
-            if map[mp] != '.' {
-                // println!("hit");
-                return true;
-            }
+    for rp in rock.find_values(&'#') {
+        let mp = rp.delta(x, y);
+        if map[mp] != '.' {
+            // println!("hit");
+            return true;
         }
     }
     false
@@ -286,21 +364,24 @@ fn intersect(rock: &Matrix<char>, map: &Matrix<char>, x: isize, y: isize) -> boo
 mod test {
     use super::*;
 
-    static EX: &str = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
-
     #[test]
     fn example_1() {
         assert_eq!(solve_a(EX, 2022), 3068);
     }
 
-    // #[test]
-    // fn example_2() {
-    //     assert_eq!(solve_b(EX, 2022), 1514285714288);
-    // }
+    #[test]
+    fn example_2() {
+        assert_eq!(solve_b(EX, TRILLION), 1514285714288);
+    }
 
     #[test]
     fn solution_a() {
         assert_eq!(solve_a(&input(), 2022), 3200);
+    }
+
+    #[test]
+    fn cross_test() {
+        assert_eq!(solve_a(&input(), 2022), solve_b(&input(), 2022));
     }
 
     // #[test]
