@@ -1,10 +1,18 @@
+//! https://adventofcode.com/2022/day/19
+
+#![allow(dead_code, unused_imports)]
+
+use std::cmp::{max, min};
+
+use itertools::Itertools;
+
 fn main() {
     println!("{}", solve_a(&input()));
     println!("{}", solve_b(&input()));
 }
 
 fn input() -> String {
-    std::fs::read_to_string("input.txt").unwrap()
+    std::fs::read_to_string("input/19.txt").unwrap()
 }
 
 fn solve_a(input: &str) -> usize {

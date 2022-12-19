@@ -239,16 +239,7 @@ dependencies = [
  "aoclib",
  "bitvec",
  "itertools",
- "ndarray",
  "regex",
- "similar",
-]
-
-[[package]]
-name = "mbpaoc_2022_19"
-version = "0.1.0"
-dependencies = [
- "aoclib",
 ]
 
 [[package]]
