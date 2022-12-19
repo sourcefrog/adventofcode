@@ -253,7 +253,7 @@ fn solve_b(input: &str, rounds: usize) -> usize {
         // println!("{} {}", rr.i_rock, rr.i_move);
         // println!("{}", rr.map.to_string());
         // assert_eq!(rr.i_round, i_round);
-        if let Some(x) = rrs.iter().rposition(|x: &RoundResult| *x == rr) {
+        if let Some(x) = rrs.iter().rposition(|x| *x == rr) {
             // If the previous rr matches this, then the length would be 1, not 0.
             // println!(
             //     "repeat? cycle of length {} found at i_round={i_round} returns to round={x} move={} rock={} moves{}",
@@ -280,7 +280,7 @@ fn solve_b(input: &str, rounds: usize) -> usize {
             // println!("{}", rr.map.to_string());
             // println!("previous moves\n{}", rrs[x].map.to_string());
             if cycle_hits > 20 {
-                break; // Confident enough that now it continues
+                break; // Confident enough that now it continues; really once would be enough.
             }
         }
         rrs.push(rr);
@@ -456,9 +456,6 @@ struct RoundResult {
     i_rock: usize,
     i_move: usize,
 
-    /// What moves?
-    moves: String,
-
     /// What does the reachable map look like after this round?
     map: Map,
 }
@@ -486,12 +483,10 @@ impl Game {
         let mut y = self.map.max_block_height() + rock.height() + 2;
         let mut x = 2;
         // println!("drop from {x}, {y}\n{}", rock.to_string_lines());
-        let mut moves = String::new();
         let orig_block_height = self.map.max_block_height();
         loop {
             let move_ch = self.moves[self.i_move];
             self.i_move = (self.i_move + 1) % self.moves.len();
-            moves.push(move_ch);
             let dx = if move_ch == '<' { -1 } else { 1 };
             if x + dx >= 0
                 && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
@@ -516,7 +511,6 @@ impl Game {
         let r = RoundResult {
             i_rock: self.i_rock,
             i_move: self.i_move,
-            moves,
             growth,
             map: self.map.clone(),
         };
