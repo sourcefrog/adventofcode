@@ -1,15 +1,13 @@
 //! https://adventofcode.com/2022/day/17
 
-#![allow(dead_code, unused_imports)]
-
-use std::cmp::{max, min};
+use std::fmt;
 
 use aoclib::Matrix;
-use itertools::Itertools;
 
 const MAP_WIDTH: usize = 7;
 const TRILLION: usize = 1000000000000;
 
+#[allow(dead_code)]
 static EX: &str = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
 
 /* Thoughts on part 2:
@@ -202,13 +200,8 @@ It is lower than the previous guess that was too high...
 */
 
 fn main() {
-    // println!("{}", solve_a(EX, 30));
-    // println!("{}", solve_b(EX, TRILLION));
-    // println!("{}", solve_a(&input(), 2022));
+    println!("{}", solve_a(&input(), 2022));
     println!("{}", solve_b(&input(), TRILLION));
-    // println!("{}", solve_b(&input(), 2022));
-    // println!("{}", solve_b(EX, 2022));
-    // println!("{}", solve_b(&input(), TRILLION));
 }
 
 static ROCKS: &str = "\
@@ -232,10 +225,7 @@ static ROCKS: &str = "\
 ";
 
 fn rocks() -> Vec<Matrix<char>> {
-    ROCKS
-        .split("\n\n")
-        .map(|g| Matrix::from_string_lines(g))
-        .collect()
+    ROCKS.split("\n\n").map(Matrix::from_string_lines).collect()
 }
 
 type Rock = Matrix<char>;
@@ -246,47 +236,17 @@ fn input() -> String {
 
 fn solve_a(input: &str, rounds: usize) -> usize {
     let mut game = Game::new(input);
-    // let mut rrs = Vec::with_capacity(rounds);
-
-    for i_round in 1..=rounds {
-        if i_round % 10000 == 0 {
-            println!(
-                "round {i_round} tower_height {} grid height {}",
-                game.tower_height,
-                game.map.grid_height()
-            );
-            // println!("{}", game.map.to_string());
-        }
-        let _rr = game.drop_next();
-        // rrs.push(rr);
-
-        // for dy in 0..game.tower_height {
-        //     let my = game.map.height() + dy - game.tower_height;
-
-        //     if game.map.row(my).all(|c| *c == '#') {
-        //         // println!(
-        //         //     "round {i_round} tower_height {tower_height} solid row {dy} below top",
-        //         //     tower_height = game.tower_height
-        //         // );
-        //         // println!("{}", game.map.to_string_lines());
-        //         break;
-        //     }
-        // }
+    for _i_round in 1..=rounds {
+        game.drop_next();
     }
-    // assert_eq!(
-    //     rrs.iter().map(|rr| rr.growth).sum::<usize>(),
-    //     game.tower_height
-    // );
     game.tower_height
 }
 
 fn solve_b(input: &str, rounds: usize) -> usize {
     let mut game = Game::new(input);
     let mut rrs = Vec::new();
-    // Number of rounds before the cycle is seen to start.
-    let mut initial_rounds = None;
-    // Number of rounds in each cycle.
-    let mut cycle_rounds = None;
+    let mut initial_rounds = None; // Number of rounds before the cycle is seen to start.
+    let mut cycle_rounds = None; // Number of rounds in each cycle.
     let mut cycle_hits = 0;
     for i_round in 0.. {
         let rr = game.drop_next();
@@ -295,13 +255,13 @@ fn solve_b(input: &str, rounds: usize) -> usize {
         // assert_eq!(rr.i_round, i_round);
         if let Some(x) = rrs.iter().rposition(|x: &RoundResult| *x == rr) {
             // If the previous rr matches this, then the length would be 1, not 0.
-            println!(
-                "repeat? cycle of length {} found at i_round={i_round} returns to round={x} move={} rock={} moves{}",
-                i_round - x,
-                rr.i_move,
-                rr.i_rock,
-                rr.moves
-            );
+            // println!(
+            //     "repeat? cycle of length {} found at i_round={i_round} returns to round={x} move={} rock={} moves{}",
+            //     i_round - x,
+            //     rr.i_move,
+            //     rr.i_rock,
+            //     rr.moves
+            // );
             if initial_rounds.is_none() {
                 // Cycle starts on the first occurrence of rr, initial rounds is the number of
                 // rounds prior to that.
@@ -317,11 +277,10 @@ fn solve_b(input: &str, rounds: usize) -> usize {
                     "cycle length is not stable"
                 );
             }
-            println!("{}", rr.map.to_string());
-            println!("previous moves\n{}", rrs[x].map.to_string());
-            assert_eq!(rr.map.to_string(), rrs[x].map.to_string());
+            // println!("{}", rr.map.to_string());
+            // println!("previous moves\n{}", rrs[x].map.to_string());
             if cycle_hits > 20 {
-                break;
+                break; // Confident enough that now it continues
             }
         }
         rrs.push(rr);
@@ -349,15 +308,15 @@ fn solve_b(input: &str, rounds: usize) -> usize {
         .take(tail_rounds)
         .map(|rr| rr.growth)
         .sum::<usize>();
-    dbg!(
-        initial_rounds,
-        initial_growth,
-        cycle_rounds,
-        n_cycles,
-        cycle_growth,
-        tail_rounds,
-        tail_growth
-    );
+    // dbg!(
+    //     initial_rounds,
+    //     initial_growth,
+    //     cycle_rounds,
+    //     n_cycles,
+    //     cycle_growth,
+    //     tail_rounds,
+    //     tail_growth
+    // );
     initial_growth + n_cycles * cycle_growth + tail_growth
 }
 
@@ -381,8 +340,6 @@ impl Map {
     fn truncate(&mut self) -> usize {
         // Find the lowest reachable row by blocks falling from above or moving sideways.
         let mut rcells = [true; MAP_WIDTH];
-        // Find the highest row that is set all the way across.
-        // No point truncating below row 0.
         let mut cy = self.grid_height() - 1;
         while cy > 0 {
             // cells on the next line down are reachable if they're not occupied, and
@@ -399,9 +356,8 @@ impl Map {
             if !ncells.iter().any(|x| *x) {
                 // no cells here are reachable; we can stop
                 break;
-            } else {
-                rcells = ncells;
             }
+            rcells = ncells;
         }
         if cy > 0 {
             for i in 0..MAP_WIDTH {
@@ -409,17 +365,6 @@ impl Map {
             }
         }
         cy
-    }
-
-    fn to_string(&self) -> String {
-        let mut s = String::new();
-        for row in (0..self.grid_height()).rev() {
-            for col in &self.cols {
-                s.push(if col[row] { '#' } else { '.' })
-            }
-            s.push('\n')
-        }
-        s
     }
 
     /// Return the maximum height of any set cell, or 0 if none are set.
@@ -433,9 +378,7 @@ impl Map {
 
     /// Return the height of the allocated grid.
     fn grid_height(&self) -> usize {
-        let h = self.cols[0].len();
-        assert!(self.cols.iter().all(|col| col.len() == h));
-        h
+        self.cols[0].len()
     }
 
     /// True if the cell at (x,y) is set, where y counts up from the base of the map.
@@ -470,13 +413,24 @@ impl Map {
         for p in rock.find_values(&'#') {
             let mx = p.x as usize + x;
             let my = y.checked_sub(p.y as usize).expect("y off bottom of map");
-            if my < self.grid_height() {
-                if self.cols[mx][my] {
-                    return true;
-                }
+            if my < self.grid_height() && self.cols[mx][my] {
+                return true;
             }
         }
         false
+    }
+}
+
+impl fmt::Display for Map {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut s = String::new();
+        for row in (0..self.grid_height()).rev() {
+            for col in &self.cols {
+                s.push(if col[row] { '#' } else { '.' })
+            }
+            s.push('\n')
+        }
+        f.write_str(&s)
     }
 }
 
@@ -548,13 +502,12 @@ impl Game {
             } else {
                 // println!("can't move {move_ch}");
             }
-            if !(self.base_height == 0 && y == 0) && !self.map.hit_test(rock, x as usize, y - 1) {
-                y -= 1;
-                // println!("fall to {x}, {y}");
-            } else {
+            if (self.base_height == 0 && y == 0) || self.map.hit_test(rock, x as usize, y - 1) {
                 // println!("stopped at {x}, {y}");
                 break;
             }
+            y -= 1;
+            // println!("fall to {x}, {y}");
         }
         self.map.paint(rock, x as usize, y);
         // println!("{}\n", self.map.to_string());
