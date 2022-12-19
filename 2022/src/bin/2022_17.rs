@@ -200,8 +200,8 @@ on cells that are reachable from either above or the sides.
 */
 
 fn main() {
-    println!("{}", solve_a(EX, 30));
-    // println!("{}", solve_a(EX, TRILLION));
+    // println!("{}", solve_a(EX, 30));
+    println!("{}", solve_b(EX, TRILLION));
     // println!("{}", solve_a(&input(), 2022));
     // println!("{}", solve_b(&input(), TRILLION));
     // println!("{}", solve_b(&input(), 2022));
@@ -279,14 +279,14 @@ fn solve_a(input: &str, rounds: usize) -> usize {
 }
 
 fn solve_b(input: &str, rounds: usize) -> usize {
-    let sample_rounds = 20000;
     let mut game = Game::new(input);
-    let mut rrs = Vec::with_capacity(sample_rounds);
+    let mut rrs = Vec::new();
     // Number of rounds before the cycle is seen to start.
     let mut initial_rounds = None;
     // Number of rounds in each cycle.
     let mut cycle_rounds = None;
-    for i_round in 1..=sample_rounds {
+    let mut cycle_hits = 0;
+    for i_round in 0.. {
         let rr = game.drop_next();
         // println!("{} {}", rr.i_rock, rr.i_move);
         // println!("{}", rr.map.to_string());
@@ -294,16 +294,18 @@ fn solve_b(input: &str, rounds: usize) -> usize {
         if let Some(x) = rrs.iter().rposition(|x: &RoundResult| *x == rr) {
             // If the previous rr matches this, then the length would be 1, not 0.
             println!(
-                "repeat? cycle rounds {x} move {} rock {} moves {}",
-                rr.i_move, rr.i_rock, rr.moves
+                "repeat? cycle of length {} found at i_round={i_round} returns to round={x} move={} rock={} moves{}",
+                i_round - x,
+                rr.i_move,
+                rr.i_rock,
+                rr.moves
             );
-            println!("{}", rr.map.to_string());
-            println!("previous moves\n{}", rrs[x].map.to_string());
             if initial_rounds.is_none() {
                 // Cycle starts on the first occurrence of rr, initial rounds is the number of
                 // rounds prior to that.
                 initial_rounds = Some(x);
             }
+            cycle_hits += 1;
             if cycle_rounds.is_none() {
                 cycle_rounds = Some(i_round - x);
             } else {
@@ -312,6 +314,12 @@ fn solve_b(input: &str, rounds: usize) -> usize {
                     i_round - x,
                     "cycle length is not stable"
                 );
+            }
+            println!("{}", rr.map.to_string());
+            println!("previous moves\n{}", rrs[x].map.to_string());
+            assert_eq!(rr.map.to_string(), rrs[x].map.to_string());
+            if cycle_hits > 20 {
+                break;
             }
         }
         rrs.push(rr);
@@ -521,7 +529,7 @@ impl Game {
         let rock = &self.rocks[self.i_rock];
         let mut y = self.map.max_block_height() + rock.height() + 2;
         let mut x = 2;
-        println!("drop from {x}, {y}\n{}", rock.to_string_lines());
+        // println!("drop from {x}, {y}\n{}", rock.to_string_lines());
         let mut moves = String::new();
         let orig_block_height = self.map.max_block_height();
         loop {
@@ -533,21 +541,21 @@ impl Game {
                 && ((x + dx + rock.width() as isize) <= MAP_WIDTH as isize)
                 && !self.map.hit_test(rock, (x + dx) as usize, y)
             {
-                println!("move {move_ch}");
+                // println!("move {move_ch}");
                 x += dx;
             } else {
-                println!("can't move {move_ch}");
+                // println!("can't move {move_ch}");
             }
             if !(self.base_height == 0 && y == 0) && !self.map.hit_test(rock, x as usize, y - 1) {
                 y -= 1;
-                println!("fall to {x}, {y}");
+                // println!("fall to {x}, {y}");
             } else {
-                println!("stopped at {x}, {y}");
+                // println!("stopped at {x}, {y}");
                 break;
             }
         }
         self.map.paint(rock, x as usize, y);
-        println!("{}\n", self.map.to_string());
+        // println!("{}\n", self.map.to_string());
         let growth = self.map.max_block_height() - orig_block_height;
         self.tower_height += growth;
         let r = RoundResult {
@@ -561,11 +569,11 @@ impl Game {
         self.i_round += 1;
         let truncated = self.map.truncate();
         if truncated > 0 {
-            println!(
-                "truncated {truncated} rows in {}, now\n{}",
-                self.i_round,
-                self.map.to_string()
-            );
+            // println!(
+            //     "truncated {truncated} rows in {}, now\n{}",
+            //     self.i_round,
+            //     self.map.to_string()
+            // );
         }
         self.base_height += truncated;
         r
@@ -592,9 +600,14 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn cross_test() {
         assert_eq!(solve_a(&input(), 2022), solve_b(&input(), 2022));
+    }
+
+    #[test]
+    fn cross_test_longer() {
+        let l = 500000;
+        assert_eq!(solve_a(&input(), l), solve_b(&input(), l));
     }
 
     // #[test]
