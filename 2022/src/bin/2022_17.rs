@@ -196,14 +196,16 @@ of those values fully determines the content of the map.
 OK, new attempt: a more sophisticated attempt to detect where to truncate the map, based
 on cells that are reachable from either above or the sides.
 
-
+OK using detection of cycles based on the reachable map, and after fixing an
+annoying off-by-one in the cycle computation, a new guess: 1584927536247.
+It is lower than the previous guess that was too high...
 */
 
 fn main() {
     // println!("{}", solve_a(EX, 30));
-    println!("{}", solve_b(EX, TRILLION));
+    // println!("{}", solve_b(EX, TRILLION));
     // println!("{}", solve_a(&input(), 2022));
-    // println!("{}", solve_b(&input(), TRILLION));
+    println!("{}", solve_b(&input(), TRILLION));
     // println!("{}", solve_b(&input(), 2022));
     // println!("{}", solve_b(EX, 2022));
     // println!("{}", solve_b(&input(), TRILLION));
@@ -610,8 +612,8 @@ mod test {
         assert_eq!(solve_a(&input(), l), solve_b(&input(), l));
     }
 
-    // #[test]
-    // fn solution_a_b() {
-    //     assert_eq!(solve_b(&input(), 2022), 3200);
-    // }
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(&input(), TRILLION), 1584927536247);
+    }
 }
