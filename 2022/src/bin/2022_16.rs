@@ -25,18 +25,27 @@ fn input() -> String {
 
 #[derive(Ord, PartialOrd, Clone, Debug, Eq, PartialEq, Hash)]
 struct St<'a> {
+    /// The cost of every cycle in this state or others based on it: the sum
+    /// of all the valves that are not yet opened.
+    cost: usize,
     clk: usize,
     opened: Vec<&'a str>,
     pos: [&'a str; 2],
 }
 
 impl<'a> St<'a> {
+    /// Generate a new rate with a valve opened.
+    ///
+    /// The valve must have non-zero flow and must not already be open.
     #[must_use]
-    fn open(&self, name: &'a str) -> St<'a> {
+    fn open(&self, name: &'a str, rates: &BTreeMap<&str, usize>) -> St<'a> {
+        let cost = self.cost - rates.get(name).copied().expect("valve has a rate");
+        debug_assert!(!self.opened.contains(&name));
         let mut opened = self.opened.clone();
         opened.push(name);
         opened.sort();
         St {
+            cost,
             opened,
             ..self.clone()
         }
@@ -163,6 +172,7 @@ fn solve_b(input: &str) -> usize {
         .filter(|(_, flow)| *flow > 0)
         .collect();
     let start = St {
+        cost: rates.values().sum::<usize>(),
         opened: Vec::new(),
         pos: ["AA", "AA"],
         clk: 0,
@@ -172,11 +182,6 @@ fn solve_b(input: &str) -> usize {
         &start,
         |st| st.clk == dur || rates.keys().all(|v| st.opened.contains(v)),
         |st| {
-            let cost: usize = rates
-                .iter()
-                .filter(|(k, _v)| !st.opened.contains(k))
-                .map(|(_, v)| v)
-                .sum();
             let mut a = vec![st.clone()];
             // each actor can either open a valve at their current location (if
             // there is one) or move to any neighboring location or stay still
@@ -186,7 +191,7 @@ fn solve_b(input: &str) -> usize {
                 for s in a {
                     let p = s.pos[i];
                     if rates.contains_key(p) && !s.opened.contains(&p) {
-                        b.push(s.open(p));
+                        b.push(s.open(p, &rates));
                     }
                     for neig in &vs[p].tun {
                         b.push(s.move_to(i, neig));
@@ -202,6 +207,7 @@ fn solve_b(input: &str) -> usize {
             }
             a.sort();
             a.dedup();
+            let cost = st.cost;
             a.into_iter().map(move |st| (st, cost))
         },
     )
