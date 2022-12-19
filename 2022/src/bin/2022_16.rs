@@ -98,7 +98,7 @@ fn solve_a(input: &str) -> usize {
         Regex::new(r"Valve (..) has flow rate=([0-9]+); tunnels? leads? to valves? ([ ,A-Z]*)")
             .unwrap();
     for l in input.lines() {
-        dbg!(l);
+        // dbg!(l);
         let caps = re.captures(l).unwrap();
         let name = caps.get(1).unwrap().as_str().to_string();
         let rate = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
@@ -194,7 +194,10 @@ fn solve_b(input: &str) -> usize {
                         b.push(s.open(p, &rates));
                     }
                     for neig in &vs[p].tun {
-                        b.push(s.move_to(i, neig));
+                        if neig != s.pos[1 - i] {
+                            // No point moving to the other actor's location
+                            b.push(s.move_to(i, neig));
+                        }
                     }
                     // No need to generate sit-still states, because we can just dance around if
                     // there are no more useful moves.
