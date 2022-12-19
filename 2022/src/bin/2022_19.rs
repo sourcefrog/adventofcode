@@ -11,8 +11,8 @@ Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsid
 ";
 
 fn main() {
-    println!("{}", solve_a(EX));
-    // println!("{}", solve_a(&input()));
+    // println!("{}", solve_a(EX));
+    println!("{}", solve_a(&input()));
     // println!("{}", solve_b(&input()));
 }
 
@@ -106,6 +106,15 @@ impl St {
         }
         succs
     }
+
+    fn strictly_better(&self, other: &St) -> bool {
+        for i in 0..4 {
+            if self.robots[i] < other.robots[i] || self.res[i] < other.res[i] {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 fn solve_a(input: &str) -> usize {
@@ -126,6 +135,14 @@ fn solve_a(input: &str) -> usize {
             // TODO: Maybe trim out states that are strictly inferior.
             sts = succs;
             println!("minute {m}, {} states", sts.len());
+            let mut shrunk = Vec::new();
+            for st in sts {
+                if !shrunk.iter().any(|x: &St| x.strictly_better(&st)) {
+                    shrunk.push(st)
+                }
+            }
+            println!("shrunk to {}", shrunk.len());
+            sts = shrunk;
         }
         let best_geodes = sts.iter().map(|st| st.res[GEODE]).max().unwrap();
         println!("final best geodes of bp {}: {}", bp.id, best_geodes);
