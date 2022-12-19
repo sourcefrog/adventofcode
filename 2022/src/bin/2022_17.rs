@@ -224,11 +224,14 @@ static ROCKS: &str = "\
 ##
 ";
 
-fn rocks() -> Vec<Matrix<char>> {
-    ROCKS.split("\n\n").map(Matrix::from_string_lines).collect()
-}
+type Rock = Matrix<bool>;
 
-type Rock = Matrix<char>;
+fn rocks() -> Vec<Rock> {
+    ROCKS
+        .split("\n\n")
+        .map(|g| Matrix::from_string_lines(g).map(|c| *c == '#'))
+        .collect()
+}
 
 fn input() -> String {
     std::fs::read_to_string("input/17.txt").unwrap()
@@ -399,7 +402,7 @@ impl Map {
                 .iter_mut()
                 .for_each(|col| col.resize(new_height, false));
         }
-        for p in rock.find_values(&'#') {
+        for p in rock.find_values(&true) {
             let mx = p.x as usize + x;
             let my = y.checked_sub(p.y as usize).expect("y off bottom of map");
             assert!(!self.cols[mx][my]);
@@ -410,7 +413,7 @@ impl Map {
     /// Return true if a rock at (x,y) would collide with any existing blocks in
     /// this map.
     fn hit_test(&self, rock: &Rock, x: usize, y: usize) -> bool {
-        for p in rock.find_values(&'#') {
+        for p in rock.find_values(&true) {
             let mx = p.x as usize + x;
             let my = y.checked_sub(p.y as usize).expect("y off bottom of map");
             if my < self.grid_height() && self.cols[mx][my] {
@@ -439,7 +442,7 @@ struct Game {
     i_rock: usize,
     i_move: usize,
     i_round: usize,
-    rocks: Vec<Matrix<char>>,
+    rocks: Vec<Rock>,
     moves: Vec<char>,
     map: Map,
     tower_height: usize,
