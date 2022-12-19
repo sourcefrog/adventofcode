@@ -15,9 +15,9 @@ Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsid
 
 fn main() {
     // println!("{}", solve_a(EX));
-    println!("{}", solve_b(EX));
+    // println!("{}", solve_b(EX));
     // println!("{}", solve_a(&input()));
-    // println!("{}", solve_b(&input()));
+    println!("{}", solve_b(&input()));
 }
 
 fn input() -> String {
@@ -177,9 +177,9 @@ fn solve_a(input: &str) -> usize {
 
 fn solve_b(input: &str) -> usize {
     let bps = parse(input);
-    let mut totql = 0;
+    let mut prod = 1;
     let start = Instant::now();
-    for bp in &bps[1..2] {
+    for bp in bps.iter().take(3) {
         println!("{bp:#?}");
         let mut sts = vec![St {
             robots: [1, 0, 0, 0],
@@ -197,10 +197,11 @@ fn solve_b(input: &str) -> usize {
                 .unique()
                 .collect_vec();
             // Any state that starts producing geodes earlier is strictly better; throw the rest away?
-            let max_geo_rob = succs.iter().map(|st| st.robots[GEODE]).max().unwrap();
+            // let max_geo_rob = succs.iter().map(|st| st.robots[GEODE]).max().unwrap();
+            let max_geodes = succs.iter().map(|st| st.res[GEODE]).max().unwrap();
 
             for st in succs {
-                if st.robots[GEODE] >= max_geo_rob
+                if st.res[GEODE] >= max_geodes
                     && !shrunk.iter().any(|x: &St| x.strictly_better(&st))
                 {
                     shrunk.push(st)
@@ -211,16 +212,16 @@ fn solve_b(input: &str) -> usize {
                 start.elapsed().as_secs_f64(),
                 shrunk.len()
             );
-            println!("{:?}", shrunk.iter().take(10).collect_vec());
+            // println!("{:?}", shrunk.iter().take(10).collect_vec());
             // shrunk.sort_unstable();
             // shrunk.dedup();
             sts = shrunk;
         }
         let best_geodes = sts.iter().map(|st| st.res[GEODE]).max().unwrap();
         println!("final best geodes of bp {}: {}", bp.id, best_geodes);
-        totql += bp.id * best_geodes;
+        prod *= best_geodes;
     }
-    totql
+    prod
 }
 
 #[cfg(test)]
@@ -249,4 +250,13 @@ Not obvious if we could start from one end or from the other....
 
 There is probably no point refraining from building a robot if we have enough resources to build anything!
 
+Part 2, sadly 2604 is too low... But just a dumb mistake still running it on the exmaple.
+
+We want to maximize the number of geodes. Geodes are produced only by geode robots at a rate
+of one per turn. So the value of one geode robot is equal to the number of remaining turns.
+
+Does this mean that we should always greedily produce geode robots? Maybe not; conceivably
+some other pattern would let us make many more soon afterwards.
+
+7938 is also too low :(
 */
