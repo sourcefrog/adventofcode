@@ -71,6 +71,7 @@ where
             cycles += 1;
             if cycles % 100000 == 0 {
                 dbg!(&p);
+                queue.assert_valid();
             }
             let est = estimate(&p);
             if est == D::default() {
@@ -135,7 +136,9 @@ where
             cycles += 1;
             if let Some((d, p)) = queue.pop() {
                 if cycles % 100000 == 0 {
-                    dbg!(&d, &p);
+                    println!("best distance={d:?} p={p:?}");
+                    // dbg!(&d, &p);
+                    queue.assert_valid();
                 }
                 if is_destination(&p) {
                     // Reassemble (a) shortest path to the destination by looking backwards
@@ -145,6 +148,10 @@ where
                         path.push(next.clone());
                     }
                     path.reverse();
+                    println!(
+                        "shortest_path: destination found at distance {d:?} {cycles} search cycles, {} states examined",
+                        best.len()
+                    );
                     return Some(ShortestPath { distance: d, path });
                 }
                 for (np, step) in neighbors(&p) {
