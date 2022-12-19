@@ -93,24 +93,7 @@ struct Opt {
 }
 
 fn solve_a(input: &str) -> usize {
-    let mut vs: BTreeMap<String, Valve> = BTreeMap::new();
-    let re =
-        Regex::new(r"Valve (..) has flow rate=([0-9]+); tunnels? leads? to valves? ([ ,A-Z]*)")
-            .unwrap();
-    for l in input.lines() {
-        // dbg!(l);
-        let caps = re.captures(l).unwrap();
-        let name = caps.get(1).unwrap().as_str().to_string();
-        let rate = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
-        let tun = caps
-            .get(3)
-            .unwrap()
-            .as_str()
-            .split(", ")
-            .map(|s| s.to_owned())
-            .collect();
-        vs.insert(name, Valve { rate, tun });
-    }
+    let vs: BTreeMap<&str, Valve> = parse(input);
     let mut opts = vec![Opt {
         opened: Vec::new(),
         seen: vec!["AA".into()],
@@ -120,8 +103,8 @@ fn solve_a(input: &str) -> usize {
     let mut best = 0;
     while let Some(o) = opts.pop() {
         // println!("{o:?}");
-        let loc = o.seen.last().unwrap().clone();
-        let here = &vs[&loc];
+        let loc = o.seen.last().unwrap();
+        let here = &vs[&loc.as_str()];
         best = std::cmp::max(best, o.flow);
         if o.rem == 0 {
             continue;
