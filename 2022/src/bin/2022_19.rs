@@ -258,5 +258,19 @@ of one per turn. So the value of one geode robot is equal to the number of remai
 Does this mean that we should always greedily produce geode robots? Maybe not; conceivably
 some other pattern would let us make many more soon afterwards.
 
+The optimal, impossible, structure is one that has the factory build a geode robot every cycle.
+
+Is it true that we should always build a geode robot if we can? Maybe not, if that comes at
+the expense of building other robots earlier that will let us build more geode robots later,
+enough to make up for the difference.
+
 7938 is also too low :(
+
+Suppose we want to know the shortest path to produce one geode robot as soon as possible.
+
+It's an open question whether the optimal overall answer implies producing a geode robot as
+soon as possible? But assume it is helpful. We need some ore and some obsidian....
+
+Maybe we should track robots in terms of their total eventual production? But, we're not really
+trying to maximize that, except of obsidian.
 */
