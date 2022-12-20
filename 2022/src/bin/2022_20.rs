@@ -1,5 +1,7 @@
 //! https://adventofcode.com/2022/day/20
 
+use std::collections::HashMap;
+
 use itertools::Itertools;
 
 static EX: &str = "\
@@ -27,57 +29,64 @@ fn solve_a(input: &str) -> isize {
         .lines()
         .map(|l| l.trim().parse::<isize>().unwrap())
         .collect_vec();
-    let mut m = n.clone();
+    assert!(n.iter().all_unique());
+    // OK let's treat it as a linked list where each number knows the following number.
+    let mut next: HashMap<isize, isize> = HashMap::new();
+    let mut prev: HashMap<isize, isize> = HashMap::new();
+    for (&a, &b) in n.iter().circular_tuple_windows() {
+        next.insert(a, b);
+        prev.insert(b, a);
+    }
+    assert_eq!(next.len(), n.len());
     for i in n {
-        let cp = m.iter().position(|x| *x == i).unwrap() as isize;
-        let mut np;
+        // first, work out where we will insert it.
+        let mut after: isize;
+        let mut before: isize;
         if i == 0 {
-            println!("0 doesn't move");
-            println!("{m:?}");
             continue;
         } else if i > 0 {
-            np = (cp as isize + i);
+            after = i;
+            for _ in 0..i {
+                after = *next.get(&after).unwrap();
+            }
+            before = *next.get(&after).unwrap();
         } else {
-            np = cp + i - 1;
+            before = i;
+            for _ in 0..(-i) {
+                before = prev[&before];
+            }
+            after = next[&before];
         }
-        let mlen = m.len() as isize;
-        while np > mlen {
-            np -= mlen;
-        }
-        while np < 0 {
-            np += mlen;
-        }
-        let np = np as usize;
+        println!("move {i} to between {before} and {after}");
+        let a = prev[&i];
+        let b = next[&i];
+        next.insert(a, b);
+        prev.insert(b, a);
+        next.insert(before, i);
+        prev.insert(i, before);
+        next.insert(i, after);
+        prev.insert(after, i);
 
-        // find the unique number it should move before.
-        let move_before = m[(np + 1) % m.len()];
-        println!("{i} moves to before {move_before}");
-        if move_before == i {
-            println!("doesn't move?");
-            continue;
+        for (&a, &b) in next.iter() {
+            assert_eq!(prev[&b], a);
         }
-        m.remove(cp as usize);
-        m.insert(m.iter().position(|x| *x == move_before).unwrap(), i);
-        // everything right of cp has been moved one step left, so if we want to insert
-        // right of we also need to go one step left.
-        // println!("{m:?}");
     }
 
     // Not 13634 :(
-    grove_coord(&m)
+    let mut prod = 1;
+    let mut pos = 0;
+    for _ in [1, 2, 3] {
+        for _ in 0..1000 {
+            pos = next[&pos];
+        }
+        prod *= pos;
+    }
+    prod
 }
 
-fn grove_coord(m: &[isize]) -> isize {
-    let opos = m.iter().position(|x| *x == 0).unwrap();
-    [1000, 2000, 3000]
-        .into_iter()
-        .map(|i| m[(opos + i) % m.len()])
-        .sum::<isize>()
-}
-
-fn solve_b(input: &str) -> usize {
-    input.len()
-}
+// fn solve_b(input: &str) -> usize {
+//     input.len()
+// }
 
 #[cfg(test)]
 mod test {
