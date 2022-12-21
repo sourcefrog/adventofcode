@@ -14,6 +14,13 @@ static EX: &str = "\
 4
 ";
 
+fn parse(input: &str) -> Vec<isize> {
+    input
+        .lines()
+        .map(|l| l.trim().parse::<isize>().unwrap())
+        .collect_vec()
+}
+
 fn main() {
     println!("{}", solve_a(EX));
     // println!("{}", solve_a(&input()));
@@ -25,6 +32,10 @@ fn input() -> String {
 }
 
 /// A permutation of the elements of an input of given size.
+///
+/// p.0[i] is the position where the element initally at position i ends up.
+/// p.0 must always contain all the successive whole numbers: elements are
+/// never lost or duplicated.
 #[derive(PartialEq, Eq, Debug)]
 struct Perm(Vec<usize>);
 
@@ -46,7 +57,7 @@ impl Perm {
         &self.0
     }
 
-    /// Move the element currently at position `x` by `s` elements to the right,
+    /// Map the input `x` by `s` elements to the right from its current position,
     /// or to the left if negative.
     #[must_use]
     fn move_element(&self, x: usize, mut s: isize) -> Perm {
@@ -54,12 +65,16 @@ impl Perm {
         assert!(x < self.0.len());
         let mut v = self.0.clone();
         let mut y = x as isize + s;
-        while y < 0 {
-            y += l as isize;
+        // ox is where x is currently routed to.
+        let ox = self.0[x];
+        if y < 0 {
+            y = (y % l as isize) + l as isize;
         }
         y %= l as isize;
         assert!(y >= 0 && y < l as isize);
         let y = y as usize;
+        // y is where it should be routed to
+        dbg!(x, ox, y);
         if y >= x {
             // The input is:         aaaa x bbbb cccc
             // The output should be: aaaa bbbb y cccc
@@ -68,16 +83,21 @@ impl Perm {
             // This means the position of everything in b is reduced by 1.
             // Then x takes position y.
             // The range of y is: (x+1)..=y.
-            for i in (x + 1)..=y {
-                v[i] -= 1;
+            // Any input currently in that range is moved left by one.
+            for i in v.iter_mut() {
+                if *i > ox && *i <= y {
+                    *i -= 1;
+                }
             }
             v[x] = y;
         } else {
             // The input is aaa bbb x ccc
             // We want: aaa y bbb ccc
             // Everything in bbb moves one position right.
-            for i in y..x {
-                v[i] += 1;
+            for i in v.iter_mut() {
+                if *i >= y && *i < ox {
+                    *i += 1;
+                }
             }
             v[x] = y;
         }
@@ -97,16 +117,24 @@ impl Perm {
         let mut v = Vec::with_capacity(self.len());
         for i in 0..(self.0.len()) {
             // Which element of the input comes next?
+            // TODO: Don't scan it repeatedly!
             let j = self.0.iter().position(|y| *y == i).unwrap();
             v.push(s[j].clone());
         }
         v
     }
-}
 
-/// Permute the elements of `a` by moving element `x` by `s` elements to the right
-/// (or to the left if negative.)
-fn move_perm(a: &[usize], x: usize, s: usize) {}
+    // The result of another permutation applied to the output of this one.
+    #[must_use]
+    fn combine(&self, other: &Perm) -> Perm {
+        // For each element in the input of a, it first moves to the output of a,
+        // then again to where ever other maps that to.
+        let v = self.0.iter().map(|a| other.0[*a]).collect_vec();
+        let o = Perm(v);
+        o.check();
+        o
+    }
+}
 
 fn solve_a(input: &str) -> isize {
     let n = input
@@ -115,6 +143,7 @@ fn solve_a(input: &str) -> isize {
         .collect_vec();
     let mut perm = Perm::new(n.len());
     for i in 0..n.len() {
+        perm = perm
         // TODO: Find which current position corresponds to originally i.
         // perm = perm.move_element(i)
         // ring.rotate(i);
@@ -210,6 +239,18 @@ mod test {
             p2.apply("abcde".chars().collect_vec().as_slice()),
             "acbde".chars().collect_vec().as_slice(),
         );
+    }
+
+    #[test]
+    fn ex_1_parts() {
+        let p1 = Perm::new(7);
+        assert_eq!(p1.apply(&parse(EX)), [1, 2, -3, 3, -2, 0, 4]);
+        let p1 = p1.move_element(0, 1);
+        dbg!(&p1);
+        assert_eq!(p1.apply(&parse(EX)), [2, 1, -3, 3, -2, 0, 4]);
+        let p2 = Perm::new(7).move_element(2, 2).combine(&p1);
+        dbg!(&p2);
+        assert_eq!(p2.apply(&parse(EX)), [1, -3, 2, 3, -2, 0, 4]);
     }
 
     #[test]
