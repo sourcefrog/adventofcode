@@ -4,8 +4,8 @@ use std::collections::HashMap;
 
 fn main() {
     // println!("{}", solve_a(EX));
-    println!("{}", solve_a(&input()));
-    // println!("{}", solve_b(&input()));
+    // println!("{}", solve_a(&input()));
+    println!("{}", solve_b(&input()));
 }
 
 fn input() -> String {
@@ -18,32 +18,9 @@ enum Mk<'a> {
     Op(char, &'a str, &'a str),
 }
 
-fn solve_a(input: &str) -> isize {
-    let mut mks: HashMap<&str, Mk> = HashMap::new();
-    // List of dependencies: when k is available, everything in v _might_ be ready to be solved.
-    let mut kids: HashMap<&str, Vec<&str>> = HashMap::new();
-    let mut qrdy: Vec<&str> = Vec::new();
-    let mut vals: HashMap<&str, isize> = HashMap::new();
-    for l in input.lines() {
-        let (name, rest) = l.split_once(": ").unwrap();
-        let m;
-        if let Ok(v) = rest.parse::<isize>() {
-            m = Mk::Const(v);
-            qrdy.push(name);
-        } else {
-            let aop = l.split_ascii_whitespace().nth(1).unwrap();
-            let bop = l.split_ascii_whitespace().nth(3).unwrap();
-            let opch = l.chars().nth(11).unwrap();
-            m = Mk::Op(opch, aop, bop);
-            kids.entry(aop).or_default().push(name);
-            kids.entry(bop).or_default().push(name);
-        }
-        assert!(mks.insert(name, m).is_none());
-    }
-    while let Some(n) = qrdy.pop() {
-        let mk = &mks[n];
-        println!("eval {n} {mk:?}");
-        let v = match mk {
+impl<'a> Mk<'a> {
+    fn eval(&self, vals: &HashMap<&'a str, isize>) -> isize {
+        match self {
             Mk::Const(x) => *x,
             Mk::Op(opch, an, bn) => {
                 let a = vals[an];
@@ -56,7 +33,158 @@ fn solve_a(input: &str) -> isize {
                     _ => panic!(),
                 }
             }
-        };
+        }
+    }
+}
+
+type Mkmap<'a> = HashMap<&'a str, Mk<'a>>;
+
+/// Evaluate a monkey if it can be done without relying on humn.
+fn eval_maybe<'a>(
+    name: &'a str,
+    mks: &HashMap<&'a str, Mk<'a>>,
+    memo: &mut HashMap<&'a str, isize>,
+) -> Option<isize> {
+    let mk = &mks[name];
+    println!("attempt eval {name} {mk:?}");
+    if name == "humn" {
+        return None;
+    }
+    assert_ne!(name, "root");
+    let v = match mk {
+        Mk::Const(x) => Some(*x),
+        Mk::Op(opch, an, bn) => {
+            // TODO: maybe memoize.
+            if let (Some(a), Some(b)) = (eval_maybe(an, mks, memo), eval_maybe(bn, &mks, memo)) {
+                Some(match opch {
+                    '+' => a + b,
+                    '-' => a - b,
+                    '*' => a * b,
+                    '/' => a / b,
+                    _ => panic!(),
+                })
+            } else {
+                println!("evaluation of {name} stalled");
+                None
+            }
+        }
+    };
+    if let Some(v) = v {
+        memo.insert(name, v);
+    }
+    println!("result {name} => {v:?}");
+    v
+}
+
+fn from_root(mks: &Mkmap) -> isize {
+    let mk = &mks["root"];
+    // one side will have a known value; one unknown
+    let unn: &str;
+    let known: isize;
+    let mut memo: HashMap<&str, isize> = HashMap::new();
+    match mk {
+        Mk::Op(_, an, bn) => {
+            let aval = eval_maybe(an, mks, &mut memo);
+            let bval = eval_maybe(bn, mks, &mut memo);
+            match (aval, bval) {
+                (Some(a), None) => {
+                    known = a;
+                    unn = bn;
+                }
+                (None, Some(b)) => {
+                    known = b;
+                    unn = an;
+                }
+                _ => panic!(),
+            }
+        }
+        _ => panic!(),
+    }
+    println!("root known value {known}, unknown side {unn}");
+    push_down(unn, mks, known, &mut memo)
+}
+
+/// Given the known value of an expression push down towards the unknown human value and
+/// eventually return it.
+///
+/// This should only be called for unknown values.
+fn push_down(name: &str, mks: &Mkmap, val: isize, memo: &mut HashMap<&str, isize>) -> isize {
+    if name == "humn" {
+        println!("found humn {val}");
+        return val;
+    }
+    let mk = &mks[name];
+    println!("push down {name} = {val} into {mk:?}");
+    match mk {
+        Mk::Const(_) => panic!(),
+        Mk::Op(opch, an, bn) => {
+            let aval = memo.get(an);
+            let bval = memo.get(bn);
+            println!("a: {an}={aval:?}, b: {bn}={bval:?}");
+            match (aval, bval) {
+                (Some(a), None) => {
+                    let dn = match opch {
+                        '+' => val - a, // val = a + b; b = val - a
+                        '-' => a - val, // val = a - b; b = a - val
+                        '*' => val / a, // val = a * b; b = val / a
+                        '/' => val / a, // val = a / b; b = a / val
+                        _ => panic!(),
+                    };
+                    push_down(bn, mks, dn, memo)
+                }
+                (None, Some(b)) => {
+                    let dn = match opch {
+                        '+' => val - b, // val = a + b; a = val - b
+                        '-' => b + val, // val = a - b; a = val + b
+                        '*' => val / b, // val = a * b; a = val / b
+                        '/' => val * b, // val = a / b; a = val * b
+                        _ => panic!(),
+                    };
+                    push_down(an, mks, dn, memo)
+                }
+                _ => panic!(),
+            }
+        }
+    }
+}
+
+fn parse<'a>(input: &'a str) -> HashMap<&'a str, Mk> {
+    let mut mks: HashMap<&str, Mk> = HashMap::new();
+    for l in input.lines() {
+        let (name, rest) = l.split_once(": ").unwrap();
+        let m;
+        if let Ok(v) = rest.parse::<isize>() {
+            m = Mk::Const(v);
+        } else {
+            let aop = l.split_ascii_whitespace().nth(1).unwrap();
+            let bop = l.split_ascii_whitespace().nth(3).unwrap();
+            let opch = l.chars().nth(11).unwrap();
+            m = Mk::Op(opch, aop, bop);
+        }
+        assert!(mks.insert(name, m).is_none());
+    }
+    mks
+}
+
+fn solve_a(input: &str) -> isize {
+    // List of dependencies: when k is available, everything in v _might_ be ready to be solved.
+    let mks = parse(input);
+    let mut kids: HashMap<&str, Vec<&str>> = HashMap::new();
+    let mut qrdy: Vec<&str> = Vec::new();
+    let mut vals: HashMap<&str, isize> = HashMap::new();
+    for (name, mk) in &mks {
+        match mk {
+            Mk::Const(_) => qrdy.push(name),
+            Mk::Op(_, aop, bop) => {
+                kids.entry(aop).or_default().push(name);
+                kids.entry(bop).or_default().push(name);
+            }
+        }
+    }
+    while let Some(n) = qrdy.pop() {
+        let mk = &mks[n];
+        println!("eval {n} {mk:?}");
+        let v = mk.eval(&vals);
         println!("  => {v}");
         if n == "root" {
             return v;
@@ -76,10 +204,16 @@ fn solve_a(input: &str) -> isize {
     unreachable!()
 }
 
-fn solve_b(input: &str) -> usize {
-    input.len()
+fn solve_b(input: &str) -> isize {
+    // let mks = parse(EX);
+    let mks = parse(input);
+
+    // eval_maybe("pppw", &mks);
+    // eval_maybe("sjmn", &mks);
+    from_root(&mks)
 }
 
+#[allow(dead_code)]
 static EX: &str = "\
 root: pppw + sjmn
 dbpl: 5
@@ -104,11 +238,27 @@ mod test {
 
     #[test]
     fn solution_a() {
-        assert_eq!(solve_a(&input()), 9900);
+        assert_eq!(solve_a(&input()), 169525884255464);
     }
 
     #[test]
     fn solution_b() {
-        assert_eq!(solve_b(&input()), 9900);
+        assert_eq!(solve_b(&input()), 3247317268284);
     }
 }
+
+/*
+humn is used in only one place which makes things easier?
+
+We need to work out what the one side of the root value is and then can perhaps
+walk down the other side to find a good humn value?
+
+Maybe: first work out which side of 'root' depends on 'humn' (or maybe it's both.)
+
+Then, evaluate the other one to find a number.
+
+Then, keep pushing values down until we know humn.
+
+Relatively simple problem.
+
+*/
