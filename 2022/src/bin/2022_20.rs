@@ -248,7 +248,10 @@ mod test {
         let p1 = p1.move_element(0, 1);
         dbg!(&p1);
         assert_eq!(p1.apply(&parse(EX)), [2, 1, -3, 3, -2, 0, 4]);
-        let p2 = Perm::new(7).move_element(2, 2).combine(&p1);
+        // Where is the 2 that we now want to map? It was originally in 1.
+        let x = p1.0[1];
+        dbg!(&x);
+        let p2 = p1.move_element(x, 2);
         dbg!(&p2);
         assert_eq!(p2.apply(&parse(EX)), [1, -3, 2, 3, -2, 0, 4]);
     }
