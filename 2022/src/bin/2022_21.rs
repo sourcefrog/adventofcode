@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 fn main() {
     // println!("{}", solve_a(EX));
-    // println!("{}", solve_a(&input()));
+    println!("{}", solve_a(&input()));
     println!("{}", solve_b(&input()));
 }
 
@@ -36,10 +36,9 @@ impl<'a> Mk<'a> {
         }
     }
 }
-
 type Mkmap<'a> = HashMap<&'a str, Mk<'a>>;
 
-/// Evaluate a monkey if it can be done without relying on humn.
+/// Evaluate a monkey if it can be done without relying on humn, for part 2.
 fn eval_maybe<'a>(
     name: &'a str,
     mks: &HashMap<&'a str, Mk<'a>>,
@@ -54,7 +53,6 @@ fn eval_maybe<'a>(
     let v = match mk {
         Mk::Const(x) => Some(*x),
         Mk::Op(opch, an, bn) => {
-            // TODO: maybe memoize.
             if let (Some(a), Some(b)) = (eval_maybe(an, mks, memo), eval_maybe(bn, &mks, memo)) {
                 Some(match opch {
                     '+' => a + b,
@@ -116,6 +114,9 @@ fn push_down(name: &str, mks: &Mkmap, val: isize, memo: &mut HashMap<&str, isize
     let mk = &mks[name];
     println!("push down {name} = {val} into {mk:?}");
     match mk {
+        // TODO: This could be combined with the similar code above in
+        // from_root, although at the root nothing will be memoized
+        // yet.
         Mk::Const(_) => panic!(),
         Mk::Op(opch, an, bn) => {
             let aval = memo.get(an);
