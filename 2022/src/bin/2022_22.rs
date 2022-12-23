@@ -16,9 +16,6 @@ struct Map {
     l: Vec<usize>,
 }
 
-// dx, dy; increasing values turn right.
-static DIRS: [(isize, isize); 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
-
 impl Map {
     fn assert_on_board(&self, x: usize, y: usize) {
         assert!(y < self.rows.len());
@@ -418,8 +415,27 @@ mod test {
         }
     }
 
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 9900);
-    // }
+    #[test]
+    fn wrapping() {
+        // Going 200 steps in any direction should return to the same point
+        let (mut map, _) = parse(&input());
+        map.rows.iter_mut().for_each(|row| row.fill(false));
+        for vx in [0, 49, 50, 99, 100, 149] {
+            for vy in [0, 49, 50, 99, 100, 149, 150, 199] {
+                if map.in_row(vx, vy) {
+                    for vdir in 0..4 {
+                        println!("---\ncheck point {vx},{vy},{vdir}");
+                        let (nx, ny, ndir) = map.mv2(vx, vy, 200, vdir);
+                        println!("test move from {vx},{vy},{vdir} => {nx},{ny},{ndir}");
+                        assert_eq!((nx, ny, ndir), (vx, vy, vdir));
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(&input()), 146011);
+    }
 }
