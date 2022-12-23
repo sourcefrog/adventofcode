@@ -174,7 +174,7 @@ impl Map {
                             // move down from front face to right face, still travelling +y, x coord shifted
                             assert_eq!(y, 199);
                             nx = x + 100;
-                            ny = y - 150;
+                            ny = 0;
                             ndir = 1;
                         } else if x < 100 {
                             // move down from bottom face to front face travelling -x, x becomes +y
@@ -201,7 +201,7 @@ impl Map {
                             // move from left of top face to left face, travelling +x, y inverted
                             ndir = 0;
                             nx = 0;
-                            ny = 150 - y;
+                            ny = 100 + (49 - y);
                         } else if y < 100 {
                             // move from back face to left, y becomes x, travelling +y
                             ndir = 1;
@@ -211,7 +211,7 @@ impl Map {
                             // move from left face to top, travelling +x, y inverted
                             ndir = 0;
                             nx = 50;
-                            ny = 150 - y;
+                            ny = 49 - (y - 100);
                         } else {
                             assert!(y < 200);
                             // move from front face to top travelling +y, y becomes +x
@@ -239,11 +239,12 @@ impl Map {
                             nx = 0;
                             ny = 150 + (x - 50);
                         } else {
-                            assert!(x < 150);
                             // from right face to front travelling -y, x becomes +x
+                            assert_eq!(y, 0);
+                            assert!(x < 150);
                             ndir = 3;
-                            ny = 199;
                             nx = x - 100;
+                            ny = 199;
                         }
                     } else {
                         ndir = dir;
@@ -279,7 +280,7 @@ fn parse(input: &str) -> (Map, Vec<Inst>) {
     let mut ls = input.lines().peekable();
     loop {
         let line = ls.next().unwrap();
-        println!("{line}");
+        // println!("{line}");
         if line.is_empty() {
             break;
         }
@@ -401,10 +402,16 @@ mod test {
         for vx in [0, 49, 50, 99, 100, 149] {
             for vy in [0, 49, 50, 99, 100, 149, 150, 199] {
                 if map.in_row(vx, vy) {
-                    println!("check point {vx},{vy}");
                     for dir in 0..4 {
+                        println!("---\ncheck point {vx},{vy} dir {dir}");
                         let (nx, ny, ndir) = map.mv2(vx, vy, 1, dir);
-                        println!("point {vx},{vy} dir {dir} => {nx},{ny},{ndir}");
+                        println!("test move from {vx},{vy} dir {dir} => {nx},{ny},{ndir}");
+                        // Coming back in the opposite direction
+                        let rdir = (ndir + 2) % 4;
+                        let (wx, wy, wdir) = map.mv2(nx, ny, 1, rdir);
+                        println!("test return from {nx},{ny},{rdir} => {wx},{wy},{wdir}");
+                        // We should return in the opposite direction to what we left
+                        assert_eq!((wx, wy, wdir), (vx, vy, (dir + 2) % 4));
                     }
                 }
             }
