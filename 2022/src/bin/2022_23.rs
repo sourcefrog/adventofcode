@@ -8,7 +8,7 @@ fn main() {
     // println!("{}", solve_a(SMOL));
     // println!("{}", solve_a(EX));
     println!("{}", solve_a(&input()));
-    // println!("{}", solve_b(&input()));
+    println!("{}", solve_b(&input()));
 }
 
 fn input() -> String {
@@ -65,33 +65,33 @@ fn solve_a(input: &str) -> isize {
     // let mat = aoclib::Matrix::from_string_lines(input);
     // println!("{mat}");
     let elvs = parse(input);
-    println!("{}", input);
-    println!("{}", show(&elvs));
-    let maps = run1(elvs.clone());
+    // println!("{}", input);
+    // println!("{}", show(&elvs));
+    let maps = run1(elvs.clone(), 10);
     let elvs = maps.last().unwrap();
     let (bb0, bb1) = bounds(elvs);
-    println!("bounds {bb0:?}..{bb1:?}");
+    // println!("bounds {bb0:?}..{bb1:?}");
     (bb1.y - bb0.y + 1) * (bb1.x - bb0.x + 1) - elvs.len() as isize
     // not 3910
 }
 
-fn run1(mut elvs: Map) -> Vec<Map> {
+fn run1(mut elvs: Map, nrounds: usize) -> Vec<Map> {
     let mut maps = Vec::new();
     let mut dir = 0;
     let n_elvs = elvs.len();
-    for round in 1..=10 {
-        println!("round {round}");
+    for round in 1..=nrounds {
+        // println!("round {round}");
         // From destination point to a list of elves considering moving there.
         let mut prop: BTreeMap<Point, Vec<Point>> = BTreeMap::new();
         'elvs: for &s in &elvs {
             if s.neighbors8().into_iter().all(|p| !elvs.contains(&p)) {
-                println!("{s:?} is lonely");
+                // println!("{s:?} is lonely");
                 continue;
             }
 
             for idir in 0..4 {
                 let mdir = (dir + idir) % 4;
-                let dirch = "NSWE".chars().nth(mdir).unwrap();
+                // let dirch = "NSWE".chars().nth(mdir).unwrap();
                 let look_at: [Point; 3] = match mdir {
                     0 => [s.up(), s.up().left(), s.up().right()],
                     1 => [s.down(), s.down().left(), s.down().right()],
@@ -102,36 +102,47 @@ fn run1(mut elvs: Map) -> Vec<Map> {
                 if look_at.iter().all(|l| !elvs.contains(l)) {
                     let dst = look_at[0];
                     prop.entry(dst).or_default().push(s);
-                    println!("{s:?} proposes to move {dirch} to {dst:?}");
+                    // println!("{s:?} proposes to move {dirch} to {dst:?}");
                     continue 'elvs;
                 } else {
-                    println!("{s:?} is blocked from moving {dirch}");
+                    // println!("{s:?} is blocked from moving {dirch}");
                 }
             }
         }
+        let mut any_moves = false;
         for (dst, ss) in prop.iter() {
             assert!(ss.len() >= 1);
             if ss.len() == 1 {
-                println!("{} moves to {dst:?}", ss[0]);
+                // println!("{} moves to {dst:?}", ss[0]);
                 assert!(elvs.remove(&ss[0]));
                 assert!(elvs.insert(*dst));
+                any_moves = true;
             } else {
-                println!("contention on {dst:?}: {} elves can't move", ss.len());
+                // println!("contention on {dst:?}: {} elves can't move", ss.len());
             }
         }
 
-        println!("{}", show(&elvs));
+        // println!("{}", show(&elvs));
         assert_eq!(elvs.len(), n_elvs);
         maps.push(elvs.clone());
         dir = (dir + 1) % 4;
+        if !any_moves {
+            // println!("nobody moved in round {round}");
+            break;
+        }
     }
     maps
 }
 
 fn solve_b(input: &str) -> usize {
-    input.len()
+    let elvs = parse(input);
+    // println!("{}", input);
+    // println!("{}", show(&elvs));
+    let maps = run1(elvs.clone(), 100000);
+    maps.len()
 }
 
+#[allow(dead_code)]
 static EX: &str = "\
 ....#..
 ..###.#
@@ -141,6 +152,7 @@ static EX: &str = "\
 ##.#.##
 .#..#..";
 
+#[allow(dead_code)]
 static SMOL: &str = "\
 .....
 ..##.
@@ -149,39 +161,23 @@ static SMOL: &str = "\
 ..##.
 .....
 ";
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn ex() {
-        let maps = run1(parse(EX));
-        assert_eq!(
-            show_fixed(&maps[0], point(-2, -2), point(12, 12)),
-            "\
-..............
-.......#......
-.....#...#....
-...#..#.#.....
-.......#..#...
-....#.#.##....
-..#..#.#......
-..#.#.#.##....
-..............
-....#..#......
-..............
-..............
-"
-        );
+        assert_eq!(solve_a(EX), 110);
     }
 
-    // #[test]
-    // fn solution_a() {
-    //     assert_eq!(solve_a(&input()), 9900);
-    // }
+    #[test]
+    fn solution_a() {
+        assert_eq!(solve_a(&input()), 4070);
+    }
 
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 9900);
-    // }
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(&input()), 881);
+    }
 }
