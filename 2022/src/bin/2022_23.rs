@@ -17,11 +17,13 @@ fn input() -> String {
 
 type Map = BTreeSet<Point>;
 
+#[allow(dead_code)]
 fn show(elvs: &BTreeSet<Point>) -> String {
     let (b0, b1) = bounds(elvs);
     show_fixed(elvs, b0.delta(-2, -2), b1.delta(2, 2))
 }
 
+#[allow(dead_code)]
 fn show_fixed(elvs: &BTreeSet<Point>, b0: Point, b1: Point) -> String {
     let mut s = String::new();
     for y in (b0.y)..=(b1.y) {
@@ -67,16 +69,16 @@ fn solve_a(input: &str) -> isize {
     let elvs = parse(input);
     // println!("{}", input);
     // println!("{}", show(&elvs));
-    let maps = run1(elvs.clone(), 10);
-    let elvs = maps.last().unwrap();
-    let (bb0, bb1) = bounds(elvs);
+    let (elvs, stalled) = run1(elvs.clone(), 10);
+    assert!(stalled.is_none());
+    let (bb0, bb1) = bounds(&elvs);
     // println!("bounds {bb0:?}..{bb1:?}");
     (bb1.y - bb0.y + 1) * (bb1.x - bb0.x + 1) - elvs.len() as isize
     // not 3910
 }
 
-fn run1(mut elvs: Map, nrounds: usize) -> Vec<Map> {
-    let mut maps = Vec::new();
+/// Returns the last map, and if it stalled the point at which it stalled.
+fn run1(mut elvs: Map, nrounds: usize) -> (Map, Option<usize>) {
     let mut dir = 0;
     let n_elvs = elvs.len();
     for round in 1..=nrounds {
@@ -124,22 +126,21 @@ fn run1(mut elvs: Map, nrounds: usize) -> Vec<Map> {
 
         // println!("{}", show(&elvs));
         assert_eq!(elvs.len(), n_elvs);
-        maps.push(elvs.clone());
         dir = (dir + 1) % 4;
         if !any_moves {
             // println!("nobody moved in round {round}");
-            break;
+            return (elvs, Some(round));
         }
     }
-    maps
+    (elvs, None)
 }
 
 fn solve_b(input: &str) -> usize {
     let elvs = parse(input);
     // println!("{}", input);
     // println!("{}", show(&elvs));
-    let maps = run1(elvs.clone(), 100000);
-    maps.len()
+    let (_last_map, rounds) = run1(elvs.clone(), 100000);
+    rounds.expect("did not settle")
 }
 
 #[allow(dead_code)]
