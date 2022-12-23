@@ -18,8 +18,8 @@ use std::fmt;
 
 #[derive(Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub struct Point {
-    pub y: isize,
     pub x: isize,
+    pub y: isize,
 }
 
 impl fmt::Debug for Point {
@@ -75,6 +75,14 @@ impl Point {
     #[must_use]
     pub fn neighbors(&self) -> Vec<Point> {
         vec![self.left(), self.right(), self.up(), self.down()]
+    }
+
+    #[must_use]
+    pub fn neighbors8(&self) -> Vec<Point> {
+        Point::DIRECTIONS_8
+            .iter()
+            .map(|(dx, dy)| self.delta(*dx, *dy))
+            .collect()
     }
 
     #[must_use]
