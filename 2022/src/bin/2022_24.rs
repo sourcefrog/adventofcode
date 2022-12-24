@@ -5,8 +5,8 @@ use aoclib::{point, Point};
 use itertools::Itertools;
 
 fn main() {
-    println!("{}", solve_a(EX));
-    // println!("{}", solve_a(&input()));
+    // println!("{}", solve_a(EX));
+    println!("{}", solve_a(&input()));
     // println!("{}", solve_b(&input()));
 }
 
@@ -163,9 +163,9 @@ impl Map {
     }
 
     /// Coords of places neighboring a place, including staying still.
-    fn nbrs(&self, place: Place) -> Vec<(usize, usize)> {
+    fn nbrs(&self, place: Place) -> Vec<Place> {
         match place {
-            Place::Start => vec![(0, 0)],
+            Place::Start => vec![Place::Point(0, 0), Place::Start],
             Place::End => vec![],
             Place::Point(x, y) => {
                 let mut v = Vec::new();
@@ -182,7 +182,12 @@ impl Map {
                 if y > 0 {
                     v.push((x, y - 1))
                 }
-                v
+                let mut places: Vec<Place> =
+                    v.into_iter().map(|(x, y)| Place::Point(x, y)).collect();
+                if x + 1 == self.w && y + 1 == self.h {
+                    places.push(Place::End);
+                }
+                places
             }
         }
     }
@@ -191,29 +196,18 @@ impl Map {
     /// occupied in the next clock.
     fn moves(&self, st: &State) -> Vec<(State, usize)> {
         let mut mvs = Vec::new();
+        let clock = st.clock + 1;
 
-        for (nx, ny) in self.nbrs(st.place) {
-            if self.bliz_at(st.clock + 1, nx, ny) == '.' {
-                mvs.push((
-                    State {
-                        clock: st.clock + 1,
-                        place: Place::Point(nx, ny),
-                    },
-                    1,
-                ));
+        for place in self.nbrs(st.place) {
+            if let Place::Point(nx, ny) = place {
+                if self.bliz_at(clock, nx, ny) == '.' {
+                    mvs.push((State { clock, place }, 1));
+                }
+            } else {
+                mvs.push((State { clock, place }, 1));
             }
         }
-        if let Place::Point(x, y) = st.place {
-            if x + 1 == self.w && y + 1 == self.h {
-                mvs.push((
-                    State {
-                        clock: st.clock + 1,
-                        place: Place::End,
-                    },
-                    1,
-                ));
-            }
-        }
+        println!("from {st:?} generate {mvs:#?}");
         mvs
     }
 }
@@ -288,13 +282,13 @@ static EX: &str = "\
 mod test {
     use super::*;
 
-    #[test]
-    fn solution_a() {
-        assert_eq!(solve_a(&input()), 9900);
-    }
+    // #[test]
+    // fn solution_a() {
+    //     assert_eq!(solve_a(&input()), 9900);
+    // }
 
-    #[test]
-    fn solution_b() {
-        assert_eq!(solve_b(&input()), 9900);
-    }
+    // #[test]
+    // fn solution_b() {
+    //     assert_eq!(solve_b(&input()), 9900);
+    // }
 }
