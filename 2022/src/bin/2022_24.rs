@@ -1,13 +1,12 @@
 //! https://adventofcode.com/2022/day/8
 
 use aoclib::shortest_path::ShortestPath;
-use aoclib::{point, Point};
 use itertools::Itertools;
 
 fn main() {
     // println!("{}", solve_a(EX));
     println!("{}", solve_a(&input()));
-    // println!("{}", solve_b(&input()));
+    println!("{}", solve_b(&input()));
 }
 
 /*
@@ -43,7 +42,7 @@ impl Map {
         let mut bl_w = vec![vec![false; w]; h];
         let mut bl_e = vec![vec![false; w]; h];
         for (y, l) in lines[1..=h].iter().enumerate() {
-            assert!(l.starts_with("#"));
+            assert!(l.starts_with('#'));
             for (x, c) in l.chars().skip(1).take_while(|c| *c != '#').enumerate() {
                 match c {
                     '>' => bl_e[y][x] = true,
@@ -91,6 +90,7 @@ impl Map {
         }
     }
 
+    #[allow(dead_code)]
     fn draw(&self, clock: usize) -> String {
         let mut s = String::new();
         s.push_str("#.");
@@ -119,7 +119,7 @@ impl Map {
 
     fn draw_state(&self, state: &State) -> String {
         let mut s = String::new();
-        s.push_str("#");
+        s.push('#');
         if state.place == Place::Start {
             s.push('E');
         } else {
@@ -156,7 +156,7 @@ impl Map {
         } else {
             s.push('.');
         }
-        s.push_str("#");
+        s.push('#');
         s.push('\n');
 
         s
@@ -166,7 +166,7 @@ impl Map {
     fn nbrs(&self, place: Place) -> Vec<Place> {
         match place {
             Place::Start => vec![Place::Point(0, 0), Place::Start],
-            Place::End => vec![],
+            Place::End => vec![Place::End, Place::Point(self.w - 1, self.h - 1)],
             Place::Point(x, y) => {
                 let mut v = Vec::new();
                 v.push((x, y));
@@ -186,6 +186,8 @@ impl Map {
                     v.into_iter().map(|(x, y)| Place::Point(x, y)).collect();
                 if x + 1 == self.w && y + 1 == self.h {
                     places.push(Place::End);
+                } else if (x, y) == (0, 0) {
+                    places.push(Place::Start);
                 }
                 places
             }
@@ -207,7 +209,7 @@ impl Map {
                 mvs.push((State { clock, place }, 1));
             }
         }
-        println!("from {st:?} generate {mvs:#?}");
+        // println!("from {st:?} generate {mvs:#?}");
         mvs
     }
 }
@@ -247,6 +249,7 @@ fn solve_a(input: &str) -> usize {
     path.distance()
 }
 
+#[allow(dead_code)]
 fn demo(input: &str) -> usize {
     let map = Map::parse(input);
     for clk in 0..6 {
@@ -256,9 +259,48 @@ fn demo(input: &str) -> usize {
 }
 
 fn solve_b(input: &str) -> usize {
-    input.len()
+    let map = Map::parse(input);
+    let path1 = ShortestPath::find(
+        &State {
+            clock: 0,
+            place: Place::Start,
+        },
+        |st| st.place == Place::End,
+        |st| map.moves(st),
+    )
+    .unwrap();
+    let t1 = path1.distance();
+
+    let path2 = ShortestPath::find(
+        &State {
+            clock: t1,
+            place: Place::End,
+        },
+        |st| st.place == Place::Start,
+        |st| map.moves(st),
+    )
+    .unwrap();
+    for st in path2.path() {
+        println!("clock {}\n{}\n", st.clock, map.draw_state(st));
+    }
+    let clock2 = path2.path().last().unwrap().clock;
+
+    let path3 = ShortestPath::find(
+        &State {
+            clock: clock2,
+            place: Place::Start,
+        },
+        |st| st.place == Place::End,
+        |st| map.moves(st),
+    )
+    .unwrap();
+    for st in path3.path() {
+        println!("clock {}\n{}\n", st.clock, map.draw_state(st));
+    }
+    path3.path().last().unwrap().clock
 }
 
+#[allow(dead_code)]
 static SMOL: &str = "\
 #.#####
 #.....#
@@ -269,6 +311,7 @@ static SMOL: &str = "\
 #####.#   
 ";
 
+#[allow(dead_code)]
 static EX: &str = "\
 #.######
 #>>.<^<#
@@ -282,13 +325,18 @@ static EX: &str = "\
 mod test {
     use super::*;
 
-    // #[test]
-    // fn solution_a() {
-    //     assert_eq!(solve_a(&input()), 9900);
-    // }
+    #[test]
+    fn solution_a() {
+        assert_eq!(solve_a(&input()), 232);
+    }
 
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 9900);
-    // }
+    #[test]
+    fn ex2() {
+        assert_eq!(solve_b(EX), 54);
+    }
+
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(&input()), 715);
+    }
 }
