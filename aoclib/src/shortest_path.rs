@@ -197,6 +197,14 @@ where
         self.path.iter()
     }
 
+    /// Return the final end point.
+    ///
+    /// This might be useful if there are multiple possible end points, or if the state includes
+    /// other information such as a clock.
+    pub fn final_point(&self) -> &P {
+        self.path.last().expect("path is not empty")
+    }
+
     pub fn stats(&self) -> &Stats {
         &self.stats
     }
