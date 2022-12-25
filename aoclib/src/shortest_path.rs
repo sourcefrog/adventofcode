@@ -56,7 +56,11 @@ where
     /// `estimate` returns a *lower bound* on the distance between a candidate
     /// point `p` and the destination. This must be `0` (more precisely, `D::default()`)
     /// for the destination, and greater than `0` for every other point.
-    pub fn find_astar<NbrFn, Nbrs, EstFn>(origin: &P, estimate: EstFn, neighbors: NbrFn) -> Self
+    pub fn find_astar<NbrFn, Nbrs, EstFn>(
+        origin: &P,
+        estimate: EstFn,
+        neighbors: NbrFn,
+    ) -> Option<Self>
     where
         NbrFn: Fn(&P) -> Nbrs,
         Nbrs: IntoIterator<Item = (P, D)>,
@@ -90,11 +94,11 @@ where
                     path.push(next.clone());
                 }
                 path.reverse();
-                return ShortestPath {
+                return Some(ShortestPath {
                     distance,
                     path,
                     stats: Stats { search_cycles },
-                };
+                });
             }
             debug_assert!(
                 est > D::default(),
