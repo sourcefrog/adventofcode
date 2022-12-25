@@ -6,7 +6,7 @@ use itertools::Itertools;
 fn main() {
     // println!("{}", solve_a(EX));
     println!("{}", solve_a(&input()));
-    // println!("{}", solve_b(&input()));
+    println!("{}", solve_b(&input()));
 }
 
 /*
