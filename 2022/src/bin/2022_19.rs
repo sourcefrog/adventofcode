@@ -265,8 +265,6 @@ fn solve_b(input: &str) -> usize {
                 .flat_map(|s| s.succ(bp))
                 .unique()
                 .collect_vec();
-            // Any state that starts producing geodes earlier is strictly better; throw the rest away?
-            // let max_geo_rob = succs.iter().map(|st| st.robots[GEODE]).max().unwrap();
             let max_geodes = succs.iter().map(|st| st.res[GEODE]).max().unwrap();
 
             for st in succs {
