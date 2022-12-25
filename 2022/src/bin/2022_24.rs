@@ -1,4 +1,4 @@
-//! https://adventofcode.com/2022/day/8
+//! https://adventofcode.com/2022/day/24
 
 use aoclib::shortest_path::ShortestPath;
 use itertools::Itertools;
@@ -6,7 +6,7 @@ use itertools::Itertools;
 fn main() {
     // println!("{}", solve_a(EX));
     println!("{}", solve_a(&input()));
-    println!("{}", solve_b(&input()));
+    // println!("{}", solve_b(&input()));
 }
 
 /*
@@ -212,6 +212,22 @@ impl Map {
         // println!("from {st:?} generate {mvs:#?}");
         mvs
     }
+    /// Return (x,y) coords including for start/end.
+    fn to_coords(&self, place: Place) -> (isize, isize) {
+        match place {
+            Place::Point(x, y) => (x as isize, y as isize),
+            Place::Start => (0, -1),
+            Place::End => (self.w as isize - 1, self.h as isize),
+        }
+    }
+
+    fn manhattan_distance(&self, p1: Place, p2: Place) -> usize {
+        let (x1, y1) = self.to_coords(p1);
+        let (x2, y2) = self.to_coords(p2);
+        let dist = (x1 - x2).abs() + (y1 - y2).abs();
+        assert_eq!(dist == 0, p1 == p2, "invalid 0 distance for {p1:?}, {p2:?}");
+        dist as usize
+    }
 }
 
 #[derive(Eq, Debug, PartialEq, Ord, Hash, PartialOrd, Clone, Copy)]
@@ -232,12 +248,12 @@ fn input() -> String {
 }
 
 fn find_path(map: &Map, clock: usize, start: Place, end: Place) -> ShortestPath<State, usize> {
-    ShortestPath::find(
+    ShortestPath::find_astar(
         &State {
             clock,
             place: start,
         },
-        |st| st.place == end,
+        |st| map.manhattan_distance(st.place, end),
         |st| map.moves(st),
     )
     .expect("no path from {start:?} to {end:?} found")
