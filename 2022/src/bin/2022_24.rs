@@ -231,21 +231,26 @@ fn input() -> String {
     std::fs::read_to_string("input/24.txt").unwrap()
 }
 
-fn solve_a(input: &str) -> usize {
-    let map = Map::parse(input);
-    let path = ShortestPath::find(
+fn find_path(map: &Map, clock: usize, start: Place, end: Place) -> ShortestPath<State, usize> {
+    ShortestPath::find(
         &State {
-            clock: 0,
-            place: Place::Start,
+            clock,
+            place: start,
         },
-        |st| st.place == Place::End,
+        |st| st.place == end,
         |st| map.moves(st),
     )
-    .unwrap();
+    .expect("no path from {start:?} to {end:?} found")
+}
+
+fn solve_a(input: &str) -> usize {
+    let map = Map::parse(input);
+    let path = find_path(&map, 0, Place::Start, Place::End);
     println!("{:#?}", path.path().collect_vec());
     for st in path.path() {
         println!("clock {}\n{}\n", st.clock, map.draw_state(st));
     }
+    println!("{:#?}", path.stats());
     path.distance()
 }
 
@@ -260,44 +265,14 @@ fn demo(input: &str) -> usize {
 
 fn solve_b(input: &str) -> usize {
     let map = Map::parse(input);
-    let path1 = ShortestPath::find(
-        &State {
-            clock: 0,
-            place: Place::Start,
-        },
-        |st| st.place == Place::End,
-        |st| map.moves(st),
-    )
-    .unwrap();
-    let t1 = path1.distance();
-
-    let path2 = ShortestPath::find(
-        &State {
-            clock: t1,
-            place: Place::End,
-        },
-        |st| st.place == Place::Start,
-        |st| map.moves(st),
-    )
-    .unwrap();
-    for st in path2.path() {
-        println!("clock {}\n{}\n", st.clock, map.draw_state(st));
-    }
-    let clock2 = path2.path().last().unwrap().clock;
-
-    let path3 = ShortestPath::find(
-        &State {
-            clock: clock2,
-            place: Place::Start,
-        },
-        |st| st.place == Place::End,
-        |st| map.moves(st),
-    )
-    .unwrap();
-    for st in path3.path() {
-        println!("clock {}\n{}\n", st.clock, map.draw_state(st));
-    }
-    path3.path().last().unwrap().clock
+    let path = find_path(&map, 0, Place::Start, Place::End);
+    let clock = path.final_point().clock;
+    assert_eq!(path.distance(), clock);
+    let path = find_path(&map, clock, Place::End, Place::Start);
+    let clock = path.final_point().clock;
+    let path = find_path(&map, clock, Place::Start, Place::End);
+    let clock = path.final_point().clock;
+    clock
 }
 
 #[allow(dead_code)]
