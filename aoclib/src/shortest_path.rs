@@ -34,6 +34,13 @@ where
 {
     distance: D,
     path: Vec<P>,
+    stats: Stats,
+}
+
+/// Statistics about the work done to find the path.
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub struct Stats {
+    pub search_cycles: usize,
 }
 
 impl<P, D> ShortestPath<P, D>
@@ -61,15 +68,15 @@ where
         let mut best = HashMap::<P, D>::new();
         // The previous state that leads, on the best path, to this state.
         let mut predecessor = HashMap::<P, P>::new();
-        let mut cycles = 0;
+        let mut search_cycles = 0;
         queue.push((Default::default(), origin.clone()));
         best.insert(origin.clone(), Default::default());
         loop {
             let (_priority, p) = queue
                 .pop()
                 .expect("heap is empty without reaching destination");
-            cycles += 1;
-            if cycles % 100000 == 0 {
+            search_cycles += 1;
+            if search_cycles % 100000 == 0 {
                 dbg!(&p);
                 queue.assert_valid();
             }
@@ -83,7 +90,11 @@ where
                     path.push(next.clone());
                 }
                 path.reverse();
-                return ShortestPath { distance, path };
+                return ShortestPath {
+                    distance,
+                    path,
+                    stats: Stats { search_cycles },
+                };
             }
             debug_assert!(
                 est > D::default(),
@@ -131,11 +142,11 @@ where
         let mut predecessor = HashMap::<P, P>::new();
         queue.push((Default::default(), origin.clone()));
         best.insert(origin.clone(), Default::default());
-        let mut cycles = 0;
+        let mut search_cycles = 0;
         loop {
-            cycles += 1;
+            search_cycles += 1;
             if let Some((d, p)) = queue.pop() {
-                if cycles % 100000 == 0 {
+                if search_cycles % 100000 == 0 {
                     println!("best distance={d:?} p={p:?}");
                     // dbg!(&d, &p);
                     queue.assert_valid();
@@ -149,10 +160,14 @@ where
                     }
                     path.reverse();
                     println!(
-                        "shortest_path: destination found at distance {d:?} {cycles} search cycles, {} states examined",
+                        "shortest_path: destination found at distance {d:?} {search_cycles} search cycles, {} states examined",
                         best.len()
                     );
-                    return Some(ShortestPath { distance: d, path });
+                    return Some(ShortestPath {
+                        distance: d,
+                        path,
+                        stats: Stats { search_cycles },
+                    });
                 }
                 for (np, step) in neighbors(&p) {
                     let nd = step + d.clone();
@@ -180,5 +195,9 @@ where
     /// the destination.
     pub fn path(&self) -> impl Iterator<Item = &P> {
         self.path.iter()
+    }
+
+    pub fn stats(&self) -> &Stats {
+        &self.stats
     }
 }
