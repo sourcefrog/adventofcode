@@ -78,19 +78,17 @@ use std::{
 
 use itertools::Itertools;
 
-static EX:&str = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
+static EX: &str = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
 Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.
 ";
+
+static INPUT: &str = include_str!("../../input/19.txt");
 
 fn main() {
     // println!("{}", solve_a(EX));
     // println!("{}", solve_b(EX));
     // println!("{}", solve_a(&input()));
-    println!("{}", solve_b(&input()));
-}
-
-fn input() -> String {
-    std::fs::read_to_string("input/19.txt").unwrap()
+    println!("{}", solve_b(INPUT));
 }
 
 #[derive(Debug)]
@@ -300,9 +298,14 @@ mod test {
         assert_eq!(solve_a(EX), 33);
     }
 
+    #[test]
+    fn solution_a() {
+        assert_eq!(solve_a(INPUT), 1981);
+    }
+
     // #[test]
     // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 0);
+    //     assert_eq!(solve_b(INPUT), 0);
     // }
 }
 
