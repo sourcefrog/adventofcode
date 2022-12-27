@@ -221,7 +221,7 @@ impl St {
     #[must_use]
     fn max_potential(&self, cycle_limit: usize) -> usize {
         let remaining = cycle_limit - self.clock;
-        self.res[GEODE] + self.robots[GEODE] * remaining + (remaining * (remaining + 1)) / 2
+        self.res[GEODE] + self.robots[GEODE] * remaining + (remaining * (remaining - 1)) / 2
     }
 }
 
