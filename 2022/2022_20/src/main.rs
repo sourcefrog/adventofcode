@@ -14,6 +14,8 @@ static EX: &str = "\
 4
 ";
 
+static INPUT: &str = include_str!("../input.txt");
+
 fn parse(input: &str) -> Vec<isize> {
     input
         .lines()
@@ -25,10 +27,6 @@ fn main() {
     println!("{}", solve_a(EX));
     // println!("{}", solve_a(&input()));
     // println!("{}", solve_b(&input()));
-}
-
-fn input() -> String {
-    std::fs::read_to_string("input/20.txt").unwrap()
 }
 
 /// A permutation of the elements of an input of given size.
@@ -46,6 +44,13 @@ fn check_perm(v: &[usize]) {
     for i in 0..v.len() {
         assert!(v.contains(&i), "element {i} missing from {:?}", v);
     }
+}
+
+/// An integer modulo some modulus.
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+struct DynModInt {
+    a: usize,
+    base: usize,
 }
 
 impl Perm {
