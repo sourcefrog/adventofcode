@@ -254,6 +254,7 @@ fn wait_and_produce(
     }
     let mut last = start.clone();
     loop {
+        // TODO: Could potentially unroll this into multiplication.
         if last.clock == cycle_limit {
             return None;
         } else if let Some(produced) = last.try_build(blueprint, robot_type) {
@@ -297,31 +298,44 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
     let mut best_geodes = 0;
     // let mut best_path = None;
     let mut best_final_state = None;
-    // println!("look for best moves from {last_state:?}");
-    for robot_type in 0..4 {
-        if let Some(next_state) = wait_and_produce(blueprint, start, robot_type, cycle_limit) {
-            // Recurse down to find the best case if we make this robot next.
-            // println!(
-            //     "from {last_state:?} consider building {name}",
-            //     name = RESOURCE_NAME[robot_type]
-            // );
-            let final_state = find_best_path(blueprint, &next_state, cycle_limit);
-            assert_eq!(final_state.clock, cycle_limit);
-            // check_path(&complete_path, cycle_limit);
-            let rec_geodes = final_state.res[GEODE];
-            // println!(
-            //     "from {last_state:?} building {name} would produce {rec_geodes} geode",
-            //     name = RESOURCE_NAME[robot_type]
-            // );
+    let mut queue: Vec<St> = vec![start.clone()];
+    let mut cycles = 0usize;
+    while let Some(st) = queue.pop() {
+        if cycles % 10000000 == 0 {
+            println!(
+                "cycle {cycles:>20} qlen {qlen:>10}: look for best moves from {st:?}",
+                qlen = queue.len()
+            );
+        }
+        cycles += 1;
+        if st.clock == cycle_limit {
+            let rec_geodes = st.res[GEODE];
             if rec_geodes > best_geodes {
                 best_geodes = rec_geodes;
-                // println!("found new best path yielding {rec_geodes}: {complete_path:?}");
-                best_final_state = Some(final_state);
-                // best_path = Some(complete_path);
+                println!("found new best path yielding {rec_geodes}: {st:?}");
+                best_final_state = Some(st.clone());
+            }
+            continue;
+        }
+        let mut built_any = false;
+        for robot_type in 0..4 {
+            if let Some(next_state) = wait_and_produce(blueprint, &st, robot_type, cycle_limit) {
+                built_any = true;
+                // Recurse down to find the best case if we make this robot next.
+                // println!(
+                //     "from {last_state:?} consider building {name}",
+                //     name = RESOURCE_NAME[robot_type]
+                // );
+                queue.push(next_state);
             }
         }
+        // We'd always prefer to build if we can, but if we can't and if this state will produce any geodes,
+        // try that.
+        if !built_any && st.robots[GEODE] > 0 {
+            queue.push(wait_until_end(&st, cycle_limit));
+        }
     }
-    best_final_state.unwrap_or_else(|| wait_until_end(start, cycle_limit))
+    best_final_state.unwrap()
 }
 
 fn solve_b(_input: &str) -> usize {
