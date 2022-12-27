@@ -183,14 +183,14 @@ impl St {
     fn try_build(&self, blueprint: &Blueprint, robot_type: usize) -> Option<St> {
         let costs = blueprint.costs[robot_type];
         if self.can_afford(blueprint, robot_type) {
-            let mut res = self.res.clone();
+            let mut res = self.res;
             res.iter_mut()
                 .zip(costs)
                 .for_each(|(res, cost)| *res = res.checked_sub(cost).unwrap());
             res.iter_mut()
                 .zip(&self.robots)
                 .for_each(|(res, prod)| *res += prod);
-            let mut robots = self.robots.clone();
+            let mut robots = self.robots;
             robots[robot_type] += 1;
             Some(St {
                 res,
@@ -206,7 +206,7 @@ impl St {
     /// no new robots are built.
     #[must_use]
     fn just_produce(&self) -> St {
-        let mut res = self.res.clone();
+        let mut res = self.res;
         res.iter_mut()
             .zip(self.robots)
             .for_each(|(re, ro)| *re += ro);
@@ -230,7 +230,7 @@ impl St {
 
 /// Extend this path by just producing resources and no robots to the end.
 fn wait_until_end(start: &St, cycle_limit: usize) -> St {
-    let mut res = start.res.clone();
+    let mut res = start.res;
     let remaining_cycles = cycle_limit - start.clock;
     assert!(remaining_cycles > 0);
     res.iter_mut()
@@ -239,7 +239,7 @@ fn wait_until_end(start: &St, cycle_limit: usize) -> St {
     St {
         clock: cycle_limit,
         res,
-        robots: start.robots.clone(),
+        robots: start.robots,
     }
 }
 
