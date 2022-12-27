@@ -322,49 +322,10 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
                 best_final_state = Some(final_state);
                 // best_path = Some(complete_path);
             }
-        } else {
-            // println!(
-            //     "{last_state:?} can't produce {name} next",
-            //     name = RESOURCE_NAME[robot_type]
-            // );
         }
     }
     best_final_state.unwrap_or_else(|| wait_until_end(start, cycle_limit))
 }
-
-// fn solve_a(input: &str) -> usize {
-//     let bps = parse(input);
-//     let mut totql = 0;
-//     for bp in &bps {
-//         println!("{bp:#?}");
-//         let mut sts = vec![St {
-//             robots: [1, 0, 0, 0],
-//             res: [0; 4],
-//         }];
-//         for m in 1..=24 {
-//             let mut succs = sts.into_iter().flat_map(|s| s.succ(bp)).collect_vec();
-//             // println!("minute {m} new states:");
-//             // println!("{succ:#?}");
-//             succs.sort();
-//             succs.dedup();
-//             // TODO: Maybe trim out states that are strictly inferior.
-//             sts = succs;
-//             println!("minute {m}, {} states", sts.len());
-//             let mut shrunk = Vec::new();
-//             for st in sts {
-//                 if !shrunk.iter().any(|x: &St| x.strictly_better(&st)) {
-//                     shrunk.push(st)
-//                 }
-//             }
-//             println!("shrunk to {}", shrunk.len());
-//             sts = shrunk;
-//         }
-//         let best_geodes = sts.iter().map(|st| st.res[GEODE]).max().unwrap();
-//         println!("final best geodes of bp {}: {}", bp.id, best_geodes);
-//         totql += bp.id * best_geodes;
-//     }
-//     totql
-// }
 
 fn solve_b(_input: &str) -> usize {
     let bps = parse(EX);
