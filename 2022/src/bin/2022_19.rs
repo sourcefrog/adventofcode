@@ -215,6 +215,14 @@ impl St {
             ..self.clone()
         }
     }
+
+    /// How many geodes could this state potentially produce at the absolute maximum,
+    /// assuming we made one geode robot in every future cycle?
+    #[must_use]
+    fn max_potential(&self, cycle_limit: usize) -> usize {
+        let remaining = cycle_limit - self.clock;
+        self.res[GEODE] + self.robots[GEODE] * remaining + (remaining * (remaining + 1)) / 2
+    }
 }
 
 /// Extend this path by just producing resources and no robots to the end.
@@ -300,10 +308,11 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
     let mut best_final_state = None;
     let mut queue: Vec<St> = vec![start.clone()];
     let mut cycles = 0usize;
+    let mut low_pot = 0usize;
     while let Some(st) = queue.pop() {
         if cycles % 10000000 == 0 {
             println!(
-                "cycle {cycles:>20} qlen {qlen:>10}: look for best moves from {st:?}",
+                "cycle {cycles:>20} qlen {qlen:>10} low_pot {low_pot:>10}: look for best moves from {st:?}",
                 qlen = queue.len()
             );
         }
@@ -317,9 +326,17 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
             }
             continue;
         }
+        if st.max_potential(cycle_limit) < best_geodes {
+            low_pot += 1;
+            continue;
+        }
         let mut built_any = false;
         for robot_type in 0..4 {
             if let Some(next_state) = wait_and_produce(blueprint, &st, robot_type, cycle_limit) {
+                if next_state.max_potential(cycle_limit) < best_geodes {
+                    low_pot += 1;
+                    continue;
+                }
                 built_any = true;
                 // Recurse down to find the best case if we make this robot next.
                 // println!(
