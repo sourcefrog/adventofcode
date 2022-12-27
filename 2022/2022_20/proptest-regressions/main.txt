@@ -6,3 +6,4 @@
 # everyone who runs the test benefits from these saved cases.
 cc f4542eb75f6e08a5e5f123e50d18592f87d9ed5cda5f90f8e5652ec380e80fde # shrinks to l = 3, a = 0, s = -1, t = -2
 cc 81f6a8e1afff2d813773a9df167a1e23ab80095c75f93e47a718391e421e4e3a # shrinks to l = 4, a = 0, s = -1, t = 9
+cc 5f13c07d60a25255be3ecea9ff5876abf243e41049b58d35465e79c7a5bec9c3 # shrinks to a = 1, s = -1, b = 0, t = -1

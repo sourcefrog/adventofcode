@@ -39,7 +39,7 @@ fn main() {
 /// p.0[i] is the position where the element initally at position i ends up.
 /// p.0 must always contain all the successive whole numbers: elements are
 /// never lost or duplicated.
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 struct Perm(Vec<usize>);
 
 /// Check this is a well-formed permutation: every element up to the length
@@ -172,8 +172,7 @@ impl Perm {
     // fn combine(&self, other: &Perm) -> Perm {
     //     // For each element in the input of a, it first moves to the output of a,
     //     // then again to where ever other maps that to.
-    //     let v = self.0.iter().map(|a| other.0[*a]).collect_vec();
-    //     Perm::from_index_vec(v)
+    //     Perm::from_index_vec(other.0.iter().map(|a| self.0[*a]).collect())
     // }
 
     #[allow(dead_code)]
@@ -210,6 +209,8 @@ fn solve_a(input: &str) -> isize {
 fn solve_b(input: &str) -> isize {
     let input = parse(input).into_iter().map(|i| i * KEY).collect_vec();
     let mut perm = Perm::new(input.len());
+    // TODO: combine the permutation lists rather than recomputing them
+    // repeatedly
     for _round in 0..10 {
         for (init_pos, &value) in input.iter().enumerate() {
             perm = perm.move_element(init_pos, value);
@@ -368,5 +369,21 @@ mod proptest {
             let p3 = p.move_element(a, s + t);
             assert!(p2.equivalent(&p3));
         }
+
+        // #[test]
+        // fn combine(a in 0..5usize, s in -10..10isize, b in 0..5usize, t in -10..10isize) {
+        //     println!("test combine with: a={a}, s={s}, b={b}, t={t}");
+        //     let p = Perm::new(5);
+        //     let v = b"abcde";
+        //     let pa = p.move_element(a, s);
+        //     let pb = p.move_element(b, t);
+        //     let pab = p.move_element(a, s).move_element(b, t);
+        //     let pcomb = pa.combine(&pb);
+        //     for p in [&pa, &pb, &pab, &pcomb] {
+        //         println!("{}", p.apply(v).iter().map(|&c| c as char).collect::<String>());
+        //     }
+        //     assert!(pcomb.equivalent(&pab), "not equivalent:\n  pa={pa:?}\n  \
+        //         pb={pb:?}\n  pcomb={pcomb:?}\n  pab={pab:?}");
+        // }
     }
 }
