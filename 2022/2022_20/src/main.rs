@@ -19,6 +19,8 @@ static EX: &str = "\
 
 static INPUT: &str = include_str!("../input.txt");
 
+static KEY: isize = 811589153;
+
 fn parse(input: &str) -> Vec<isize> {
     input
         .lines()
@@ -28,9 +30,8 @@ fn parse(input: &str) -> Vec<isize> {
 
 fn main() {
     // println!("{}", solve_a(EX));
-    println!("{}", solve_a(INPUT));
-    // println!("{}", solve_a(&input()));
-    // println!("{}", solve_b(&input()));
+    // println!("{}", solve_a(INPUT));
+    println!("{}", solve_b(INPUT));
 }
 
 /// A permutation of the elements of an input of given size.
@@ -199,28 +200,33 @@ impl Perm {
 
 fn solve_a(input: &str) -> isize {
     let input = parse(input);
-    let l = input.len();
     let mut perm = Perm::new(input.len());
     for (init_pos, value) in input.iter().copied().enumerate() {
         perm = perm.move_element(init_pos, value);
-        // println!("{:?}", perm.apply(&input));
     }
+    grove_coord(&perm, &input)
+}
+
+fn solve_b(input: &str) -> isize {
+    let input = parse(input).into_iter().map(|i| i * KEY).collect_vec();
+    let mut perm = Perm::new(input.len());
+    for _round in 0..10 {
+        for (init_pos, &value) in input.iter().enumerate() {
+            perm = perm.move_element(init_pos, value);
+        }
+    }
+    grove_coord(&perm, &input)
+}
+
+fn grove_coord(perm: &Perm, input: &[isize]) -> isize {
+    let l = perm.len();
     let applied = perm.apply(&input);
-    assert_eq!(applied.iter().filter(|i| **i == 0).count(), 1);
     let zero_pos = applied.iter().position(|i| *i == 0).unwrap();
     [1000, 2000, 3000]
         .iter()
         .map(|i| applied[add_usize_mod(zero_pos, *i, l)])
         .sum()
-
-    // Not 13634 :(
-    // Not -9516 either :(
-    // prod
 }
-
-// fn solve_b(input: &str) -> usize {
-//     input.len()
-// }
 
 #[cfg(test)]
 mod test {
@@ -317,10 +323,10 @@ mod test {
         assert_eq!(solve_a(INPUT), 10831);
     }
 
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(&input()), 9900);
-    // }
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(INPUT), 6420481789383);
+    }
 
     /// Check one slice is a rotation of the other.
     fn assert_is_rotation<A, B>(a: A, b: B)
