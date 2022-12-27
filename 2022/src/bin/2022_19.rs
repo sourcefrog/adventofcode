@@ -356,7 +356,7 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
 }
 
 fn solve_b(_input: &str) -> usize {
-    solve(&parse(EX)[0], 32)
+    solve(&parse(EX)[1], 32)
 }
 
 fn solve(blueprint: &Blueprint, cycles: usize) -> usize {
@@ -377,6 +377,16 @@ mod test {
     #[test]
     fn ex1_2() {
         assert_eq!(solve(&parse(EX)[1], 24), 12);
+    }
+
+    #[test]
+    fn ex2_1() {
+        assert_eq!(solve(&parse(EX)[0], 32), 56);
+    }
+
+    #[test]
+    fn ex2_2() {
+        assert_eq!(solve(&parse(EX)[1], 32), 62);
     }
 
     #[test]
