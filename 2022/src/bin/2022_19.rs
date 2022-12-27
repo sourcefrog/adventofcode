@@ -91,8 +91,6 @@ We can consider all the options by top-down recursion.
 
 // #![allow(dead_code, unused_imports)]
 
-use itertools::Itertools;
-
 #[allow(dead_code)]
 static EX: &str = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
 Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.
@@ -123,32 +121,29 @@ const GEODE: usize = 3;
 static RESOURCE_NAME: [&str; 4] = ["ORE", "CLAY", "OBSIDIAN", "GEODE"];
 
 fn parse(input: &str) -> Vec<Blueprint> {
-    let re = regex::Regex::new(
-        "Blueprint (\\d+): Each ore robot costs (\\d+) ore\\. \
-Each clay robot costs (\\d+) ore\\. \
-Each obsidian robot costs (\\d+) ore and (\\d+) clay\\. \
-Each geode robot costs (\\d+) ore and (\\d+) obsidian\\.",
-    )
-    .unwrap();
-    input
-        .lines()
-        .map(|l| {
-            let c = re
-                .captures(l)
-                .unwrap()
-                .iter()
-                .skip(1) // skip $0
-                .map(|g| g.unwrap().as_str().parse::<usize>().unwrap())
-                .collect_vec();
-            assert_eq!(c.len(), 7);
-            let mut costs = [[0; 4]; 4];
-            costs[ORE][ORE] = c[1];
-            costs[CLAY][ORE] = c[2];
-            costs[OBS][ORE] = c[3];
-            costs[OBS][CLAY] = c[4];
-            costs[GEODE][ORE] = c[5];
-            costs[GEODE][OBS] = c[6];
-            Blueprint { id: c[0], costs }
+    input.lines()
+        .map(|l| match l.split_ascii_whitespace().collect::<Vec<&str>>().as_slice() {
+           w @ [
+                "Blueprint", _,
+                "Each", "ore", "robot", "costs", _, "ore.", 
+                "Each", "clay", "robot", "costs", _, "ore.", 
+                "Each", "obsidian", "robot", "costs", _, "ore", "and", _, "clay.",
+                "Each", "geode", "robot", "costs", _, "ore", "and", _, "obsidian.",
+            ] => {
+                let c = w.iter().flat_map(|w|w.trim_end_matches(":").parse::<usize>().ok())
+                    .collect::<Vec<usize>>();
+                assert_eq!(c.len(),7);
+                let mut costs = [[0; 4]; 4];
+                costs[ORE][ORE] = c[1];
+                costs[CLAY][ORE] = c[2];
+                costs[OBS][ORE] = c[3];
+                costs[OBS][CLAY] = c[4];
+                costs[GEODE][ORE] = c[5];
+                costs[GEODE][OBS] = c[6];
+                println!("parse {l} to {costs:#?}");
+                Blueprint { id: c[0], costs }
+            }
+            w => panic!("failed to parse {w:#?}"),
         })
         .collect()
 }
