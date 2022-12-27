@@ -93,6 +93,7 @@ We can consider all the options by top-down recursion.
 
 use itertools::Itertools;
 
+#[allow(dead_code)]
 static EX: &str = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
 Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.
 ";
@@ -102,7 +103,7 @@ static INPUT: &str = include_str!("../../input/19.txt");
 fn main() {
     // println!("{}", solve_a(EX));
     // println!("{}", solve_b(EX));
-    // println!("{}", solve_a(&input()));
+    println!("{}", solve_a(INPUT));
     println!("{}", solve_b(INPUT));
 }
 
@@ -221,7 +222,11 @@ impl St {
     #[must_use]
     fn max_potential(&self, cycle_limit: usize) -> usize {
         let remaining = cycle_limit - self.clock;
-        self.res[GEODE] + self.robots[GEODE] * remaining + (remaining * (remaining - 1)) / 2
+        if remaining == 0 {
+            self.res[GEODE]
+        } else {
+            self.res[GEODE] + self.robots[GEODE] * remaining + (remaining * (remaining - 1)) / 2
+        }
     }
 }
 
@@ -281,7 +286,7 @@ fn wait_and_produce(
 /// Return the sequence of states leading to the highest number of
 /// geodes, starting from the given path prefix, within a given number of cycles.
 #[must_use]
-fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
+fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> usize {
     // Look at the next move, which is either producing one robot or,
     // if no robots can be produced, just waiting until the end.
     //
@@ -300,9 +305,6 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
     //
     // Out of all these possible moves, whichever one eventually produces
     // the most geodes is the best.
-    if start.clock == cycle_limit {
-        return start.clone();
-    }
     let mut best_geodes = 0;
     // let mut best_path = None;
     let mut best_final_state = None;
@@ -352,17 +354,21 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
             queue.push(wait_until_end(&st, cycle_limit));
         }
     }
-    best_final_state.unwrap()
+    println!("best final state: {best_final_state:#?}");
+    best_final_state.map(|st| st.res[GEODE]).unwrap_or_default()
 }
 
-fn solve_b(_input: &str) -> usize {
-    solve(&parse(EX)[1], 32)
+fn solve_a(input: &str) -> usize {
+    parse(input).iter().map(|bp| bp.id * solve(bp, 24)).sum()
+}
+
+fn solve_b(input: &str) -> usize {
+    let bps = parse(input);
+    bps[0..3].iter().map(|bp| solve(bp, 32)).product()
 }
 
 fn solve(blueprint: &Blueprint, cycles: usize) -> usize {
-    let sol = find_best_path(blueprint, &St::start(), cycles + 1);
-    println!("best solution {sol:#?}");
-    sol.res[GEODE]
+    find_best_path(blueprint, &St::start(), cycles + 1)
 }
 
 #[cfg(test)]
@@ -391,13 +397,13 @@ mod test {
 
     #[test]
     fn solution_a() {
-        // assert_eq!(solve_a(INPUT), 1981);
+        assert_eq!(solve_a(INPUT), 1981);
     }
 
-    // #[test]
-    // fn solution_b() {
-    //     assert_eq!(solve_b(INPUT), 0);
-    // }
+    #[test]
+    fn solution_b() {
+        assert_eq!(solve_b(INPUT), 10962);
+    }
 }
 
 /*
