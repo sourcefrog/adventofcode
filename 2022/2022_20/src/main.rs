@@ -46,7 +46,9 @@ struct Perm(Vec<usize>);
 #[allow(dead_code)]
 fn check_perm(v: &[usize]) {
     let l = v.len();
-    debug_assert!((0..l).all(|i| v.contains(&i)), "{v:?} is not a permutation");
+    let mut seen = vec![false; l];
+    v.iter().for_each(|x| seen[*x] = true);
+    debug_assert!(seen.iter().all(|x| *x), "{v:?} is not a permutation");
 }
 
 impl Perm {
@@ -65,6 +67,8 @@ impl Perm {
     #[must_use]
     fn move_element(&self, x: usize, s: isize) -> Perm {
         /*
+        Skipping (l-1) elements returns you to the same position.
+
         If input x is currently routed to output y, then we want to change it to
         output z = (y + s) mod l.
 
@@ -94,34 +98,54 @@ impl Perm {
 
         */
         let l = self.0.len();
+        if l <= 1 {
+            return Perm(self.0.clone());
+        }
         let ll = l as isize;
         assert!(x < l);
-        let mut v = self.0.clone();
         let y = self.0[x];
-        let s = s % ll;
+        // Skipping just (ll-1) elements would result in no change.
+        let s = s % (ll - 1);
         let z = add_isize_mod(y, s, l);
+        let v: Vec<usize>;
         if s > 0 {
             // Move the next s elements down by one; then input x maps to
             // z.
             let s = s as usize;
             debug_assert_eq!(sub_usize_mod(z, y, l), s);
-            for i in v.iter_mut() {
-                if sub_usize_mod(*i, y, l) <= s {
-                    *i = sub_usize_mod(*i, 1, l);
-                }
-            }
-            v[x] = z;
+            v = self
+                .0
+                .iter()
+                .map(|&i| {
+                    if i == y {
+                        z
+                    } else if sub_usize_mod(i, y, l) <= s {
+                        sub_usize_mod(i, 1, l)
+                    } else {
+                        i
+                    }
+                })
+                .collect();
         } else if s < 0 {
             // Move the prior s elements (with wrapping) right by one, then
             // move to z.
             let s = -s as usize;
             debug_assert_eq!(sub_usize_mod(y, z, l), s);
-            for i in v.iter_mut() {
-                if sub_usize_mod(y, *i, l) <= s {
-                    *i = add_usize_mod(*i, 1, l);
-                }
-            }
-            v[x] = z;
+            v = self
+                .0
+                .iter()
+                .map(|&i| {
+                    if i == y {
+                        z
+                    } else if sub_usize_mod(y, i, l) <= s {
+                        add_usize_mod(i, 1, l)
+                    } else {
+                        i
+                    }
+                })
+                .collect();
+        } else {
+            v = self.0.clone();
         }
         Perm::from_index_vec(v)
     }
@@ -154,6 +178,22 @@ impl Perm {
     #[allow(dead_code)]
     fn as_slice(&self) -> &[usize] {
         &self.0
+    }
+
+    // Two permutations are equivalent if the ordering of results is the same modulo
+    // some rotation.
+    #[cfg(test)]
+    fn equivalent(&self, other: &Perm) -> bool {
+        let l = self.0.len();
+        assert_eq!(l, other.0.len());
+        if l <= 1 {
+            return true;
+        }
+        let d = sub_usize_mod(other.0[0], self.0[0], l);
+        self.0
+            .iter()
+            .zip(&other.0)
+            .all(|(a, b)| sub_usize_mod(*b, *a, l) == d)
     }
 }
 
@@ -213,21 +253,23 @@ mod test {
     }
 
     #[test]
-    fn move_right_rotate() {
-        let p1 = Perm::new(5);
+    fn move_right_rotate_whole_cycle() {
+        let l = 5;
+        let p1 = Perm::new(l);
         for i in 0..5 {
             for m in 0..4 {
-                assert_eq!(p1.move_element(i, m * 5), p1);
+                assert_eq!(p1.move_element(i, m * (l as isize - 1)), p1);
             }
         }
     }
 
     #[test]
     fn move_left_rotate_whole_cycle() {
-        let p1 = Perm::new(5);
+        let l = 5;
+        let p1 = Perm::new(l);
         for i in 0..5 {
             for m in 0..4 {
-                assert_eq!(p1.move_element(i, m * -5), p1);
+                assert_eq!(p1.move_element(i, -m * (l as isize - 1)), p1);
             }
         }
     }
@@ -270,10 +312,10 @@ mod test {
         assert_eq!(solve_a(EX), 3);
     }
 
-    // #[test]
-    // fn solution_a() {
-    //     assert_eq!(solve_a(&input()), 9900);
-    // }
+    #[test]
+    fn solution_a() {
+        assert_eq!(solve_a(INPUT), 10831);
+    }
 
     // #[test]
     // fn solution_b() {
@@ -294,5 +336,31 @@ mod test {
             (0..l).any(|r| itertools::equal(a.into_iter().cycle().skip(r).take(l), b)),
             "slices not equal under rotation: {a:?}, {b:?}"
         );
+    }
+}
+
+#[cfg(test)]
+mod proptest {
+    use ::proptest::prelude::*;
+
+    use super::*;
+
+    proptest! {
+        #[test]
+        fn reversible(l in 1..10usize, a in 0..10usize, s in -22..22isize) {
+            let p = Perm::new(l);
+            let a = a % l;
+            let p2 = p.move_element(a, s).move_element(a, -s);
+            assert_eq!(p, p2);
+        }
+
+        #[test]
+        fn additive(l in 1..10usize, a in 0..10usize, s in -10..10isize, t in -10..10isize) {
+            let p = Perm::new(l);
+            let a = a % l;
+            let p2 = p.move_element(a, s).move_element(a, t);
+            let p3 = p.move_element(a, s + t);
+            assert!(p2.equivalent(&p3));
+        }
     }
 }
