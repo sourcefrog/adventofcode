@@ -1,9 +1,12 @@
 //! https://adventofcode.com/2022/day/20
 
-use std::{collections::HashMap, fmt, rc::Rc};
-
 use itertools::Itertools;
 
+mod modint;
+
+use crate::modint::{add_isize_mod, add_usize_mod, sub_usize_mod};
+
+#[allow(dead_code)]
 static EX: &str = "\
 1
 2
@@ -24,7 +27,8 @@ fn parse(input: &str) -> Vec<isize> {
 }
 
 fn main() {
-    println!("{}", solve_a(EX));
+    // println!("{}", solve_a(EX));
+    println!("{}", solve_a(INPUT));
     // println!("{}", solve_a(&input()));
     // println!("{}", solve_b(&input()));
 }
@@ -41,16 +45,8 @@ struct Perm(Vec<usize>);
 /// is represented once.
 #[allow(dead_code)]
 fn check_perm(v: &[usize]) {
-    for i in 0..v.len() {
-        assert!(v.contains(&i), "element {i} missing from {:?}", v);
-    }
-}
-
-/// An integer modulo some modulus.
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
-struct DynModInt {
-    a: usize,
-    base: usize,
+    let l = v.len();
+    debug_assert!((0..l).all(|i| v.contains(&i)), "{v:?} is not a permutation");
 }
 
 impl Perm {
@@ -64,14 +60,10 @@ impl Perm {
         Perm(v)
     }
 
-    fn as_slice(&self) -> &[usize] {
-        &self.0
-    }
-
     /// Map the input `x` by `s` elements to the right from its current position,
     /// or to the left if negative.
     #[must_use]
-    fn move_element(&self, x: usize, mut s: isize) -> Perm {
+    fn move_element(&self, x: usize, s: isize) -> Perm {
         /*
         If input x is currently routed to output y, then we want to change it to
         output z = (y + s) mod l.
@@ -100,27 +92,33 @@ impl Perm {
 
         It is the case that moving l steps returns to the same position.
 
-
         */
         let l = self.0.len();
         let ll = l as isize;
-        assert!(x < self.0.len());
+        assert!(x < l);
         let mut v = self.0.clone();
         let y = self.0[x];
-        let z = ((y as isize + ll + (s % ll)) % ll) as usize;
-        assert!((0..l).contains(&z), "{z}");
-
-        if z > y {
+        let s = s % ll;
+        let z = add_isize_mod(y, s, l);
+        if s > 0 {
+            // Move the next s elements down by one; then input x maps to
+            // z.
+            let s = s as usize;
+            debug_assert_eq!(sub_usize_mod(z, y, l), s);
             for i in v.iter_mut() {
-                if *i > y && *i <= z {
-                    *i -= 1;
+                if sub_usize_mod(*i, y, l) <= s {
+                    *i = sub_usize_mod(*i, 1, l);
                 }
             }
             v[x] = z;
-        } else if z < y {
+        } else if s < 0 {
+            // Move the prior s elements (with wrapping) right by one, then
+            // move to z.
+            let s = -s as usize;
+            debug_assert_eq!(sub_usize_mod(y, z, l), s);
             for i in v.iter_mut() {
-                if *i >= z && *i < y {
-                    *i += 1;
+                if sub_usize_mod(y, *i, l) <= s {
+                    *i = add_usize_mod(*i, 1, l);
                 }
             }
             v[x] = z;
@@ -134,7 +132,7 @@ impl Perm {
 
     /// Reorder the elements of a slice according to this permutation.
     #[must_use]
-    fn apply<T: Clone + Copy>(&self, s: &[T]) -> Vec<T> {
+    fn apply<T: Copy>(&self, s: &[T]) -> Vec<T> {
         assert_eq!(s.len(), self.0.len());
         let mut v = Vec::with_capacity(self.len());
         v.resize(s.len(), s[0]);
@@ -144,55 +142,40 @@ impl Perm {
         v
     }
 
-    // The result of another permutation applied to the output of this one.
-    #[must_use]
-    fn combine(&self, other: &Perm) -> Perm {
-        // For each element in the input of a, it first moves to the output of a,
-        // then again to where ever other maps that to.
-        let v = self.0.iter().map(|a| other.0[*a]).collect_vec();
-        Perm::from_index_vec(v)
+    // /// The result of another permutation applied to the output of this one.
+    // #[must_use]
+    // fn combine(&self, other: &Perm) -> Perm {
+    //     // For each element in the input of a, it first moves to the output of a,
+    //     // then again to where ever other maps that to.
+    //     let v = self.0.iter().map(|a| other.0[*a]).collect_vec();
+    //     Perm::from_index_vec(v)
+    // }
+
+    #[allow(dead_code)]
+    fn as_slice(&self) -> &[usize] {
+        &self.0
     }
 }
 
 fn solve_a(input: &str) -> isize {
-    let n = input
-        .lines()
-        .map(|l| l.trim().parse::<isize>().unwrap())
-        .collect_vec();
-    let mut perm = Perm::new(n.len());
-    for i in 0..n.len() {
-        perm = perm
-        // TODO: Find which current position corresponds to originally i.
-        // perm = perm.move_element(i)
-        // ring.rotate(i);
-        // println!("{ring:?}");
+    let input = parse(input);
+    let l = input.len();
+    let mut perm = Perm::new(input.len());
+    for (init_pos, value) in input.iter().copied().enumerate() {
+        perm = perm.move_element(init_pos, value);
+        // println!("{:?}", perm.apply(&input));
     }
-    // let els: Vec<El> = n
-    //     .iter()
-    //     .enumerate()
-    //     .map(|(pos, &val)| El { val, pos })
-    //     .collect();
-    // for i in 0..nn {
-    //     // Work on els[i]. Move it the right number of steps left or right depending on its val.
-    //     let val = els[i].val;
-    //     println!("move {val}");
-    //     let mut shft = els[i].val;
-    //     while shft < 0 {
-    //         shft += nn as isize;
-    //     }
-    //     shft %= nn as isize;
-    // }
+    let applied = perm.apply(&input);
+    assert_eq!(applied.iter().filter(|i| **i == 0).count(), 1);
+    let zero_pos = applied.iter().position(|i| *i == 0).unwrap();
+    [1000, 2000, 3000]
+        .iter()
+        .map(|i| applied[add_usize_mod(zero_pos, *i, l)])
+        .sum()
 
-    // let mut opos = els.iter().find(|el| el.val == 0).unwrap().pos;
-    // let mut prod = 1;
-    // for _ in [1, 2, 3] {
-    //     opos = (opos + 1000) % n.len();
-    //     prod *= els.iter().find(|el| el.pos == opos).unwrap().val;
-    // }
-
-    // // Not 13634 :(
+    // Not 13634 :(
+    // Not -9516 either :(
     // prod
-    0
 }
 
 // fn solve_b(input: &str) -> usize {
@@ -201,6 +184,8 @@ fn solve_a(input: &str) -> isize {
 
 #[cfg(test)]
 mod test {
+    use itertools::Itertools;
+
     use super::*;
 
     #[test]
@@ -238,7 +223,7 @@ mod test {
     }
 
     #[test]
-    fn move_left_rotate() {
+    fn move_left_rotate_whole_cycle() {
         let p1 = Perm::new(5);
         for i in 0..5 {
             for m in 0..4 {
@@ -261,20 +246,23 @@ mod test {
 
     #[test]
     fn ex_1_parts() {
-        let p1 = Perm::new(7);
+        let p = Perm::new(7);
         let l = parse(EX);
-        assert_eq!(p1.apply(&l), [1, 2, -3, 3, -2, 0, 4]);
-        let p1 = p1.move_element(0, 1);
-        dbg!(&p1);
-        assert_eq!(p1.apply(&l), [2, 1, -3, 3, -2, 0, 4]);
-        // Move element with value 2 initially at position 1 by 2
-        let p2 = p1.move_element(1, 2);
-        dbg!(&p2);
-        assert_eq!(p2.apply(&l), [1, -3, 2, 3, -2, 0, 4]);
-        // Move value -3 initially in position 2 by -3.
-        let p = p2.move_element(2, -3);
+        assert_eq!(p.apply(&l), [1, 2, -3, 3, -2, 0, 4]);
+        let p = p.move_element(0, 1);
         dbg!(&p);
-        assert_eq!(p.apply(&l), [1, 2, 3, -2, -3, 0, 4]);
+        assert_eq!(p.apply(&l), [2, 1, -3, 3, -2, 0, 4]);
+        // Move element with value 2 initially at position 1 by 2
+        let p = p.move_element(1, 2);
+        dbg!(&p);
+        assert_eq!(p.apply(&l), [1, -3, 2, 3, -2, 0, 4]);
+        // Move value -3 initially in position 2 by -3.
+        let p = p.move_element(2, -3);
+        dbg!(&p);
+        assert_is_rotation(p.apply(&l), [1, 2, 3, -2, -3, 0, 4]);
+        // Move value 3 initially in position 3 by 3.
+        let p = p.move_element(3, 3);
+        assert_is_rotation(p.apply(&l), [1, 2, -2, -3, 0, 3, 4]);
     }
 
     #[test]
@@ -291,4 +279,20 @@ mod test {
     // fn solution_b() {
     //     assert_eq!(solve_b(&input()), 9900);
     // }
+
+    /// Check one slice is a rotation of the other.
+    fn assert_is_rotation<A, B>(a: A, b: B)
+    where
+        A: AsRef<[isize]>,
+        B: AsRef<[isize]>,
+    {
+        let a = a.as_ref();
+        let b = b.as_ref();
+        let l = a.len();
+        assert_eq!(l, b.len());
+        assert!(
+            (0..l).any(|r| itertools::equal(a.into_iter().cycle().skip(r).take(l), b)),
+            "slices not equal under rotation: {a:?}, {b:?}"
+        );
+    }
 }
