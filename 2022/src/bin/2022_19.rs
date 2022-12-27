@@ -231,19 +231,16 @@ impl St {
 }
 
 /// Extend this path by just producing resources and no robots to the end.
-fn wait_until_end(path: &mut Vec<St>, cycle_limit: usize) {
-    let last = path.last().unwrap();
-    let mut res = last.res.clone();
-    let robots = last.robots.clone();
-    for clock in (last.clock + 1)..=cycle_limit {
-        res.iter_mut()
-            .zip(&robots)
-            .for_each(|(res, robots)| *res += robots);
-        path.push(St {
-            clock,
-            res: res.clone(),
-            robots: robots.clone(),
-        })
+fn wait_until_end(start: &St, cycle_limit: usize) -> St {
+    let mut res = start.res.clone();
+    let remaining_cycles = cycle_limit - start.clock;
+    res.iter_mut()
+        .zip(&start.robots)
+        .for_each(|(res, robots)| *res += remaining_cycles * robots);
+    St {
+        clock: cycle_limit,
+        res,
+        robots: start.robots.clone(),
     }
 }
 
@@ -251,19 +248,18 @@ fn wait_until_end(path: &mut Vec<St>, cycle_limit: usize) {
 /// current starting resources and number of robots, assuming it's the
 /// next robot we build.
 ///
-/// Returns None if it will never be possible; otherwise the sequence of
-/// successor states leading up to production of that robot.
+/// Returns None if it will never be possible; otherwise the state in which
+/// that robot has been produced.
 #[must_use]
 fn wait_and_produce(
     blueprint: &Blueprint,
-    start_path: &[St],
+    start: &St,
     robot_type: usize,
     cycle_limit: usize,
-) -> Option<Vec<St>> {
-    let last = start_path.last().unwrap();
+) -> Option<St> {
     if blueprint.costs[robot_type]
         .iter()
-        .zip(last.robots)
+        .zip(start.robots)
         .any(|(cost, robots)| *cost > 0 && robots == 0)
     {
         // This is, strictly, redundant with just timing out below, but it
@@ -275,22 +271,19 @@ fn wait_and_produce(
         // );
         return None; // will never be the next step
     }
-    let mut path: Vec<St> = start_path.into();
+    let mut last = start.clone();
     loop {
-        let last = path.last().unwrap();
         if last.clock == cycle_limit {
             return None;
-        }
-        if let Some(produced) = last.try_build(blueprint, robot_type) {
+        } else if let Some(produced) = last.try_build(blueprint, robot_type) {
             // println!(
             //     "from {start:?} can build {name} robot in {produced:?}",
             //     start = start_path.last().unwrap(),
             //     name = RESOURCE_NAME[robot_type]
             // );
-            path.push(produced);
-            return Some(path);
+            return Some(produced);
         } else {
-            path.push(last.just_produce());
+            last = last.just_produce();
         }
     }
 }
@@ -298,7 +291,7 @@ fn wait_and_produce(
 /// Return the sequence of states leading to the highest number of
 /// geodes, starting from the given path prefix, within a given number of cycles.
 #[must_use]
-fn find_best_path(blueprint: &Blueprint, start_path: &[St], cycle_limit: usize) -> Vec<St> {
+fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
     // Look at the next move, which is either producing one robot or,
     // if no robots can be produced, just waiting until the end.
     //
@@ -318,19 +311,20 @@ fn find_best_path(blueprint: &Blueprint, start_path: &[St], cycle_limit: usize) 
     // Out of all these possible moves, whichever one eventually produces
     // the most geodes is the best.
     let mut best_geodes = 0;
-    let mut best_path = None;
-    let last_state = start_path.last().unwrap();
+    // let mut best_path = None;
+    let mut best_final_state = None;
     // println!("look for best moves from {last_state:?}");
     for robot_type in 0..4 {
-        if let Some(next_path) = wait_and_produce(blueprint, start_path, robot_type, cycle_limit) {
+        if let Some(next_state) = wait_and_produce(blueprint, start, robot_type, cycle_limit) {
             // Recurse down to find the best case if we make this robot next.
             // println!(
             //     "from {last_state:?} consider building {name}",
             //     name = RESOURCE_NAME[robot_type]
             // );
-            let complete_path = find_best_path(blueprint, &next_path, cycle_limit);
-            check_path(&complete_path, cycle_limit);
-            let rec_geodes = complete_path.last().unwrap().res[GEODE];
+            let final_state = find_best_path(blueprint, &next_state, cycle_limit);
+            assert_eq!(final_state.clock, cycle_limit);
+            // check_path(&complete_path, cycle_limit);
+            let rec_geodes = final_state.res[GEODE];
             // println!(
             //     "from {last_state:?} building {name} would produce {rec_geodes} geode",
             //     name = RESOURCE_NAME[robot_type]
@@ -338,7 +332,8 @@ fn find_best_path(blueprint: &Blueprint, start_path: &[St], cycle_limit: usize) 
             if rec_geodes > best_geodes {
                 best_geodes = rec_geodes;
                 // println!("found new best path yielding {rec_geodes}: {complete_path:?}");
-                best_path = Some(complete_path);
+                best_final_state = Some(final_state);
+                // best_path = Some(complete_path);
             }
         } else {
             // println!(
@@ -347,10 +342,7 @@ fn find_best_path(blueprint: &Blueprint, start_path: &[St], cycle_limit: usize) 
             // );
         }
     }
-    let mut final_path = best_path.unwrap_or_else(|| start_path.into());
-    wait_until_end(&mut final_path, cycle_limit);
-    check_path(&final_path, cycle_limit);
-    final_path
+    best_final_state.unwrap_or_else(|| wait_until_end(start, cycle_limit))
 }
 
 fn check_path(path: &[St], cycle_limit: usize) {
@@ -398,9 +390,9 @@ fn check_path(path: &[St], cycle_limit: usize) {
 fn solve_b(_input: &str) -> usize {
     let bps = parse(EX);
     let cycle_limit = 25; // TODO: The problem statement quotes the values at the end so this is off by one...
-    let sol = find_best_path(&bps[1], &[St::start()], cycle_limit);
+    let sol = find_best_path(&bps[1], &St::start(), cycle_limit);
     println!("best solution {sol:#?}");
-    sol.last().unwrap().res[GEODE]
+    sol.res[GEODE]
 }
 
 #[cfg(test)]
@@ -457,4 +449,23 @@ soon as possible? But assume it is helpful. We need some ore and some obsidian..
 
 Maybe we should track robots in terms of their total eventual production? But, we're not really
 trying to maximize that, except of obsidian.
+*/
+
+/* One best answer for part 1 example 2
+
+    St {
+        clock: 25,
+        robots: [
+            7,
+            6,
+            6,
+            3,
+        ],
+        res: [
+            19,
+            45,
+            18,
+            12,
+        ],
+    },
 */
