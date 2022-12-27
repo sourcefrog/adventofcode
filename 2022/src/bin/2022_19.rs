@@ -221,6 +221,7 @@ impl St {
 fn wait_until_end(start: &St, cycle_limit: usize) -> St {
     let mut res = start.res.clone();
     let remaining_cycles = cycle_limit - start.clock;
+    assert!(remaining_cycles > 0);
     res.iter_mut()
         .zip(&start.robots)
         .for_each(|(res, robots)| *res += remaining_cycles * robots);
@@ -249,13 +250,6 @@ fn wait_and_produce(
         .zip(start.robots)
         .any(|(cost, robots)| *cost > 0 && robots == 0)
     {
-        // This is, strictly, redundant with just timing out below, but it
-        // seems a bit more efficient to never try to build things that we
-        // know can't work out.
-        // println!(
-        //     "{last:?} does not have the robots to produce {name} robots next",
-        //     name = RESOURCE_NAME[robot_type]
-        // );
         return None; // will never be the next step
     }
     let mut last = start.clone();
@@ -297,6 +291,9 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
     //
     // Out of all these possible moves, whichever one eventually produces
     // the most geodes is the best.
+    if start.clock == cycle_limit {
+        return start.clone();
+    }
     let mut best_geodes = 0;
     // let mut best_path = None;
     let mut best_final_state = None;
@@ -328,9 +325,11 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
 }
 
 fn solve_b(_input: &str) -> usize {
-    let bps = parse(EX);
-    let cycle_limit = 25; // TODO: The problem statement quotes the values at the end so this is off by one...
-    let sol = find_best_path(&bps[1], &St::start(), cycle_limit);
+    solve(&parse(EX)[0], 32)
+}
+
+fn solve(blueprint: &Blueprint, cycles: usize) -> usize {
+    let sol = find_best_path(blueprint, &St::start(), cycles + 1);
     println!("best solution {sol:#?}");
     sol.res[GEODE]
 }
@@ -341,18 +340,12 @@ mod test {
 
     #[test]
     fn ex1_1() {
-        assert_eq!(
-            find_best_path(&parse(EX)[0], &St::start(), 25).res[GEODE],
-            9
-        );
+        assert_eq!(solve(&parse(EX)[0], 24), 9);
     }
 
     #[test]
     fn ex1_2() {
-        assert_eq!(
-            find_best_path(&parse(EX)[1], &St::start(), 25).res[GEODE],
-            12
-        );
+        assert_eq!(solve(&parse(EX)[1], 24), 12);
     }
 
     #[test]
