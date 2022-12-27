@@ -1,5 +1,7 @@
 //! https://adventofcode.com/2022/day/24
 
+use std::iter::repeat;
+
 use aoclib::shortest_path::ShortestPath;
 use itertools::Itertools;
 
@@ -118,16 +120,14 @@ impl Map {
     }
 
     fn draw_state(&self, state: &State) -> String {
-        let mut s = String::new();
+        let mut s = String::with_capacity((self.w + 3) * (self.h + 2));
         s.push('#');
         if state.place == Place::Start {
             s.push('E');
         } else {
             s.push('.');
         }
-        for _ in 0..self.w {
-            s.push('#');
-        }
+        s.extend(repeat('#').take(self.w));
         s.push('\n');
 
         for y in 0..self.h {
@@ -148,9 +148,7 @@ impl Map {
             s.push('\n');
         }
 
-        for _ in 0..self.w {
-            s.push('#');
-        }
+        s.extend(repeat('#').take(self.w));
         if state.place == Place::End {
             s.push('E');
         } else {
@@ -186,7 +184,8 @@ impl Map {
                     v.into_iter().map(|(x, y)| Place::Point(x, y)).collect();
                 if x + 1 == self.w && y + 1 == self.h {
                     places.push(Place::End);
-                } else if (x, y) == (0, 0) {
+                }
+                if (x, y) == (0, 0) {
                     places.push(Place::Start);
                 }
                 places
@@ -199,7 +198,6 @@ impl Map {
     fn moves(&self, st: &State) -> Vec<(State, usize)> {
         let mut mvs = Vec::new();
         let clock = st.clock + 1;
-
         for place in self.nbrs(st.place) {
             if let Place::Point(nx, ny) = place {
                 if self.bliz_at(clock, nx, ny) == '.' {
