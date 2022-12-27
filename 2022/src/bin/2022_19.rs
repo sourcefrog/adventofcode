@@ -89,13 +89,7 @@ do anything else.
 We can consider all the options by top-down recursion.
 */
 
-#![allow(dead_code, unused_imports)]
-
-use std::{
-    cmp::{max, min},
-    fmt,
-    time::Instant,
-};
+// #![allow(dead_code, unused_imports)]
 
 use itertools::Itertools;
 
@@ -124,6 +118,7 @@ const CLAY: usize = 1;
 const OBS: usize = 2;
 const GEODE: usize = 3;
 
+#[allow(dead_code)]
 static RESOURCE_NAME: [&str; 4] = ["ORE", "CLAY", "OBSIDIAN", "GEODE"];
 
 fn parse(input: &str) -> Vec<Blueprint> {
@@ -172,14 +167,6 @@ impl St {
             robots: [1, 0, 0, 0],
             res: [0; 4],
         }
-    }
-
-    fn add_res(&self, coll: &[usize; 4]) -> St {
-        let mut s = self.clone();
-        for i in 0..4 {
-            s.res[i] += coll[i];
-        }
-        s
     }
 
     fn can_afford(&self, blueprint: &Blueprint, robot_type: usize) -> bool {
@@ -345,14 +332,6 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> St {
     best_final_state.unwrap_or_else(|| wait_until_end(start, cycle_limit))
 }
 
-fn check_path(path: &[St], cycle_limit: usize) {
-    assert_eq!(path.len(), cycle_limit, "bad path len {path:#?}");
-    assert!(
-        (1..cycle_limit).zip(path).all(|(c, st)| c == st.clock),
-        "bad clocks in {path:#?}"
-    );
-}
-
 // fn solve_a(input: &str) -> usize {
 //     let bps = parse(input);
 //     let mut totql = 0;
@@ -400,8 +379,19 @@ mod test {
     use super::*;
 
     #[test]
-    fn ex1() {
-        // assert_eq!(solve_a(EX), 33);
+    fn ex1_1() {
+        assert_eq!(
+            find_best_path(&parse(EX)[0], &St::start(), 25).res[GEODE],
+            9
+        );
+    }
+
+    #[test]
+    fn ex1_2() {
+        assert_eq!(
+            find_best_path(&parse(EX)[1], &St::start(), 25).res[GEODE],
+            12
+        );
     }
 
     #[test]
