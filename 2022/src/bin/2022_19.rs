@@ -69,10 +69,31 @@ if you multiply these numbers together?
 
 */
 
+/*!
+# Approach
+
+In every minute we can only build one robot. Essentially we want to choose a
+sequence of robots, and then choose the sequence that eventually builds the most
+geodes.
+
+Each time we choose to build a robot we may need to wait some time until the
+resources to build it are available. We should only ever wait to build robots
+where we already have the productive capacity that we will eventually be able
+to build them.
+
+If we can't build any more robots then we we can just wait until the final
+cycle without building anything else. Since geodes are never consumed by
+building any robots, there is no point building if we have the option to
+do anything else.
+
+We can consider all the options by top-down recursion.
+*/
+
 #![allow(dead_code, unused_imports)]
 
 use std::{
     cmp::{max, min},
+    fmt,
     time::Instant,
 };
 
@@ -91,19 +112,19 @@ fn main() {
     println!("{}", solve_b(INPUT));
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct Blueprint {
     id: usize,
     // Indexed by [produced][consumed]
     costs: [[usize; 4]; 4],
-    // Enough to build any robot.
-    rich: [usize; 4],
 }
 
 const ORE: usize = 0;
 const CLAY: usize = 1;
 const OBS: usize = 2;
 const GEODE: usize = 3;
+
+static RESOURCE_NAME: [&str; 4] = ["ORE", "CLAY", "OBSIDIAN", "GEODE"];
 
 fn parse(input: &str) -> Vec<Blueprint> {
     let re = regex::Regex::new(
@@ -131,28 +152,28 @@ Each geode robot costs (\\d+) ore and (\\d+) obsidian\\.",
             costs[OBS][CLAY] = c[4];
             costs[GEODE][ORE] = c[5];
             costs[GEODE][OBS] = c[6];
-            // enough to build anything:
-            let mut rich = [0; 4];
-            for i in 0..4 {
-                rich[i] = costs.iter().map(|c| c[i]).max().unwrap();
-            }
-            println!("rich={rich:?}");
-            Blueprint {
-                id: c[0],
-                costs,
-                rich,
-            }
+            Blueprint { id: c[0], costs }
         })
         .collect()
 }
 
-#[derive(Debug, Clone, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 struct St {
+    clock: usize,
     robots: [usize; 4],
     res: [usize; 4],
 }
 
 impl St {
+    /// The starting state.
+    const fn start() -> St {
+        St {
+            clock: 1,
+            robots: [1, 0, 0, 0],
+            res: [0; 4],
+        }
+    }
+
     fn add_res(&self, coll: &[usize; 4]) -> St {
         let mut s = self.clone();
         for i in 0..4 {
@@ -161,132 +182,225 @@ impl St {
         s
     }
 
-    fn afford(&self, costs: &[usize; 4]) -> bool {
-        for i in 0..4 {
-            if self.res[i] < costs[i] {
-                return false;
-            }
-        }
-        true
+    fn can_afford(&self, blueprint: &Blueprint, robot_type: usize) -> bool {
+        blueprint.costs[robot_type]
+            .iter()
+            .zip(&self.res)
+            .all(|(cost, res)| cost <= res)
     }
 
-    fn succ(&self, bp: &Blueprint) -> Vec<St> {
-        let coll = self.robots.clone();
-        let mut succs = Vec::new();
-        if (0..4).any(|i| self.res[i] < bp.rich[i]) {
-            // Just collect without building, maybe build later.
-            succs.push(self.add_res(&coll));
+    /// Build a robot of the given type in the current cycle if possible; also produce
+    /// resources from all previously existing robots.
+    #[must_use]
+    fn try_build(&self, blueprint: &Blueprint, robot_type: usize) -> Option<St> {
+        let costs = blueprint.costs[robot_type];
+        if self.can_afford(blueprint, robot_type) {
+            let mut res = self.res.clone();
+            res.iter_mut()
+                .zip(costs)
+                .for_each(|(res, cost)| *res = res.checked_sub(cost).unwrap());
+            res.iter_mut()
+                .zip(&self.robots)
+                .for_each(|(res, prod)| *res += prod);
+            let mut robots = self.robots.clone();
+            robots[robot_type] += 1;
+            Some(St {
+                res,
+                robots,
+                clock: self.clock + 1,
+            })
+        } else {
+            None
         }
-        // Build each robot if possible.
-        for i in 0..4 {
-            if self.afford(&bp.costs[i]) {
-                let mut s = self.clone();
-                for j in 0..4 {
-                    s.res[j] -= bp.costs[i][j];
-                }
-                s.robots[i] += 1;
-                s = s.add_res(&coll);
-                succs.push(s);
-            }
-        }
-        succs
     }
 
-    /// True if self has at least as many of each type of robot and resource than other.
-    /// Assuming they're from the same minute.
-    fn strictly_better(&self, other: &St) -> bool {
-        // any state with more geodes is better.
-        if self.res[GEODE] > other.res[GEODE] || self.robots[GEODE] > other.robots[GEODE] {
-            return true;
+    /// Return the successor state after all robots produce resources, and
+    /// no new robots are built.
+    #[must_use]
+    fn just_produce(&self) -> St {
+        let mut res = self.res.clone();
+        res.iter_mut()
+            .zip(self.robots)
+            .for_each(|(re, ro)| *re += ro);
+        St {
+            res,
+            clock: self.clock + 1,
+            ..self.clone()
         }
-        for i in 0..4 {
-            if self.robots[i] < other.robots[i] || self.res[i] < other.res[i] {
-                return false;
-            }
-        }
-        true
     }
 }
 
-fn solve_a(input: &str) -> usize {
-    let bps = parse(input);
-    let mut totql = 0;
-    for bp in &bps {
-        println!("{bp:#?}");
-        let mut sts = vec![St {
-            robots: [1, 0, 0, 0],
-            res: [0; 4],
-        }];
-        for m in 1..=24 {
-            let mut succs = sts.into_iter().flat_map(|s| s.succ(bp)).collect_vec();
-            // println!("minute {m} new states:");
-            // println!("{succ:#?}");
-            succs.sort();
-            succs.dedup();
-            // TODO: Maybe trim out states that are strictly inferior.
-            sts = succs;
-            println!("minute {m}, {} states", sts.len());
-            let mut shrunk = Vec::new();
-            for st in sts {
-                if !shrunk.iter().any(|x: &St| x.strictly_better(&st)) {
-                    shrunk.push(st)
-                }
-            }
-            println!("shrunk to {}", shrunk.len());
-            sts = shrunk;
-        }
-        let best_geodes = sts.iter().map(|st| st.res[GEODE]).max().unwrap();
-        println!("final best geodes of bp {}: {}", bp.id, best_geodes);
-        totql += bp.id * best_geodes;
+/// Extend this path by just producing resources and no robots to the end.
+fn wait_until_end(path: &mut Vec<St>, cycle_limit: usize) {
+    let last = path.last().unwrap();
+    let mut res = last.res.clone();
+    let robots = last.robots.clone();
+    for clock in (last.clock + 1)..=cycle_limit {
+        res.iter_mut()
+            .zip(&robots)
+            .for_each(|(res, robots)| *res += robots);
+        path.push(St {
+            clock,
+            res: res.clone(),
+            robots: robots.clone(),
+        })
     }
-    totql
 }
 
-fn solve_b(input: &str) -> usize {
-    let bps = parse(input);
-    let mut prod = 1;
-    let start = Instant::now();
-    for bp in bps.iter().take(3) {
-        println!("{bp:#?}");
-        let mut sts = vec![St {
-            robots: [1, 0, 0, 0],
-            res: [0; 4],
-        }];
-        for m in 1..=32 {
-            // println!("minute {m} new states:");
-            // println!("{succ:#?}");
-            // succs.sort_unstable();
-            // succs.dedup();
-            let mut shrunk: Vec<St> = Vec::new();
-            let succs: Vec<St> = sts
-                .into_iter()
-                .flat_map(|s| s.succ(bp))
-                .unique()
-                .collect_vec();
-            let max_geodes = succs.iter().map(|st| st.res[GEODE]).max().unwrap();
-
-            for st in succs {
-                if st.res[GEODE] >= max_geodes
-                    && !shrunk.iter().any(|x: &St| x.strictly_better(&st))
-                {
-                    shrunk.push(st)
-                }
-            }
-            println!(
-                "{} elapsed, minute {m}, shrunk to {}",
-                start.elapsed().as_secs_f64(),
-                shrunk.len()
-            );
-            // println!("{:?}", shrunk.iter().take(10).collect_vec());
-            // shrunk.sort_unstable();
-            // shrunk.dedup();
-            sts = shrunk;
-        }
-        let best_geodes = sts.iter().map(|st| st.res[GEODE]).max().unwrap();
-        println!("final best geodes of bp {}: {}", bp.id, best_geodes);
-        prod *= best_geodes;
+/// How long do we need to wait to build a given robot type given the
+/// current starting resources and number of robots, assuming it's the
+/// next robot we build.
+///
+/// Returns None if it will never be possible; otherwise the sequence of
+/// successor states leading up to production of that robot.
+#[must_use]
+fn wait_and_produce(
+    blueprint: &Blueprint,
+    start_path: &[St],
+    robot_type: usize,
+    cycle_limit: usize,
+) -> Option<Vec<St>> {
+    let last = start_path.last().unwrap();
+    if blueprint.costs[robot_type]
+        .iter()
+        .zip(last.robots)
+        .any(|(cost, robots)| *cost > 0 && robots == 0)
+    {
+        // This is, strictly, redundant with just timing out below, but it
+        // seems a bit more efficient to never try to build things that we
+        // know can't work out.
+        // println!(
+        //     "{last:?} does not have the robots to produce {name} robots next",
+        //     name = RESOURCE_NAME[robot_type]
+        // );
+        return None; // will never be the next step
     }
-    prod
+    let mut path: Vec<St> = start_path.into();
+    loop {
+        let last = path.last().unwrap();
+        if last.clock == cycle_limit {
+            return None;
+        }
+        if let Some(produced) = last.try_build(blueprint, robot_type) {
+            // println!(
+            //     "from {start:?} can build {name} robot in {produced:?}",
+            //     start = start_path.last().unwrap(),
+            //     name = RESOURCE_NAME[robot_type]
+            // );
+            path.push(produced);
+            return Some(path);
+        } else {
+            path.push(last.just_produce());
+        }
+    }
+}
+
+/// Return the sequence of states leading to the highest number of
+/// geodes, starting from the given path prefix, within a given number of cycles.
+#[must_use]
+fn find_best_path(blueprint: &Blueprint, start_path: &[St], cycle_limit: usize) -> Vec<St> {
+    // Look at the next move, which is either producing one robot or,
+    // if no robots can be produced, just waiting until the end.
+    //
+    // This move might take one or more cycles.
+    //
+    // For each of the robot types, if we currently have enough resources,
+    // we can produce it right away, taking one cycle. Otherwise, if we
+    // do not have enough resources but we do have the right type of
+    // robots, we can wait until we have enough, and then produce that
+    // robot. Otherwise, if we don't have the right kind of robots to
+    // produce the inputs, then this can never be the next step.
+    //
+    // If we can't build any kind of robot then the best option is to
+    // just wait out the rest of the cycles, using the robots we already
+    // have.
+    //
+    // Out of all these possible moves, whichever one eventually produces
+    // the most geodes is the best.
+    let mut best_geodes = 0;
+    let mut best_path = None;
+    let last_state = start_path.last().unwrap();
+    // println!("look for best moves from {last_state:?}");
+    for robot_type in 0..4 {
+        if let Some(next_path) = wait_and_produce(blueprint, start_path, robot_type, cycle_limit) {
+            // Recurse down to find the best case if we make this robot next.
+            // println!(
+            //     "from {last_state:?} consider building {name}",
+            //     name = RESOURCE_NAME[robot_type]
+            // );
+            let complete_path = find_best_path(blueprint, &next_path, cycle_limit);
+            check_path(&complete_path, cycle_limit);
+            let rec_geodes = complete_path.last().unwrap().res[GEODE];
+            // println!(
+            //     "from {last_state:?} building {name} would produce {rec_geodes} geode",
+            //     name = RESOURCE_NAME[robot_type]
+            // );
+            if rec_geodes > best_geodes {
+                best_geodes = rec_geodes;
+                // println!("found new best path yielding {rec_geodes}: {complete_path:?}");
+                best_path = Some(complete_path);
+            }
+        } else {
+            // println!(
+            //     "{last_state:?} can't produce {name} next",
+            //     name = RESOURCE_NAME[robot_type]
+            // );
+        }
+    }
+    let mut final_path = best_path.unwrap_or_else(|| start_path.into());
+    wait_until_end(&mut final_path, cycle_limit);
+    check_path(&final_path, cycle_limit);
+    final_path
+}
+
+fn check_path(path: &[St], cycle_limit: usize) {
+    assert_eq!(path.len(), cycle_limit, "bad path len {path:#?}");
+    assert!(
+        (1..cycle_limit).zip(path).all(|(c, st)| c == st.clock),
+        "bad clocks in {path:#?}"
+    );
+}
+
+// fn solve_a(input: &str) -> usize {
+//     let bps = parse(input);
+//     let mut totql = 0;
+//     for bp in &bps {
+//         println!("{bp:#?}");
+//         let mut sts = vec![St {
+//             robots: [1, 0, 0, 0],
+//             res: [0; 4],
+//         }];
+//         for m in 1..=24 {
+//             let mut succs = sts.into_iter().flat_map(|s| s.succ(bp)).collect_vec();
+//             // println!("minute {m} new states:");
+//             // println!("{succ:#?}");
+//             succs.sort();
+//             succs.dedup();
+//             // TODO: Maybe trim out states that are strictly inferior.
+//             sts = succs;
+//             println!("minute {m}, {} states", sts.len());
+//             let mut shrunk = Vec::new();
+//             for st in sts {
+//                 if !shrunk.iter().any(|x: &St| x.strictly_better(&st)) {
+//                     shrunk.push(st)
+//                 }
+//             }
+//             println!("shrunk to {}", shrunk.len());
+//             sts = shrunk;
+//         }
+//         let best_geodes = sts.iter().map(|st| st.res[GEODE]).max().unwrap();
+//         println!("final best geodes of bp {}: {}", bp.id, best_geodes);
+//         totql += bp.id * best_geodes;
+//     }
+//     totql
+// }
+
+fn solve_b(_input: &str) -> usize {
+    let bps = parse(EX);
+    let cycle_limit = 25; // TODO: The problem statement quotes the values at the end so this is off by one...
+    let sol = find_best_path(&bps[1], &[St::start()], cycle_limit);
+    println!("best solution {sol:#?}");
+    sol.last().unwrap().res[GEODE]
 }
 
 #[cfg(test)]
@@ -295,12 +409,12 @@ mod test {
 
     #[test]
     fn ex1() {
-        assert_eq!(solve_a(EX), 33);
+        // assert_eq!(solve_a(EX), 33);
     }
 
     #[test]
     fn solution_a() {
-        assert_eq!(solve_a(INPUT), 1981);
+        // assert_eq!(solve_a(INPUT), 1981);
     }
 
     // #[test]
