@@ -128,7 +128,7 @@ impl Map {
             (Wet, Neither) => Climbing,
             (Narrow, Torch) => Neither,
             (Narrow, Neither) => Torch,
-            (g, t) => panic!("illegal existing state {:?}, {:?}", g, t),
+            (g, t) => panic!("illegal existing state {g:?}, {t:?}"),
         };
         r.push((
             State {
@@ -185,8 +185,8 @@ pub fn solve() -> (usize, isize) {
 
 pub fn main() {
     let (a, b) = solve();
-    println!("Part A: {}", a);
-    println!("Part B: {}", b);
+    println!("Part A: {a}");
+    println!("Part B: {b}");
 }
 
 #[cfg(test)]

@@ -35,10 +35,10 @@ pub fn main() {
     let ns = parse_lines(lines);
     // println!("{:?}", ns);
     let sleepy_gid = most_sleepy(&ns);
-    println!("Most sleepy guard: {}", sleepy_gid);
+    println!("Most sleepy guard: {sleepy_gid}");
     let naps_for_gid: Vec<_> = ns.iter().filter(|s| s.guard == sleepy_gid).collect();
     let smin = sleepiest_minute(&naps_for_gid);
-    println!("Sleepiest minute: {}", smin);
+    println!("Sleepiest minute: {smin}");
     println!("Product: {}", smin as u32 * sleepy_gid);
 }
 
@@ -113,7 +113,7 @@ fn parse_lines(mut ls: Vec<String>) -> Vec<Nap> {
     let mut guard: Option<GuardID> = None;
     let mut sleep_min: Option<usize> = None;
     for l in ls {
-        println!("{}", l);
+        println!("{l}");
         if let Some(c) = GUARD_RE.captures(&l) {
             guard = Some(ci(&c, 1));
             println!("Guard {}", guard.unwrap());
@@ -130,7 +130,7 @@ fn parse_lines(mut ls: Vec<String>) -> Vec<Nap> {
                 wake_min: ci(&c, 1) as usize,
             });
         } else {
-            panic!("unrecognized line {:?}", l);
+            panic!("unrecognized line {l:?}");
         }
     }
     ns

@@ -67,7 +67,7 @@ impl Direction {
             '>' => Direction::Right,
             'v' => Direction::Down,
             '^' => Direction::Up,
-            e => panic!("unknown direction {:?}", e),
+            e => panic!("unknown direction {e:?}"),
         }
     }
 
@@ -152,7 +152,7 @@ impl Cart {
                 0 => self.dir.turn_left(),
                 1 => self.dir,
                 2 => self.dir.turn_right(),
-                other => panic!("bad inters {:?}", other),
+                other => panic!("bad inters {other:?}"),
             },
             '\\' => match self.dir {
                 Direction::Up => Direction::Left,
@@ -166,7 +166,7 @@ impl Cart {
                 Direction::Left => Direction::Down,
                 Direction::Right => Direction::Up,
             },
-            other => panic!("unimplemented map character {:?}", other),
+            other => panic!("unimplemented map character {other:?}"),
         };
 
         // Increment intersection counter if passing through an intersection
@@ -248,13 +248,13 @@ impl Map {
 
         let op: Vec<(usize, usize)> = carts.keys().cloned().collect();
         for p in op.iter() {
-            if let Some(oldc) = carts.remove(&p) {
+            if let Some(oldc) = carts.remove(p) {
                 let newc = oldc.step(self);
                 // println!("step {:?} to {:?}", oldc, newc);
                 let newp = (newc.y, newc.x);
                 match carts.entry(newp) {
                     Entry::Occupied(entry) => {
-                        println!("collision at {:?}", newp);
+                        println!("collision at {newp:?}");
                         first_coll = first_coll.or(Some(newp));
                         entry.remove();
                     }
@@ -405,7 +405,7 @@ mod test {
     #[test]
     fn linear() {
         let mut m = Map::from_string(
-            &"\
+            "\
 |
 v
 |

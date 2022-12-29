@@ -63,7 +63,7 @@ impl Thing {
             '#' => Thing::Wall,
             'E' => Thing::Elf(INITIAL_HP),
             'G' => Thing::Goblin(INITIAL_HP),
-            other => panic!("unexpected character {:?}", other),
+            other => panic!("unexpected character {other:?}"),
         }
     }
 
@@ -218,7 +218,7 @@ impl Map {
             _ => panic!(),
         };
         let new_thing = if hp <= damage {
-            println!("kill {:?}", old_thing);
+            println!("kill {old_thing:?}");
             if old_thing.is_elf() {
                 self.n_elf -= 1;
             } else if old_thing.is_goblin() {
@@ -305,7 +305,7 @@ impl Map {
                 if let Some(tp) = self.target(cp, &th) {
                     // Attack immediately without needing to move
                     self.hurt(tp);
-                } else if let Some(r) = Routing::new(&self, cp) {
+                } else if let Some(r) = Routing::new(self, cp) {
                     // Move, then try to attack.
                     // println!(
                     //     "move {:?} from {:?} to {:?} towards {:?}, {} steps",
@@ -437,7 +437,7 @@ impl Routing {
                     continue 'backup;
                 }
             }
-            panic!("No backup step found from {:?}", backp);
+            panic!("No backup step found from {backp:?}");
         }
         Some(Routing {
             chosen,

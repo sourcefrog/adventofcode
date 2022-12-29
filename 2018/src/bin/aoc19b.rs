@@ -17,9 +17,9 @@ fn main() {
     let mut r0 = 0;
     for i in 1..=r3 {
         if (r3 / i) * i == r3 {
-            println!("factor {}", i);
+            println!("factor {i}");
             r0 += i;
         }
     }
-    println!("r0 = {}", r0);
+    println!("r0 = {r0}");
 }

@@ -18,7 +18,7 @@ use std::io::prelude::*;
 
 pub fn main() {
     let nums = parse_ints(&io::stdin().lock().lines().next().unwrap().unwrap());
-    println!("{:?}", nums);
+    println!("{nums:?}");
     println!(
         "sum of metadata = {:?}",
         sum_metadata(&mut nums.into_iter())

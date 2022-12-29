@@ -52,7 +52,7 @@ impl Thing {
             '#' => Thing::Wall,
             'E' => Thing::Elf(INITIAL_HP),
             'G' => Thing::Goblin(INITIAL_HP),
-            other => panic!("unexpected character {:?}", other),
+            other => panic!("unexpected character {other:?}"),
         }
     }
 
@@ -108,7 +108,7 @@ impl Thing {
     pub fn hurt(&self) -> Thing {
         let hp = self.creature_hp().unwrap();
         if hp <= ATTACK_POWER {
-            println!("kill {:?}", self);
+            println!("kill {self:?}");
             Empty
         } else {
             match self {
@@ -294,7 +294,7 @@ impl Map {
                 if let Some(tp) = self.target(cp, &th) {
                     // Attack immediately without needing to move
                     self.hurt(tp);
-                } else if let Some(r) = Routing::new(&self, cp) {
+                } else if let Some(r) = Routing::new(self, cp) {
                     // Move, then try to attack.
                     println!(
                         "move {:?} from {:?} to {:?} towards {:?}, {} steps",
@@ -379,7 +379,7 @@ impl Routing {
         // rather than grouped around `lp`, and therefore not need to keep
         // a list of `dests` that are later filtered.
 
-        println!("routing from {:?} at {:?}", actor, origin);
+        println!("routing from {actor:?} at {origin:?}");
 
         while ends.is_empty() && !last.is_empty() {
             let mut next = Vec::new();
@@ -388,7 +388,7 @@ impl Routing {
                 for np in m.neighbors(lp).into_iter() {
                     if actor.is_enemy(&m.thing_at(np)) {
                         // lp neighbors an enemy; we could stop here.
-                        println!("found enemy at {:?} from {:?} after {:?}", np, lp, dist);
+                        println!("found enemy at {np:?} from {lp:?} after {dist:?}");
                         ends.push(lp);
                     } else if m.thing_at(np).is_empty() && d[np].is_none() {
                         // We could move to np along this path; let's see if
@@ -426,7 +426,7 @@ impl Routing {
                     continue 'backup;
                 }
             }
-            panic!("No backup step found from {:?}", backp);
+            panic!("No backup step found from {backp:?}");
         }
         Some(Routing {
             chosen,

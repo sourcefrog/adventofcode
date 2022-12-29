@@ -28,5 +28,5 @@ fn read_ints() -> Vec<i64> {
 
 pub fn main() {
     let t: i64 = read_ints().iter().sum();
-    println!("total: {}", t);
+    println!("total: {t}");
 }

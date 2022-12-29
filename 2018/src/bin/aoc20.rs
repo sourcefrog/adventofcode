@@ -79,7 +79,7 @@ impl Dir {
             'S' => Dir::S,
             'E' => Dir::E,
             'W' => Dir::W,
-            other => panic!("unexpected character {:?}", other),
+            other => panic!("unexpected character {other:?}"),
         }
     }
 
@@ -286,7 +286,7 @@ fn expand(r: &str) -> Map {
                 // println!("After finishing group, turs={:?}", &turs);
             }
             _ => {
-                panic!("unexpected char {:?}", c);
+                panic!("unexpected char {c:?}");
             }
         }
     }

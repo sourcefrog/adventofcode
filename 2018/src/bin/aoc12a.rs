@@ -47,7 +47,7 @@ fn from_b(c: u8) -> bool {
     match c {
         b'#' => true,
         b'.' => false,
-        e => panic!("unexpected {:?}", e),
+        e => panic!("unexpected {e:?}"),
     }
 }
 
@@ -84,7 +84,7 @@ impl std::str::FromStr for Pots {
                 bs[i] = from_b(lb[i]);
             }
             let br = from_b(lb[9]);
-            assert_eq!(inst.insert(bs, br), None, "key {:?} already present", bs);
+            assert_eq!(inst.insert(bs, br), None, "key {bs:?} already present");
         }
         Ok(Pots {
             pots,
@@ -192,7 +192,7 @@ initial state: #..#.#..##......###...###
 ####. => #"
             .parse()
             .unwrap();
-        println!("p = {:?}", p);
+        println!("p = {p:?}");
 
         assert_eq!(
             p.format_pots(-3..36),

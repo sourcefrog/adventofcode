@@ -60,7 +60,7 @@ impl Board {
         }
         let v = &self.r[(l)..(l + N)];
         assert_eq!(v.len(), N);
-        let vs: Vec<String> = v.iter().map(|d| format!("{}", d)).collect();
+        let vs: Vec<String> = v.iter().map(|d| format!("{d}")).collect();
         vs.join("")
     }
 }

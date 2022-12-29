@@ -30,7 +30,7 @@ impl Thing {
             '.' => Open,
             '|' => Trees,
             '#' => Lumberyard,
-            other => panic!("unexpected character {:?}", other),
+            other => panic!("unexpected character {other:?}"),
         }
     }
 
@@ -146,10 +146,10 @@ fn solve18b() -> usize {
     let cycle = loop {
         m = m.step();
         // println!("{}\n{}", j, m.render());
-        println!("{}", j);
+        println!("{j}");
         if m == mstab {
-            println!("Found cycle: gen {} == gen {}", j, STAB);
-            break (j - STAB) as u64;
+            println!("Found cycle: gen {j} == gen {STAB}");
+            break (j - STAB);
         }
         j += 1;
     };

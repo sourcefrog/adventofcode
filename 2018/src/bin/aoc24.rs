@@ -277,7 +277,7 @@ fn attack_repeatedly(gs: &mut [Group]) -> Option<(Side, usize)> {
         if !attack_round(gs) {
             return None;
         }
-        if let Some((s, v)) = victory_condition(&gs) {
+        if let Some((s, v)) = victory_condition(gs) {
             return Some((s, v));
         }
     }
@@ -326,7 +326,7 @@ fn parse_groups(pairs: pest::iterators::Pairs<'_, Rule>, side: Side, r: &mut Vec
                         match j.as_rule() {
                             Rule::num => damage = Some(j.as_str().parse().unwrap()),
                             Rule::weapon => attack = Some(j.as_str().parse().unwrap()),
-                            other => panic!("unexpected {:#?}", other),
+                            other => panic!("unexpected {other:#?}"),
                         }
                     }
                 }
@@ -340,11 +340,11 @@ fn parse_groups(pairs: pest::iterators::Pairs<'_, Rule>, side: Side, r: &mut Vec
                         match r {
                             Rule::weaknesses => weaknesses = weps,
                             Rule::immunities => immunities = weps,
-                            other => panic!("unexpected {:#?}", other),
+                            other => panic!("unexpected {other:#?}"),
                         }
                     }
                 }
-                other => panic!("unexpected {:#?}", other),
+                other => panic!("unexpected {other:#?}"),
             }
         }
 
@@ -373,7 +373,7 @@ fn load_input() -> Vec<Group> {
 }
 
 fn parse_string(s: &str) -> Vec<Group> {
-    let f = AoC24Parser::parse(Rule::file, &s)
+    let f = AoC24Parser::parse(Rule::file, s)
         .expect("failed to parse")
         .next()
         .unwrap();
@@ -383,7 +383,7 @@ fn parse_string(s: &str) -> Vec<Group> {
             Rule::immune_system => parse_groups(i.into_inner(), Immune, &mut gs),
             Rule::infection => parse_groups(i.into_inner(), Infection, &mut gs),
             Rule::EOI => (),
-            other => panic!("unexpected {:#?}", other),
+            other => panic!("unexpected {other:#?}"),
         }
     }
     gs

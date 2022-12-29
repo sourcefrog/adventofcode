@@ -33,9 +33,9 @@ pub fn main() {
     for i in read_ints().iter().cycle() {
         seen.insert(t); // Visit 0 before incrementing
         t += i;
-        println!("i={:<8} t={:<8}", i, t);
+        println!("i={i:<8} t={t:<8}");
         if seen.contains(&t) {
-            println!("first repeated value is {}", t);
+            println!("first repeated value is {t}");
             break;
         }
     }

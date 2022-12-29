@@ -71,7 +71,7 @@ fn constellations(pts: &[Point]) -> Vec<Vec<Point>> {
         let ii: Vec<usize> = cts
             .iter()
             .enumerate()
-            .filter(|(_i, c)| near_constellation(p, &c))
+            .filter(|(_i, c)| near_constellation(p, c))
             .map(|(i, _c)| i)
             .collect();
 

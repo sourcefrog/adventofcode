@@ -91,7 +91,7 @@ fn parse(s: &str) -> Vec<Bot> {
                     r: fld(4),
                 }
             } else {
-                panic!("failed to parse: {:?}", l);
+                panic!("failed to parse: {l:?}");
             }
         })
         .collect()
@@ -104,8 +104,8 @@ fn strongest(bs: &[Bot]) -> Bot {
 
 /// Return the number of bots in range of the strongest bot (including itself.)
 fn count_in_range(bs: &[Bot]) -> usize {
-    let stz = strongest(&bs).zone();
-    bs.iter().filter(|b| stz.contains(&b)).count()
+    let stz = strongest(bs).zone();
+    bs.iter().filter(|b| stz.contains(b)).count()
 }
 
 /// Load bots from input file.
@@ -174,20 +174,20 @@ impl Zone {
     /// Return a coordinate in this zone that's closest to the origin.
     fn closest_to_origin(&self) -> Coord {
         let xmax1 = (self.pxpypz + self.pxmymz) / 2;
-        println!("x <= {}", xmax1);
+        println!("x <= {xmax1}");
         let xmax2 = (self.pxmypz + self.pxpymz) / 2;
-        println!("x <= {}", xmax2);
+        println!("x <= {xmax2}");
         let xmin1 = -(self.mxpypz + self.mxmymz) / 2;
-        println!("x >= {}", xmin1);
+        println!("x >= {xmin1}");
         let xmin2 = -(self.mxmypz + self.mxpymz) / 2;
-        println!("x >= {}", xmin2);
+        println!("x >= {xmin2}");
 
         if xmin1 < 0 || xmin2 < 0 {
             // If negative we ought to look at the maximums.
             unimplemented!();
         }
         let x = max(xmin1, xmin2);
-        println!("therefore x={}", x);
+        println!("therefore x={x}");
 
         // x + y + z <= pxpypz
         // x + y - z <= pxpymz

@@ -165,8 +165,7 @@ impl Map {
             }
         }
         println!(
-            "Created map; xrange={}..={}, yrange={}..={}",
-            x_min, x_max, y_min, y_max
+            "Created map; xrange={x_min}..={x_max}, yrange={y_min}..={y_max}"
         );
         // Skip from (500, 0) down to the first point on the map.
         let drip1 = point(500, y_min);
@@ -186,15 +185,14 @@ impl Map {
         // NB: Any x-coordinate is valid, however it can only overflow one column to the left or right.
         assert!(
             p.x <= (self.x_max + 1) && self.y_min <= p.y && p.y <= self.y_max,
-            "Out-of-range point {:?}",
-            p
+            "Out-of-range point {p:?}"
         );
     }
 
     /// Fill the map until there are no more active drips in range.
     fn run(&mut self) {
         while let Some(drp) = self.drip.pop() {
-            println!("drip {:?}", drp);
+            println!("drip {drp:?}");
             self.check_point(drp);
             if drp.y == self.y_max {
                 // Falls off the bottom; nothing more to do.
@@ -219,18 +217,18 @@ impl Map {
 
     fn add_drip(&mut self, p: Point) {
         match self.m[p] {
-            Clay => panic!("can't drip through clay at {:?}", p),
+            Clay => panic!("can't drip through clay at {p:?}"),
             Sand => {
                 self.m[p] = Damp;
             }
             Damp => {
                 // This square is already damp: perhaps we passed it on the way down, but
                 // let's pour in more water and see if it will spread to the sides.
-                println!("drip into damp at {:?}", p);
+                println!("drip into damp at {p:?}");
             }
             Water => {
                 // drips into water, but probably nothing to do here
-                println!("drip into water at {:?}", p);
+                println!("drip into water at {p:?}");
             }
         }
         self.drip.push(p);
@@ -242,21 +240,21 @@ impl Map {
     /// with damp sand. And, if it can leak from either or both sides, create a new drip from
     /// there.
     fn spread(&mut self, drp: Point) {
-        println!("water spreads from {:?}", drp);
+        println!("water spreads from {drp:?}");
         let mut pl = drp;
         let mut leak_left = true;
         assert!(self.m[drp] != Clay);
         loop {
             if self.m[pl] == Clay {
                 // found a wall; water or dampness fills to pl
-                println!("found left wall of {:?} at {:?}", drp, pl);
+                println!("found left wall of {drp:?} at {pl:?}");
                 pl = pl.right();
                 leak_left = false;
                 break;
             } else if self.m[pl.down()].can_hold() {
                 // continue across
             } else {
-                println!("found left leak below from {:?}", pl);
+                println!("found left leak below from {pl:?}");
                 self.add_drip(pl.down());
                 break;
             }
@@ -267,24 +265,24 @@ impl Map {
         while pr.x <= self.x_max {
             if self.m[pr] == Clay {
                 // found a wall; water or dampness fills to pr
-                println!("found right wall of {:?} at {:?}", drp, pr);
+                println!("found right wall of {drp:?} at {pr:?}");
                 pr = pr.left();
                 leak_right = false;
                 break;
             } else if self.m[pr.down()].can_hold() {
                 // continue across
             } else {
-                println!("found right leak below from {:?}", pr);
+                println!("found right leak below from {pr:?}");
                 self.add_drip(pr.down());
                 break;
             }
             pr = pr.right();
         }
         if leak_left || leak_right {
-            println!("line of dampness from {:?} to {:?}", pl, pr);
+            println!("line of dampness from {pl:?} to {pr:?}");
             self.fill(Damp, pl, pr);
         } else {
-            println!("water holds from {:?} to {:?}", pl, pr);
+            println!("water holds from {pl:?} to {pr:?}");
             self.fill(Water, pl, pr);
             // continue pouring in water, one level higher
             if drp.y > self.y_min {
@@ -336,7 +334,7 @@ pub fn solve_main_input() -> (usize, usize) {
 
 /// Solve the puzzle in the given representation
 pub fn solve_str(s: &str) -> (usize, usize) {
-    let mut map = Map::from_lines(&Line::parse_lines(&s));
+    let mut map = Map::from_lines(&Line::parse_lines(s));
     // write!(File::create("aoc17before.txt").unwrap(), "{}", map.render()).unwrap();
     map.run();
     // write!(File::create("aoc17after.txt").unwrap(), "{}", map.render()).unwrap();
@@ -345,8 +343,8 @@ pub fn solve_str(s: &str) -> (usize, usize) {
 
 pub fn main() {
     let (n_wet, n_water) = solve_main_input();
-    println!("wet squares: {}", n_wet);
-    println!("water squares: {}", n_water);
+    println!("wet squares: {n_wet}");
+    println!("water squares: {n_water}");
 }
 
 #[cfg(test)]

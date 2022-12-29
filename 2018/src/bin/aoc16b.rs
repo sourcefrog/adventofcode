@@ -200,7 +200,7 @@ impl Infer {
                     .collect();
                 if unresolved.len() == 1 {
                     let inst = unresolved[0];
-                    println!("Found certainly {} === {:?}", opcode, inst);
+                    println!("Found certainly {opcode} === {inst:?}");
                     debug_assert!(self.certain[opcode].is_none());
                     self.certain[opcode] = Some(inst);
                     solved_inst.insert(inst, opcode);
@@ -240,8 +240,8 @@ impl Program {
         for p in self.asm.iter() {
             let inst = decode.op_ins[p[0]];
             println!("{:?} {:?}", inst, &p[1..]);
-            r = inst.apply(&r, &p);
-            println!(" => {:?}", r);
+            r = inst.apply(&r, p);
+            println!(" => {r:?}");
         }
     }
 }

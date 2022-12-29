@@ -32,7 +32,7 @@ use regex::Regex;
 
 pub fn main() {
     let cs = Constraints::from_strings(io::stdin().lock().lines().map(Result::unwrap));
-    println!("{:?}", cs);
+    println!("{cs:?}");
     println!("order: {:?}", cs.find_order());
 }
 
@@ -58,7 +58,7 @@ impl Constraints {
                 let pre = cap.get(1).unwrap().as_str().chars().next().unwrap();
                 let post = cap.get(2).unwrap().as_str().chars().next().unwrap();
                 let e = deps.entry(post).or_insert_with(BTreeSet::new);
-                assert!(e.insert(pre), "pair {:?} {:?} already present?", post, pre);
+                assert!(e.insert(pre), "pair {post:?} {pre:?} already present?");
                 // We also know the precondition exists
                 deps.entry(pre).or_insert_with(BTreeSet::new);
             } else {
@@ -103,7 +103,7 @@ Step A must be finished before step D can begin.
 Step B must be finished before step E can begin.
 Step D must be finished before step E can begin.
 Step F must be finished before step E can begin."
-                .split("\n"),
+                .split('\n'),
         );
         println!("{:?}", &cs);
         let order = cs.find_order();

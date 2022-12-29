@@ -61,7 +61,7 @@ impl Constraints {
             let pre = cap.get(1).unwrap().as_str().chars().next().unwrap();
             let post = cap.get(2).unwrap().as_str().chars().next().unwrap();
             let e = deps.entry(post).or_insert_with(BTreeSet::new);
-            assert!(e.insert(pre), "pair {:?} {:?} already present?", post, pre);
+            assert!(e.insert(pre), "pair {post:?} {pre:?} already present?");
             // We also know the precondition exists
             deps.entry(pre).or_insert_with(BTreeSet::new);
         }
@@ -71,16 +71,11 @@ impl Constraints {
 
     /// Return the next step available for anyone to do.
     pub fn next_step(&mut self) -> Option<Step> {
-        if let Some(s) = self
+        self
             .deps
             .iter()
             .filter_map(|(k, v)| if v.is_empty() { Some(k) } else { None })
-            .next()
-        {
-            Some(*s)
-        } else {
-            None
-        }
+            .next().copied()
     }
 
     /// Mark this step as completed; its dependencies are now available.
@@ -97,13 +92,13 @@ impl Constraints {
         let mut workers: Vec<Worker> = Vec::new();
         while !self.deps.is_empty() {
             while workers.len() < n_workers && !self.deps.is_empty() {
-                println!("time {}", t);
+                println!("time {t}");
                 if let Some(task) = self.next_step() {
                     let w = Worker {
                         completion: t + step_time(task) + time_base,
                         task,
                     };
-                    println!("start {:?}", w);
+                    println!("start {w:?}");
                     self.deps.remove(&task);
                     workers.push(w);
                 } else {
@@ -115,7 +110,7 @@ impl Constraints {
             // the vec is very small.
             let donew = workers.iter().min().unwrap().clone();
             workers.retain(|i| *i != donew);
-            println!("complete {:?}", donew);
+            println!("complete {donew:?}");
             t = donew.completion;
             self.complete(donew.task);
         }
@@ -138,7 +133,7 @@ Step A must be finished before step D can begin.
 Step B must be finished before step E can begin.
 Step D must be finished before step E can begin.
 Step F must be finished before step E can begin."
-                .split("\n"),
+                .split('\n'),
         );
         println!("{:?}", &cs);
         assert_eq!(cs.work(0, 2), 15);

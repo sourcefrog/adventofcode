@@ -66,7 +66,7 @@ impl Map {
                     vel: (ci(&caps, 3), ci(&caps, 4)),
                 });
             } else {
-                panic!("Can't parse {:?}", l);
+                panic!("Can't parse {l:?}");
             }
         }
         Map { ss, steps: 0 }
@@ -156,7 +156,7 @@ position=<-3,  6> velocity=< 2, -1>";
 
     #[test]
     fn hi() {
-        let mut map = Map::parse(&HI_DEF);
+        let mut map = Map::parse(HI_DEF);
         map.draw();
 
         for _i in 0..3 {

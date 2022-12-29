@@ -166,14 +166,14 @@ pub fn main() {
     let sams = Sample::parse_samples(&ls);
     let mut gt3 = 0;
     for s in sams {
-        println!("{:?}", s);
+        println!("{s:?}");
         let poss = s.possible_inst();
-        println!("possible: {:?}", poss);
+        println!("possible: {poss:?}");
         if poss.len() >= 3 {
             gt3 += 1;
         }
     }
-    println!("Samples explainable by >=3 opcodes: {:?}", gt3);
+    println!("Samples explainable by >=3 opcodes: {gt3:?}");
 }
 
 #[cfg(test)]

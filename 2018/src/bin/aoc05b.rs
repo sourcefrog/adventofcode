@@ -28,7 +28,7 @@ pub fn main() {
     let mut best_len = usize::max_value();
     let mut best_char = 0u8;
     for t in b'a'..=b'z' {
-        let c = collapse_without(&l, t as char);
+        let c = collapse_without(l, t as char);
         println!("Remove {:?} => len {}", t as char, c.len());
         if c.len() < best_len {
             best_len = c.len();

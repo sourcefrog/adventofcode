@@ -85,9 +85,9 @@ impl Circle {
         let i = self.succ(self.current);
         let n = self.next_marble();
         self.links.push((i, self.succ(i)));
-        let follow = self.succ(i) as usize;
+        let follow = self.succ(i);
         self.links[follow].0 = n;
-        self.links[i as usize].1 = n;
+        self.links[i].1 = n;
         self.current = n;
         n
     }
@@ -148,12 +148,12 @@ impl Debug for Circle {
         let top = self.top();
         let mut i = top;
         loop {
-            let ll = self.links[i as usize];
+            let ll = self.links[i];
             assert!(ll != UNLINKED);
             if i == self.current {
-                write!(f, "{:>4}", format!("({})", i))?;
+                write!(f, "{:>4}", format!("({i})"))?;
             } else {
-                write!(f, " {:>2} ", i)?;
+                write!(f, " {i:>2} ")?;
             }
             i = ll.1;
             if i == top {
@@ -173,24 +173,24 @@ mod test {
         let mut c = Circle::new(9);
         assert_eq!(c.current, 0);
         assert_eq!(c.top(), 0);
-        assert_eq!(format!("{:?}", c), " (0)");
+        assert_eq!(format!("{c:?}"), " (0)");
 
         c.step();
-        assert_eq!(format!("{:?}", c), "  0  (1)");
+        assert_eq!(format!("{c:?}"), "  0  (1)");
         c.step();
-        assert_eq!(format!("{:?}", c), "  0  (2)  1 ");
+        assert_eq!(format!("{c:?}"), "  0  (2)  1 ");
         c.step();
-        assert_eq!(format!("{:?}", c), "  0   2   1  (3)");
+        assert_eq!(format!("{c:?}"), "  0   2   1  (3)");
         c.step();
-        assert_eq!(format!("{:?}", c), "  0  (4)  2   1   3 ");
+        assert_eq!(format!("{c:?}"), "  0  (4)  2   1   3 ");
 
         while c.current < 22 {
             c.step();
         }
-        assert_eq!(format!("{:?}", c),
+        assert_eq!(format!("{c:?}"),
             "  0  16   8  17   4  18   9  19   2  20  10  21   5 (22) 11   1  12   6  13   3  14   7  15 ");
         c.step();
-        assert_eq!(format!("{:?}", c),
+        assert_eq!(format!("{c:?}"),
             "  0  16   8  17   4  18 (19)  2  20  10  21   5  22  11   1  12   6  13   3  14   7  15 ");
         assert_eq!(c.scores, vec![0, 0, 0, 0, 32, 0, 0, 0, 0]);
         assert_eq!(c.high_score(), 32);

@@ -83,7 +83,7 @@ fn parse_lines(mut ls: Vec<String>) -> Vec<Nap> {
     let mut guard: Option<GuardID> = None;
     let mut sleep_min: Option<usize> = None;
     for l in ls {
-        println!("{}", l);
+        println!("{l}");
         if let Some(c) = GUARD_RE.captures(&l) {
             guard = Some(ci(&c, 1));
             println!("Guard {}", guard.unwrap());
@@ -100,7 +100,7 @@ fn parse_lines(mut ls: Vec<String>) -> Vec<Nap> {
                 wake_min: ci(&c, 1) as usize,
             });
         } else {
-            panic!("unrecognized line {:?}", l);
+            panic!("unrecognized line {l:?}");
         }
     }
     ns

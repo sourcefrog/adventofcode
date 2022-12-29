@@ -231,7 +231,7 @@ setr 1 0 0
 seti 8 0 4
 seti 9 0 5
 ";
-        let mut p = Program::from_str(&ptext).unwrap();
+        let mut p = Program::from_str(ptext).unwrap();
         assert_eq!(p.code.len(), 7);
         assert_eq!(
             p.code[4],
