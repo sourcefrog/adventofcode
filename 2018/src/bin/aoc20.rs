@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -307,8 +307,8 @@ fn load_input() -> String {
         .read_to_string(&mut s)
         .unwrap();
     s = s.trim_end().to_string();
-    assert!(s.ends_with('$'), s);
-    assert!(s.starts_with('^'));
+    assert!(s.ends_with('$'), "{s:?}");
+    assert!(s.starts_with('^'), "{s:?}");
     s[1..(s.len() - 1)].to_string()
 }
 
