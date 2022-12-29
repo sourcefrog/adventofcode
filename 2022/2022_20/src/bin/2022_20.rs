@@ -2,9 +2,7 @@
 
 use itertools::Itertools;
 
-mod modint;
-
-use crate::modint::{add_isize_mod, add_usize_mod, sub_usize_mod};
+use mbpaoc2022_20::modint::{add_isize_mod, add_usize_mod, sub_usize_mod};
 
 #[allow(dead_code)]
 static EX: &str = "\
@@ -17,7 +15,7 @@ static EX: &str = "\
 4
 ";
 
-static INPUT: &str = include_str!("../input.txt");
+static INPUT: &str = include_str!("../../input.txt");
 
 static KEY: isize = 811589153;
 
@@ -30,7 +28,7 @@ fn parse(input: &str) -> Vec<isize> {
 
 fn main() {
     // println!("{}", solve_a(EX));
-    // println!("{}", solve_a(INPUT));
+    println!("{}", solve_a(INPUT));
     println!("{}", solve_b(INPUT));
 }
 
