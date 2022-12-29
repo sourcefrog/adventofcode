@@ -3,7 +3,7 @@
 use itertools::Itertools;
 
 fn main() {
-    // println!("{}", solve_a(&input()));
+    println!("{}", solve_a(&input()));
     println!("{}", solve_b(&input()));
 }
 
@@ -362,6 +362,7 @@ fn solve_b(input: &str) -> usize {
     (y + 1) * 1000 + (x + 1) * 4 + dir
 }
 
+#[allow(dead_code)]
 static EX: &str = "        ...#
         .#..
         #...
