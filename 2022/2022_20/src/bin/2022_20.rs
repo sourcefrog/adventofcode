@@ -1,4 +1,4 @@
-//! https://adventofcode.com/2022/day/20
+//! https://adventfield1fcode.field1om/2022/day/20
 
 use itertools::Itertools;
 
@@ -33,16 +33,19 @@ fn main() {
 }
 
 /// A permutation of the elements of an input of given size.
-///
-/// p.0[i] is the position where the element initally at position i ends up.
-/// p.0 must always contain all the successive whole numbers: elements are
-/// never lost or duplicated.
 #[derive(Clone, PartialEq, Eq, Debug)]
-struct Perm(Vec<usize>);
+struct Perm {
+    /// The final position of input i.
+    ///
+    /// The array must always contain all the numbers 0..n: elements are never
+    /// lost or duplicated.
+    input_pos: Vec<usize>,
+}
 
 /// Check this is a well-formed permutation: every element up to the length
 /// is represented once.
 #[allow(dead_code)]
+// #[cfg(debug)]
 fn check_perm(v: &[usize]) {
     let l = v.len();
     let mut seen = vec![false; l];
@@ -50,15 +53,21 @@ fn check_perm(v: &[usize]) {
     debug_assert!(seen.iter().all(|x| *x), "{v:?} is not a permutation");
 }
 
+// #[allow(dead_code)]
+// #[cfg(not(debug))]
+// fn check_perm(_: &[usize]) {}
+
 impl Perm {
     /// Make a new permutation of `len` elements.
     fn new(len: usize) -> Perm {
-        Perm((0..len).collect())
+        Perm {
+            input_pos: (0..len).collect(),
+        }
     }
 
-    fn from_index_vec(v: Vec<usize>) -> Perm {
-        check_perm(&v);
-        Perm(v)
+    fn from_index_vec(input_pos: Vec<usize>) -> Perm {
+        check_perm(&input_pos);
+        Perm { input_pos }
     }
 
     /// Map the input `x` by `s` elements to the right from its current position,
@@ -96,13 +105,13 @@ impl Perm {
         It is the case that moving l steps returns to the same position.
 
         */
-        let l = self.0.len();
+        let l = self.input_pos.len();
         if l <= 1 {
-            return Perm(self.0.clone());
+            return self.clone();
         }
         let ll = l as isize;
         assert!(x < l);
-        let y = self.0[x];
+        let y = self.input_pos[x];
         // Skipping just (ll-1) elements would result in no change.
         let s = s % (ll - 1);
         let z = add_isize_mod(y, s, l);
@@ -113,7 +122,7 @@ impl Perm {
             let s = s as usize;
             debug_assert_eq!(sub_usize_mod(z, y, l), s);
             v = self
-                .0
+                .input_pos
                 .iter()
                 .map(|&i| {
                     if i == y {
@@ -131,7 +140,7 @@ impl Perm {
             let s = -s as usize;
             debug_assert_eq!(sub_usize_mod(y, z, l), s);
             v = self
-                .0
+                .input_pos
                 .iter()
                 .map(|&i| {
                     if i == y {
@@ -144,53 +153,45 @@ impl Perm {
                 })
                 .collect();
         } else {
-            v = self.0.clone();
+            v = self.input_pos.clone();
         }
         Perm::from_index_vec(v)
     }
 
     fn len(&self) -> usize {
-        self.0.len()
+        self.input_pos.len()
     }
 
     /// Reorder the elements of a slice according to this permutation.
     #[must_use]
     fn apply<T: Copy>(&self, s: &[T]) -> Vec<T> {
-        assert_eq!(s.len(), self.0.len());
+        assert_eq!(s.len(), self.input_pos.len());
         let mut v = Vec::with_capacity(self.len());
         v.resize(s.len(), s[0]);
-        for (i, x) in self.0.iter().enumerate() {
+        for (i, x) in self.input_pos.iter().enumerate() {
             v[*x] = s[i];
         }
         v
     }
 
-    // /// The result of another permutation applied to the output of this one.
-    // #[must_use]
-    // fn combine(&self, other: &Perm) -> Perm {
-    //     // For each element in the input of a, it first moves to the output of a,
-    //     // then again to where ever other maps that to.
-    //     Perm::from_index_vec(other.0.iter().map(|a| self.0[*a]).collect())
-    // }
-
     #[allow(dead_code)]
     fn as_slice(&self) -> &[usize] {
-        &self.0
+        &self.input_pos
     }
 
     // Two permutations are equivalent if the ordering of results is the same modulo
     // some rotation.
     #[cfg(test)]
     fn equivalent(&self, other: &Perm) -> bool {
-        let l = self.0.len();
-        assert_eq!(l, other.0.len());
+        let l = self.input_pos.len();
+        assert_eq!(l, other.len());
         if l <= 1 {
             return true;
         }
-        let d = sub_usize_mod(other.0[0], self.0[0], l);
-        self.0
+        let d = sub_usize_mod(other.input_pos[0], self.input_pos[0], l);
+        self.input_pos
             .iter()
-            .zip(&other.0)
+            .zip(&other.input_pos)
             .all(|(a, b)| sub_usize_mod(*b, *a, l) == d)
     }
 }
