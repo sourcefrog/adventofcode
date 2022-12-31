@@ -174,11 +174,6 @@ impl Perm {
         v
     }
 
-    #[allow(dead_code)]
-    fn as_slice(&self) -> &[usize] {
-        &self.input_pos
-    }
-
     // Two permutations are equivalent if the ordering of results is the same modulo
     // some rotation.
     #[cfg(test)]
@@ -237,9 +232,9 @@ mod test {
     #[test]
     fn move_zero() {
         let p1 = Perm::new(5);
-        assert_eq!(p1.as_slice(), [0, 1, 2, 3, 4]);
+        assert_eq!(p1.input_pos, [0, 1, 2, 3, 4]);
         let p2 = p1.move_element(2, 0);
-        assert_eq!(p2.as_slice(), [0, 1, 2, 3, 4]);
+        assert_eq!(p2.input_pos, [0, 1, 2, 3, 4]);
         assert_eq!(
             p2.apply(&[100, 101, 102, 103, 104]).as_slice(),
             [100, 101, 102, 103, 104]
@@ -249,11 +244,11 @@ mod test {
     #[test]
     fn move_right() {
         let p1 = Perm::new(5);
-        assert_eq!(p1.as_slice(), [0, 1, 2, 3, 4]);
+        assert_eq!(p1.input_pos, [0, 1, 2, 3, 4]);
         let p2 = p1.move_element(2, 2);
-        assert_eq!(p2.as_slice(), [0, 1, 4, 2, 3]);
+        assert_eq!(p2.input_pos, [0, 1, 4, 2, 3]);
         assert_eq!(
-            p2.apply("abcde".chars().collect_vec().as_slice()),
+            p2.apply(&"abcde".chars().collect_vec()),
             "abdec".chars().collect_vec().as_slice(),
         );
     }
@@ -283,12 +278,12 @@ mod test {
     #[test]
     fn move_left() {
         let p1 = Perm::new(5);
-        assert_eq!(p1.as_slice(), [0, 1, 2, 3, 4]);
+        assert_eq!(p1.input_pos, [0, 1, 2, 3, 4]);
         let p2 = p1.move_element(2, -1);
-        assert_eq!(p2.as_slice(), [0, 2, 1, 3, 4]);
+        assert_eq!(p2.input_pos, [0, 2, 1, 3, 4]);
         assert_eq!(
-            p2.apply("abcde".chars().collect_vec().as_slice()),
-            "acbde".chars().collect_vec().as_slice(),
+            p2.apply(&"abcde".chars().collect_vec()),
+            "acbde".chars().collect_vec(),
         );
     }
 
