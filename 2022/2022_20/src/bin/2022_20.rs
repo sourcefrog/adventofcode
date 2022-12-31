@@ -45,7 +45,7 @@ struct Perm {
 /// Check this is a well-formed permutation: every element up to the length
 /// is represented once.
 #[allow(dead_code)]
-// #[cfg(debug)]
+#[cfg(debug)]
 fn check_perm(v: &[usize]) {
     let l = v.len();
     let mut seen = vec![false; l];
@@ -53,9 +53,9 @@ fn check_perm(v: &[usize]) {
     debug_assert!(seen.iter().all(|x| *x), "{v:?} is not a permutation");
 }
 
-// #[allow(dead_code)]
-// #[cfg(not(debug))]
-// fn check_perm(_: &[usize]) {}
+#[allow(dead_code)]
+#[cfg(not(debug))]
+fn check_perm(_: &[usize]) {}
 
 impl Perm {
     /// Make a new permutation of `len` elements.
