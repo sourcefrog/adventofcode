@@ -65,15 +65,9 @@ impl Perm {
         }
     }
 
-    fn from_index_vec(input_pos: Vec<usize>) -> Perm {
-        check_perm(&input_pos);
-        Perm { input_pos }
-    }
-
     /// Map the input `x` by `s` elements to the right from its current position,
     /// or to the left if negative.
-    #[must_use]
-    fn move_element(&self, x: usize, s: isize) -> Perm {
+    fn move_element(&mut self, x: usize, s: isize) -> &mut Self {
         /*
         Skipping (l-1) elements returns you to the same position.
 
@@ -107,7 +101,7 @@ impl Perm {
         */
         let l = self.input_pos.len();
         if l <= 1 {
-            return self.clone();
+            return self;
         }
         let ll = l as isize;
         assert!(x < l);
@@ -115,47 +109,32 @@ impl Perm {
         // Skipping just (ll-1) elements would result in no change.
         let s = s % (ll - 1);
         let z = add_isize_mod(y, s, l);
-        let v: Vec<usize>;
         if s > 0 {
             // Move the next s elements down by one; then input x maps to
             // z.
             let s = s as usize;
             debug_assert_eq!(sub_usize_mod(z, y, l), s);
-            v = self
-                .input_pos
-                .iter()
-                .map(|&i| {
-                    if i == y {
-                        z
-                    } else if sub_usize_mod(i, y, l) <= s {
-                        sub_usize_mod(i, 1, l)
-                    } else {
-                        i
-                    }
-                })
-                .collect();
+            self.input_pos.iter_mut().for_each(|i| {
+                if *i == y {
+                    *i = z
+                } else if sub_usize_mod(*i, y, l) <= s {
+                    *i = sub_usize_mod(*i, 1, l)
+                }
+            });
         } else if s < 0 {
             // Move the prior s elements (with wrapping) right by one, then
             // move to z.
             let s = -s as usize;
             debug_assert_eq!(sub_usize_mod(y, z, l), s);
-            v = self
-                .input_pos
-                .iter()
-                .map(|&i| {
-                    if i == y {
-                        z
-                    } else if sub_usize_mod(y, i, l) <= s {
-                        add_usize_mod(i, 1, l)
-                    } else {
-                        i
-                    }
-                })
-                .collect();
-        } else {
-            v = self.input_pos.clone();
+            self.input_pos.iter_mut().for_each(|i| {
+                if *i == y {
+                    *i = z
+                } else if sub_usize_mod(y, *i, l) <= s {
+                    *i = add_usize_mod(*i, 1, l)
+                }
+            });
         }
-        Perm::from_index_vec(v)
+        self
     }
 
     fn len(&self) -> usize {
@@ -195,7 +174,7 @@ fn solve_a(input: &str) -> isize {
     let input = parse(input);
     let mut perm = Perm::new(input.len());
     for (init_pos, value) in input.iter().copied().enumerate() {
-        perm = perm.move_element(init_pos, value);
+        perm.move_element(init_pos, value);
     }
     grove_coord(&perm, &input)
 }
@@ -203,11 +182,9 @@ fn solve_a(input: &str) -> isize {
 fn solve_b(input: &str) -> isize {
     let input = parse(input).into_iter().map(|i| i * KEY).collect_vec();
     let mut perm = Perm::new(input.len());
-    // TODO: combine the permutation lists rather than recomputing them
-    // repeatedly
     for _round in 0..10 {
         for (init_pos, &value) in input.iter().enumerate() {
-            perm = perm.move_element(init_pos, value);
+            perm.move_element(init_pos, value);
         }
     }
     grove_coord(&perm, &input)
@@ -231,24 +208,24 @@ mod test {
 
     #[test]
     fn move_zero() {
-        let p1 = Perm::new(5);
-        assert_eq!(p1.input_pos, [0, 1, 2, 3, 4]);
-        let p2 = p1.move_element(2, 0);
-        assert_eq!(p2.input_pos, [0, 1, 2, 3, 4]);
+        let mut p = Perm::new(5);
+        assert_eq!(p.input_pos, [0, 1, 2, 3, 4]);
+        p.move_element(2, 0);
+        assert_eq!(p.input_pos, [0, 1, 2, 3, 4]);
         assert_eq!(
-            p2.apply(&[100, 101, 102, 103, 104]).as_slice(),
+            p.apply(&[100, 101, 102, 103, 104]).as_slice(),
             [100, 101, 102, 103, 104]
         );
     }
 
     #[test]
     fn move_right() {
-        let p1 = Perm::new(5);
-        assert_eq!(p1.input_pos, [0, 1, 2, 3, 4]);
-        let p2 = p1.move_element(2, 2);
-        assert_eq!(p2.input_pos, [0, 1, 4, 2, 3]);
+        let mut p = Perm::new(5);
+        assert_eq!(p.input_pos, [0, 1, 2, 3, 4]);
+        p.move_element(2, 2);
+        assert_eq!(p.input_pos, [0, 1, 4, 2, 3]);
         assert_eq!(
-            p2.apply(&"abcde".chars().collect_vec()),
+            p.apply(&"abcde".chars().collect_vec()),
             "abdec".chars().collect_vec().as_slice(),
         );
     }
@@ -256,10 +233,12 @@ mod test {
     #[test]
     fn move_right_rotate_whole_cycle() {
         let l = 5;
-        let p1 = Perm::new(l);
+        let mut p = Perm::new(l);
+        let p_orig = p.clone();
         for i in 0..5 {
             for m in 0..4 {
-                assert_eq!(p1.move_element(i, m * (l as isize - 1)), p1);
+                p.move_element(i, m * (l as isize - 1));
+                assert!(p.equivalent(&p_orig));
             }
         }
     }
@@ -267,44 +246,46 @@ mod test {
     #[test]
     fn move_left_rotate_whole_cycle() {
         let l = 5;
-        let p1 = Perm::new(l);
+        let p_orig = Perm::new(l);
+        let mut p = p_orig.clone();
         for i in 0..5 {
             for m in 0..4 {
-                assert_eq!(p1.move_element(i, -m * (l as isize - 1)), p1);
+                p.move_element(i, -m * (l as isize - 1));
+                assert!(p.equivalent(&p_orig));
             }
         }
     }
 
     #[test]
     fn move_left() {
-        let p1 = Perm::new(5);
-        assert_eq!(p1.input_pos, [0, 1, 2, 3, 4]);
-        let p2 = p1.move_element(2, -1);
-        assert_eq!(p2.input_pos, [0, 2, 1, 3, 4]);
+        let mut p = Perm::new(5);
+        assert_eq!(p.input_pos, [0, 1, 2, 3, 4]);
+        p.move_element(2, -1);
+        assert_eq!(p.input_pos, [0, 2, 1, 3, 4]);
         assert_eq!(
-            p2.apply(&"abcde".chars().collect_vec()),
+            p.apply(&"abcde".chars().collect_vec()),
             "acbde".chars().collect_vec(),
         );
     }
 
     #[test]
     fn ex_1_parts() {
-        let p = Perm::new(7);
+        let mut p = Perm::new(7);
         let l = parse(EX);
         assert_eq!(p.apply(&l), [1, 2, -3, 3, -2, 0, 4]);
-        let p = p.move_element(0, 1);
+        p.move_element(0, 1);
         dbg!(&p);
         assert_eq!(p.apply(&l), [2, 1, -3, 3, -2, 0, 4]);
         // Move element with value 2 initially at position 1 by 2
-        let p = p.move_element(1, 2);
+        p.move_element(1, 2);
         dbg!(&p);
         assert_eq!(p.apply(&l), [1, -3, 2, 3, -2, 0, 4]);
         // Move value -3 initially in position 2 by -3.
-        let p = p.move_element(2, -3);
+        p.move_element(2, -3);
         dbg!(&p);
         assert_is_rotation(p.apply(&l), [1, 2, 3, -2, -3, 0, 4]);
         // Move value 3 initially in position 3 by 3.
-        let p = p.move_element(3, 3);
+        p.move_element(3, 3);
         assert_is_rotation(p.apply(&l), [1, 2, -2, -3, 0, 3, 4]);
     }
 
@@ -347,37 +328,23 @@ mod proptest {
     use super::*;
 
     proptest! {
-        #[test]
-        fn reversible(l in 1..10usize, a in 0..10usize, s in -22..22isize) {
-            let p = Perm::new(l);
-            let a = a % l;
-            let p2 = p.move_element(a, s).move_element(a, -s);
-            assert_eq!(p, p2);
-        }
+         #[test]
+         fn reversible(l in 1..10usize, a in 0..10usize, s in -22..22isize) {
+             let p_orig = Perm::new(l);
+             let mut p=p_orig.clone();
+             let a = a % l;
+             p.move_element(a, s).move_element(a, -s);
+             assert_eq!(p, p_orig);
+         }
 
-        #[test]
-        fn additive(l in 1..10usize, a in 0..10usize, s in -10..10isize, t in -10..10isize) {
-            let p = Perm::new(l);
-            let a = a % l;
-            let p2 = p.move_element(a, s).move_element(a, t);
-            let p3 = p.move_element(a, s + t);
-            assert!(p2.equivalent(&p3));
-        }
-
-        // #[test]
-        // fn combine(a in 0..5usize, s in -10..10isize, b in 0..5usize, t in -10..10isize) {
-        //     println!("test combine with: a={a}, s={s}, b={b}, t={t}");
-        //     let p = Perm::new(5);
-        //     let v = b"abcde";
-        //     let pa = p.move_element(a, s);
-        //     let pb = p.move_element(b, t);
-        //     let pab = p.move_element(a, s).move_element(b, t);
-        //     let pcomb = pa.combine(&pb);
-        //     for p in [&pa, &pb, &pab, &pcomb] {
-        //         println!("{}", p.apply(v).iter().map(|&c| c as char).collect::<String>());
-        //     }
-        //     assert!(pcomb.equivalent(&pab), "not equivalent:\n  pa={pa:?}\n  \
-        //         pb={pb:?}\n  pcomb={pcomb:?}\n  pab={pab:?}");
-        // }
+         #[test]
+         fn additive(l in 1..10usize, a in 0..10usize, s in -10..10isize, t in -10..10isize) {
+             let mut p = Perm::new(l);
+             let mut p3 = p.clone();
+             let a = a % l;
+             p.move_element(a, s).move_element(a, t);
+             p3.move_element(a, s + t);
+             assert!(p.equivalent(&p3));
+         }
     }
 }
