@@ -40,6 +40,9 @@ struct Perm {
     /// The array must always contain all the numbers 0..n: elements are never
     /// lost or duplicated.
     input_pos: Vec<usize>,
+
+    /// Which input ends up at output i.
+    pos_input: Vec<usize>,
 }
 
 /// Check this is a well-formed permutation: every element up to the length
@@ -62,8 +65,20 @@ impl Perm {
     fn new(len: usize) -> Perm {
         Perm {
             input_pos: (0..len).collect(),
+            pos_input: (0..len).collect(),
         }
     }
+
+    #[cfg(debug)]
+    fn check(&self) {
+        for i in 0..self.len() {
+            assert_eq!(self.pos_input[self.input_pos[i]], i);
+            assert_eq!(self.input_pos[self.pos_input[i]], i);
+        }
+    }
+
+    #[cfg(not(debug))]
+    fn check(&self) {}
 
     /// Map the input `x` by `s` elements to the right from its current position,
     /// or to the left if negative.
@@ -110,30 +125,38 @@ impl Perm {
         let s = s % (ll - 1);
         let z = add_isize_mod(y, s, l);
         if s > 0 {
-            // Move the next s elements down by one; then input x maps to
-            // z.
-            let s = s as usize;
-            debug_assert_eq!(sub_usize_mod(z, y, l), s);
-            self.input_pos.iter_mut().for_each(|i| {
-                if *i == y {
-                    *i = z
-                } else if sub_usize_mod(*i, y, l) <= s {
-                    *i = sub_usize_mod(*i, 1, l)
-                }
-            });
+            // The element whose output position is currently y changes to output
+            // z, z > y. Every element in (y+1)..=z is reduced by one to make
+            // room.
+            for i in 1..=(s) {
+                let ii = add_isize_mod(y, i, l);
+                // which input goes to this output?
+                let r = self.pos_input[ii];
+                // this input now goes to an output 1 position left
+                let q = sub_usize_mod(ii, 1, l);
+                self.input_pos[r] = q;
+                // the new output comes from this input.
+                self.pos_input[q] = r;
+            }
         } else if s < 0 {
             // Move the prior s elements (with wrapping) right by one, then
-            // move to z.
+            // move x to z.
             let s = -s as usize;
-            debug_assert_eq!(sub_usize_mod(y, z, l), s);
-            self.input_pos.iter_mut().for_each(|i| {
-                if *i == y {
-                    *i = z
-                } else if sub_usize_mod(y, *i, l) <= s {
-                    *i = add_usize_mod(*i, 1, l)
-                }
-            });
+            for i in 1..=(s) {
+                let ii = sub_usize_mod(y, i, l);
+                // which input goes to this output?
+                let r = self.pos_input[ii];
+                // this input now goes to an output 1 position right
+                let q = add_usize_mod(ii, 1, l);
+                self.input_pos[r] = q;
+                // the new output comes from this input.
+                self.pos_input[q] = r;
+            }
         }
+        // finally the input x now maps to its new location.
+        self.input_pos[x] = z;
+        self.pos_input[z] = x;
+        self.check();
         self
     }
 
@@ -145,12 +168,7 @@ impl Perm {
     #[must_use]
     fn apply<T: Copy>(&self, s: &[T]) -> Vec<T> {
         assert_eq!(s.len(), self.input_pos.len());
-        let mut v = Vec::with_capacity(self.len());
-        v.resize(s.len(), s[0]);
-        for (i, x) in self.input_pos.iter().enumerate() {
-            v[*x] = s[i];
-        }
-        v
+        self.pos_input.iter().map(|i| s[*i]).collect()
     }
 
     // Two permutations are equivalent if the ordering of results is the same modulo
@@ -192,7 +210,7 @@ fn solve_b(input: &str) -> isize {
 
 fn grove_coord(perm: &Perm, input: &[isize]) -> isize {
     let l = perm.len();
-    let applied = perm.apply(&input);
+    let applied = perm.apply(input);
     let zero_pos = applied.iter().position(|i| *i == 0).unwrap();
     [1000, 2000, 3000]
         .iter()
