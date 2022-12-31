@@ -15,7 +15,7 @@ dependencies = [
 name = "aoc2018"
 version = "0.1.0"
 dependencies = [
- "itertools 0.8.2",
+ "itertools",
  "lazy_static",
  "pest",
  "pest_derive",
@@ -202,15 +202,6 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f56a2d0bc861f9165be4eb3442afd3c236d8a98afd426f65d92324ae1091a484"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
@@ -254,7 +245,7 @@ dependencies = [
  "aoclib",
  "bytecount",
  "console",
- "itertools 0.10.5",
+ "itertools",
  "modinverse",
  "nom",
  "num-integer",
@@ -268,7 +259,7 @@ version = "0.1.0"
 dependencies = [
  "aoclib",
  "fnv",
- "itertools 0.10.5",
+ "itertools",
  "nom",
 ]
 
@@ -278,7 +269,7 @@ version = "0.1.0"
 dependencies = [
  "aoclib",
  "bitvec",
- "itertools 0.10.5",
+ "itertools",
  "ndarray",
  "regex",
  "similar",
@@ -290,7 +281,7 @@ version = "0.1.0"
 dependencies = [
  "aoclib",
  "bitvec",
- "itertools 0.10.5",
+ "itertools",
  "regex",
 ]
 
@@ -298,7 +289,7 @@ dependencies = [
 name = "mbpaoc2022_20"
 version = "0.0.0"
 dependencies = [
- "itertools 0.10.5",
+ "itertools",
  "proptest",
 ]
 
