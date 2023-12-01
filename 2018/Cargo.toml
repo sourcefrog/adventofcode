@@ -1,5 +1,5 @@
 [package]
-name = "aoc2018"
+name = "mbpaoc2018"
 version = "0.1.0"
 authors = ["Martin Pool <mbp@sourcefrog.net>"]
 edition = "2021"

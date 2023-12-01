@@ -12,17 +12,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aoc2018"
-version = "0.1.0"
-dependencies = [
- "itertools",
- "lazy_static",
- "pest",
- "pest_derive",
- "regex",
-]
-
-[[package]]
 name = "aoclib"
 version = "0.1.0"
 dependencies = [
@@ -247,6 +236,17 @@ version = "0.1.0"
 dependencies = [
  "md5",
  "nom",
+]
+
+[[package]]
+name = "mbpaoc2018"
+version = "0.1.0"
+dependencies = [
+ "itertools",
+ "lazy_static",
+ "pest",
+ "pest_derive",
+ "regex",
 ]
 
 [[package]]

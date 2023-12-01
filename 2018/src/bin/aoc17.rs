@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,7 @@ use std::cmp::{max, min};
 
 use regex::Regex;
 
-use aoc2018::Matrix;
-use aoc2018::{point, Point};
+use mbpaoc2018::{point, Matrix, Point};
 
 // Read the input lines and draw into a matrix. Maybe pre-scan to work out the
 // maximum dimensions.
@@ -164,9 +163,7 @@ impl Map {
                 }
             }
         }
-        println!(
-            "Created map; xrange={x_min}..={x_max}, yrange={y_min}..={y_max}"
-        );
+        println!("Created map; xrange={x_min}..={x_max}, yrange={y_min}..={y_max}");
         // Skip from (500, 0) down to the first point on the map.
         let drip1 = point(500, y_min);
         let mut map = Map {

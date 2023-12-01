@@ -160,8 +160,6 @@ impl Fold {
     /// Given a collapsed transform, produce the deck
     #[cfg(test)]
     fn to_deck(&self) -> Vec<i128> {
-        use std::convert::TryInto;
-
         let mut r = vec![-1; self.n as usize];
         for i in 0..(self.n) {
             let pos = self.position_of_card(i);

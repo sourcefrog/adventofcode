@@ -19,8 +19,7 @@
 use std::fs::File;
 use std::io::Read;
 
-use aoc2018::matrix::Matrix;
-use aoc2018::{point, Point};
+use mbpaoc2018::{point, Matrix, Point};
 
 const INITIAL_HP: usize = 200;
 const GOBLIN_POWER: usize = 3;

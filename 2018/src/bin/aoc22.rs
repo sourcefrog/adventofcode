@@ -18,8 +18,7 @@
 
 use std::collections::BTreeMap;
 
-use aoc2018::shortest_distance;
-use aoc2018::{point, Point};
+use mbpaoc2018::{point, shortest_distance, Point};
 
 type Erosion = usize;
 
@@ -192,7 +191,7 @@ pub fn main() {
 #[cfg(test)]
 mod test {
     use super::Map;
-    use aoc2018::point;
+    use mbpaoc2018::point;
 
     #[test]
     fn build_map() {

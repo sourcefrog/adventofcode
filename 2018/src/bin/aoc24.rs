@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
+use mbpaoc2018::bisection_search;
 use pest::Parser;
 
 #[derive(Parser)]
@@ -411,7 +412,7 @@ fn solve_b() -> usize {
         attack_repeatedly(&mut gs)
     };
 
-    let best_boost = aoc2018::bisection_search(0, 1_000_000, |boost| {
+    let best_boost = bisection_search(0, 1_000_000, |boost| {
         match boosted_battle(boost) {
             // In a stalemate, assume we need to increase the boost.
             None => false,

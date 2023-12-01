@@ -260,9 +260,8 @@ mod test {
 
     #[test]
     fn ex_magn() {
-        for (s, m) in [("[[9,1],[1,9]]", 129)] {
-            assert_eq!(parse(s).magnitude(), m);
-        }
+        let (s, m) = ("[[9,1],[1,9]]", 129);
+        assert_eq!(parse(s).magnitude(), m);
     }
 
     #[test]

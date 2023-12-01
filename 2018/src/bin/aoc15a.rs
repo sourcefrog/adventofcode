@@ -19,8 +19,7 @@
 use std::fs::File;
 use std::io::Read;
 
-use aoc2018::matrix::Matrix;
-use aoc2018::{point, Point};
+use mbpaoc2018::{matrix::Matrix, point, Point};
 
 const INITIAL_HP: usize = 200;
 const ATTACK_POWER: usize = 3;
