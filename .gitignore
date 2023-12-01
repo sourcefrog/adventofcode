@@ -5,3 +5,4 @@ tags
 target
 .vscode/.ropeproject/objectdb
 callgrind.out.*
+*.crdownload
