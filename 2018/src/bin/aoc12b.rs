@@ -232,8 +232,8 @@ initial state: #..#.#..##......###...###
             p.format_pots(-3..36),
             "...#..#.#..##......###...###..........."
         );
-        assert_eq!(p.get(20), false);
-        assert_eq!(p.get(22), true);
+        assert!(!p.get(20));
+        assert!(p.get(22));
         assert_eq!(p.around(0), [false, false, true, false, false]);
         assert_eq!(p.around(2), [true, false, false, true, false]);
 

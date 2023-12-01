@@ -149,7 +149,7 @@ impl Ring {
     fn solve_b() -> usize {
         let mut v = parse(INPUT);
         const CUPS: usize = 1_000_000;
-        v.extend((v.len() + 1..=CUPS).into_iter());
+        v.extend(v.len() + 1..=CUPS);
         assert_eq!(v.len(), CUPS);
         let mut ring = Ring::new(v);
         ring.play(10_000_000);

@@ -63,9 +63,9 @@ fn is_valid(para: &str) -> bool {
     for (k, v) in kv {
         // println!("check {:?} {:?}", k, v);
         let ok = match k {
-            "byr" => v.len() == 4 && v >= "1920" && v <= "2002",
-            "iyr" => v.len() == 4 && v >= "2010" && v <= "2020",
-            "eyr" => v.len() == 4 && v >= "2020" && v <= "2030",
+            "byr" => v.len() == 4 && ("1920"..="2002").contains(&v),
+            "iyr" => v.len() == 4 && ("2010"..="2020").contains(&v),
+            "eyr" => v.len() == 4 && ("2020"..="2030").contains(&v),
             "hgt" => {
                 if let Some(cm) = v.strip_suffix("cm") {
                     ("150"..="193").contains(&cm)

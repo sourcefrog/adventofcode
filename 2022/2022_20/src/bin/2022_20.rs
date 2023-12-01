@@ -333,7 +333,7 @@ mod test {
         let l = a.len();
         assert_eq!(l, b.len());
         assert!(
-            (0..l).any(|r| itertools::equal(a.into_iter().cycle().skip(r).take(l), b)),
+            (0..l).any(|r| itertools::equal(a.iter().cycle().skip(r).take(l), b)),
             "slices not equal under rotation: {a:?}, {b:?}"
         );
     }

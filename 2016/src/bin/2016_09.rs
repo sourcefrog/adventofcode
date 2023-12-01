@@ -86,7 +86,7 @@ fn solve_type_b(input: &str) -> u64 {
 }
 
 fn input() -> String {
-    std::fs::read_to_string(&format!("input/{}.txt", DAY)).unwrap()
+    std::fs::read_to_string(format!("input/{}.txt", DAY)).unwrap()
 }
 
 fn solve_a() -> usize {

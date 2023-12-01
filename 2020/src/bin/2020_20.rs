@@ -359,7 +359,7 @@ impl Puzzle {
     fn image(&self) -> Matrix<char> {
         let pertilesz = TILESZ as usize - 2;
         let sidelen = self.map_side * pertilesz;
-        let mut image = Matrix::new(sidelen as usize, sidelen as usize, '.');
+        let mut image = Matrix::new(sidelen, sidelen, '.');
         for tx in 0..self.map_side {
             for ty in 0..self.map_side {
                 let tilept = point(tx as isize, ty as isize);

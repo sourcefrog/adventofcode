@@ -99,7 +99,7 @@ fn step(ms: &mut [Moon]) {
         for j in 0..ms.len() {
             if i != j {
                 let pi = ms[i].pos;
-                let mut mj = &mut ms[j];
+                let mj = &mut ms[j];
 
                 mj.vel[0] += ordering_to_int(pi[0].cmp(&mj.pos[0]));
                 mj.vel[1] += ordering_to_int(pi[1].cmp(&mj.pos[1]));

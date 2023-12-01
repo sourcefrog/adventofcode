@@ -27,8 +27,7 @@ fn solve_a() -> usize {
         .map(|group| {
             group
                 .split('\n')
-                .map(|s| s.chars())
-                .flatten()
+                .flat_map(|s| s.chars())
                 .collect::<HashSet<char>>()
                 .len()
         })

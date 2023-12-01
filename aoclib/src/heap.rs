@@ -52,7 +52,7 @@ impl<T: Ord> MinHeap<T> {
     /// Return a reference to the minimum value in the heap,
     /// if there is one, or None if the heap is empty.
     pub fn peek(&self) -> Option<&T> {
-        self.v.get(0)
+        self.v.first()
     }
 
     /// Remove and return the minimum value in the heap, if there is one.

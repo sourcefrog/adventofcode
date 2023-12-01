@@ -46,7 +46,7 @@ fn solve_b(input: &str) -> usize {
             "A X" =>
             /* lose to rock, play scissors */
             {
-                3 + 0
+                3
             }
             "A Y" =>
             /* draw with rock, play rock */
@@ -61,7 +61,7 @@ fn solve_b(input: &str) -> usize {
             "B X" =>
             /* lose to paper, play rock */
             {
-                1 + 0
+                1
             }
             "B Y" =>
             /* draw to paper, play paper */
@@ -76,7 +76,7 @@ fn solve_b(input: &str) -> usize {
             "C X" =>
             /* lose to scissors, play paper */
             {
-                2 + 0
+                2
             }
             "C Y" =>
             /* draw to scissors, play scissors */

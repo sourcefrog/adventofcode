@@ -98,10 +98,10 @@ mod tests {
     fn test_onediff() {
         use super::onediff;
 
-        assert_eq!(onediff("abcde", "axcye"), false);
-        assert_eq!(onediff("abcde", "wvxyz"), false);
-        assert_eq!(onediff("fghij", "axcye"), false);
-        assert_eq!(onediff("fghij", "fguij"), true);
+        assert!(!onediff("abcde", "axcye"));
+        assert!(!onediff("abcde", "wvxyz"));
+        assert!(!onediff("fghij", "axcye"));
+        assert!(onediff("fghij", "fguij"));
     }
 
     #[test]

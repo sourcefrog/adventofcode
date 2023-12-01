@@ -12,7 +12,7 @@ fn input() -> String {
 fn parse(input: &str) -> (Vec<Vec<char>>, Vec<(usize, usize, usize)>) {
     let mut stacks: Vec<Vec<char>> = vec![vec![]; 9];
     let mut lines = input.lines();
-    while let Some(l) = lines.next() {
+    for l in lines.by_ref() {
         if l.starts_with(" 1 ") {
             break;
         }
@@ -26,7 +26,7 @@ fn parse(input: &str) -> (Vec<Vec<char>>, Vec<(usize, usize, usize)>) {
     }
     assert!(lines.next().unwrap().trim().is_empty());
     let mut instructions = Vec::new();
-    while let Some(l) = lines.next() {
+    for l in lines {
         let w: Vec<&str> = l.split_ascii_whitespace().collect();
         let cnt: usize = w[1].parse().unwrap();
         let from_i: usize = w[3].parse::<usize>().unwrap() - 1;

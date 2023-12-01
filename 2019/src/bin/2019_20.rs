@@ -170,7 +170,6 @@ impl Maze {
             .or_insert_with(|| {
                 self.matrix
                     .neighbors4(p)
-                    .into_iter()
                     .filter(|(_, c1)| **c1 == PASSAGE)
                     .map(|(p1, _)| p1)
                     .collect()

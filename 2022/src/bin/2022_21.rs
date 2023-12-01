@@ -53,7 +53,7 @@ fn eval_maybe<'a>(
     let v = match mk {
         Mk::Const(x) => Some(*x),
         Mk::Op(opch, an, bn) => {
-            if let (Some(a), Some(b)) = (eval_maybe(an, mks, memo), eval_maybe(bn, &mks, memo)) {
+            if let (Some(a), Some(b)) = (eval_maybe(an, mks, memo), eval_maybe(bn, mks, memo)) {
                 Some(match opch {
                     '+' => a + b,
                     '-' => a - b,
@@ -149,7 +149,7 @@ fn push_down(name: &str, mks: &Mkmap, val: isize, memo: &mut HashMap<&str, isize
     }
 }
 
-fn parse<'a>(input: &'a str) -> HashMap<&'a str, Mk> {
+fn parse(input: &str) -> HashMap<&str, Mk> {
     let mut mks: HashMap<&str, Mk> = HashMap::new();
     for l in input.lines() {
         let (name, rest) = l.split_once(": ").unwrap();

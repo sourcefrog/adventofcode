@@ -53,7 +53,7 @@ impl<'a> St<'a> {
 
     #[must_use]
     fn move_to(&self, actor: usize, name: &'a str) -> St<'a> {
-        let mut pos = self.pos.clone();
+        let mut pos = self.pos;
         pos[actor] = name;
         St {
             pos,
@@ -109,7 +109,7 @@ fn solve_a(input: &str) -> usize {
         if o.rem == 0 {
             continue;
         }
-        if !o.opened.contains(&loc) && here.rate > 0 {
+        if !o.opened.contains(loc) && here.rate > 0 {
             // open this valve
             let mut opened = o.opened.clone();
             opened.push(loc.clone());
@@ -122,7 +122,7 @@ fn solve_a(input: &str) -> usize {
             })
         }
         for n in &here.tun {
-            if o.seen.contains(&n) {
+            if o.seen.contains(n) {
                 continue;
             }
             let mut seen = o.seen.clone();
@@ -222,7 +222,7 @@ mod test {
 
     #[test]
     fn ex2() {
-        assert_eq!(solve_b(&EX), 1707);
+        assert_eq!(solve_b(EX), 1707);
     }
 
     #[test]

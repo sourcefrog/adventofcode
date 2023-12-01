@@ -48,7 +48,7 @@ fn solve_type_b(input: &str) -> String {
 }
 
 fn input() -> String {
-    std::fs::read_to_string(&format!("input/{}.txt", DAY)).unwrap()
+    std::fs::read_to_string(format!("input/{}.txt", DAY)).unwrap()
 }
 
 fn solve_a() -> String {

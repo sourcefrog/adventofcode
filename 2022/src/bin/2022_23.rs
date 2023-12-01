@@ -113,7 +113,7 @@ fn run1(mut elvs: Map, nrounds: usize) -> (Map, Option<usize>) {
         }
         let mut any_moves = false;
         for (dst, ss) in prop.iter() {
-            assert!(ss.len() >= 1);
+            assert!(!ss.is_empty());
             if ss.len() == 1 {
                 // println!("{} moves to {dst:?}", ss[0]);
                 assert!(elvs.remove(&ss[0]));

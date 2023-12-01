@@ -91,8 +91,7 @@ fn display_digits() {
 #[test]
 fn from_iter_iter() {
     let matrix: Matrix<usize> = (0..=1)
-        .into_iter()
-        .map(|row| (0..=1).into_iter().map(move |col| row * 10 + col))
+        .map(|row| (0..=1).map(move |col| row * 10 + col))
         .collect();
     assert_eq!((matrix.width(), matrix.height()), (2, 2));
     assert_eq!(

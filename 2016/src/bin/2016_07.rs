@@ -60,7 +60,7 @@ fn contains_bab(hn: &[char], aba: &[char]) -> bool {
 }
 
 fn input() -> String {
-    std::fs::read_to_string(&format!("input/{}.txt", DAY)).unwrap()
+    std::fs::read_to_string(format!("input/{}.txt", DAY)).unwrap()
 }
 
 fn solve_a() -> usize {
