@@ -11,7 +11,7 @@ fn input() -> String {
 fn from_snafu(s: &str) -> isize {
     let mut a = 0;
     let mut x = 1;
-    for (_, c) in s.chars().rev().enumerate() {
+    for c in s.chars().rev() {
         let d = match c {
             '2' => 2,
             '1' => 1,

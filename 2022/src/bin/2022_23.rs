@@ -40,17 +40,15 @@ fn show_fixed(elvs: &BTreeSet<Point>, b0: Point, b1: Point) -> String {
 }
 
 fn parse(input: &str) -> Map {
-    let mut y = 0;
     let mut m = BTreeSet::new();
-    for l in input.lines() {
+    for (y, l) in input.lines().enumerate() {
         for (x, c) in l.chars().enumerate() {
             if c == '#' {
-                m.insert(point(x as isize, y));
+                m.insert(point(x as isize, y as isize));
             } else {
                 assert_eq!(c, '.');
             }
         }
-        y += 1;
     }
     m
 }

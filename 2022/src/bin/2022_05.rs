@@ -16,11 +16,11 @@ fn parse(input: &str) -> (Vec<Vec<char>>, Vec<(usize, usize, usize)>) {
         if l.starts_with(" 1 ") {
             break;
         }
-        for i in 0..9 {
+        for (i, s) in stacks.iter_mut().enumerate() {
             let c = l.chars().nth(1 + 4 * i).unwrap();
             assert!(c.is_ascii_uppercase() || c == ' ');
             if c.is_ascii_uppercase() {
-                stacks[i].insert(0, c);
+                s.insert(0, c);
             }
         }
     }

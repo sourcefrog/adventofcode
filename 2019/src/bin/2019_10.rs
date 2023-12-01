@@ -99,7 +99,7 @@ impl Ord for NF64 {
 
 impl PartialOrd for NF64 {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.0.partial_cmp(&other.0)
+        Some(self.cmp(other))
     }
 }
 

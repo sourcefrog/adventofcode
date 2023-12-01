@@ -62,14 +62,13 @@ fn play_recursive(decks: &mut [Vec<usize>; 2]) -> usize {
         let draw = [decks[0].remove(0), decks[1].remove(0)];
         // println!("draw {}, {}", draw[0], draw[1]);
 
-        let rw;
-        if draw[0] <= decks[0].len() && draw[1] <= decks[1].len() {
+        let rw = if draw[0] <= decks[0].len() && draw[1] <= decks[1].len() {
             let mut sub_decks: [Vec<usize>; 2] =
                 [decks[0][..draw[0]].to_vec(), decks[1][..draw[1]].to_vec()];
             // println!("recurse down");
-            rw = play_recursive(&mut sub_decks);
+            play_recursive(&mut sub_decks)
         } else {
-            rw = (draw[1] > draw[0]) as usize;
+            (draw[1] > draw[0]) as usize
         };
         decks[rw].push(draw[rw]);
         decks[rw].push(draw[1 - rw]);

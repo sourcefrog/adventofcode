@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -78,11 +78,10 @@ impl Thing {
 
     /// The enemy race for creatures (only).
     pub fn is_enemy(&self, other: &Thing) -> bool {
-        match (self, other) {
-            (Thing::Goblin(_), Thing::Elf(_)) => true,
-            (Thing::Elf(_), Thing::Goblin(_)) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (Thing::Goblin(_), Thing::Elf(_)) | (Thing::Elf(_), Thing::Goblin(_))
+        )
     }
 
     pub fn is_empty(self) -> bool {
@@ -90,26 +89,17 @@ impl Thing {
     }
 
     pub fn is_creature(&self) -> bool {
-        match self {
-            Thing::Elf(_) => true,
-            Thing::Goblin(_) => true,
-            _ => false,
-        }
+        matches!(self, Thing::Elf(_) | Thing::Goblin(_))
     }
 
     pub fn is_goblin(&self) -> bool {
-        match self {
-            Goblin(_) => true,
-            _ => false,
-        }
+        matches!(self, Goblin(_))
     }
 
     pub fn is_elf(&self) -> bool {
-        match self {
-            Elf(_) => true,
-            _ => false,
-        }
+        matches!(self, Elf(_))
     }
+
     pub fn creature_hp(&self) -> Option<usize> {
         match self {
             Elf(hp) | Goblin(hp) => Some(*hp),

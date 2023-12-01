@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,11 +39,7 @@ pub fn main() {
     let mut i = 0;
     loop {
         // 0.. {
-        println!(
-            "left={}  {}",
-            p.left(),
-            p.format_pots(p.left()..=p.right())
-        );
+        println!("left={}  {}", p.left(), p.format_pots(p.left()..=p.right()));
         let next_p = p.step();
         // if i % 100_000 == 0 {
         //     println!("i={:>10} p={:?}", i, p);
@@ -149,7 +145,7 @@ impl Pots {
         *self.pots.iter().next().unwrap()
     }
 
-    pub fn format_pots<R: IntoIterator<Item=isize>>(&self, r: R) -> String {
+    pub fn format_pots<R: IntoIterator<Item = isize>>(&self, r: R) -> String {
         let mut s = String::new();
         for i in r {
             s.push(if self.get(i) { '#' } else { '.' });
@@ -160,8 +156,8 @@ impl Pots {
     /// Return the values of the 5 pots around i
     fn around(&self, i: isize) -> [bool; 5] {
         let mut a = [false; 5];
-        for j in 0..5 {
-            a[j] = self.get(i + (j as isize) - 2);
+        for (j, x) in a.iter_mut().enumerate() {
+            *x = self.get(i + (j as isize) - 2);
         }
         a
     }

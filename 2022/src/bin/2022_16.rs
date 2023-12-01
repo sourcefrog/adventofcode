@@ -135,7 +135,6 @@ fn solve_a(input: &str) -> usize {
                 rem: o.rem - 1,
                 seen,
                 flow: o.flow,
-                ..o
             })
         }
     }

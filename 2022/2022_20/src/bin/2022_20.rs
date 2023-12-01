@@ -124,6 +124,7 @@ impl Perm {
         // Skipping just (ll-1) elements would result in no change.
         let s = s % (ll - 1);
         let z = add_isize_mod(y, s, l);
+        #[allow(clippy::comparison_chain)]
         if s > 0 {
             // The element whose output position is currently y changes to output
             // z, z > y. Every element in (y+1)..=z is reduced by one to make
