@@ -10,4 +10,4 @@ publish = false
 itertools = "0.10.5"
 
 [dev-dependencies]
-proptest = "1.0"
+proptest = "1.4"
