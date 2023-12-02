@@ -1,12 +1,21 @@
 use std::fs::read_to_string;
 
+#[allow(unused_imports)]
+use itertools::Itertools;
+
 static NUMBERS: [&str; 10] = [
     "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
 ];
 
 fn main() {
-    println!("2023_01 a {}", solve_a(&input()));
-    println!("2023_01 b {}", solve_b(&input()));
+    let input = &input();
+    println!("2023_01 a {}", solve_a(input));
+    println!("2023_01 b {}", solve_b(input));
+    // let bugs = find_bugs(input).collect_vec();
+    // if !bugs.is_empty() {
+    //     println!("bugs in first attempt:");
+    //     bugs.iter().for_each(|b| println!("{b:?}"))
+    // }
 }
 
 fn solve_a(input: &str) -> u32 {
@@ -40,7 +49,52 @@ fn parse(s: &str) -> (u32, u32) {
             last = Some(a);
         }
     }
-    (first.expect("Found a first"), last.expect("Found a last"))
+    let first = first.expect("Found a first");
+    let last = last.expect("Found a last");
+    (first, last)
+}
+
+/// Find what was wrong with my first attempt.
+///
+/// Returns lines that parse differently: the difference is that the words can
+/// overlap and we should look at all of them.
+#[allow(dead_code)]
+fn find_bugs(s: &str) -> impl Iterator<Item = (&str, [u32; 4])> {
+    s.lines().filter_map(|line| {
+        let (first, last) = parse(line);
+        let old_parse = parse_old(line);
+        let old_first = old_parse[0];
+        let old_last = *old_parse.last().expect("old_parse has a last");
+        if first != old_first || last != old_last {
+            Some((line, [first, last, old_first, old_last]))
+        } else {
+            None
+        }
+    })
+}
+
+/// Parse a line containing both digits and English words for numbers, ignoring unrecognized characters.
+fn parse_old(mut s: &str) -> Vec<u32> {
+    let mut v = Vec::new();
+    's: while let Some(c) = s.chars().next() {
+        if let Some(a) = c.to_digit(10) {
+            v.push(a);
+        }
+        for (a, numstr) in NUMBERS.iter().enumerate().skip(1) {
+            // Zero isn't valid!
+            if let Some(news) = s.strip_prefix(numstr) {
+                v.push(a as u32);
+                s = news;
+                continue 's;
+            }
+        }
+        if s.len() > 1 {
+            s = s.split_at(1).1;
+        } else {
+            break;
+        }
+    }
+    v
 }
 
 fn match_number(s: &str) -> Option<u32> {
@@ -57,7 +111,9 @@ fn match_number(s: &str) -> Option<u32> {
 }
 
 fn input() -> String {
-    read_to_string("input/01.txt").unwrap()
+    read_to_string("input/01.txt")
+        .or_else(|_| read_to_string("2023/input/01.txt"))
+        .unwrap()
 }
 
 #[cfg(test)]
@@ -99,5 +155,16 @@ mod test {
         7pqrstsixteen
     "};
         assert_eq!(solve_b(input), 281);
+    }
+
+    #[test]
+    fn parse_old_examples() {
+        for (line, expected) in [
+            ("veight37", &[8u32, 3, 7] as &[u32]),
+            ("fiveeight2zxjpzffvdsevenjhjvjfiveone", &[5, 8, 2, 7, 5, 1]),
+            ("7b", &[7]),
+        ] {
+            assert_eq!(parse_old(line), expected);
+        }
     }
 }
