@@ -33,8 +33,31 @@ fn solve_a(input: &str) -> usize {
     x
 }
 
-fn solve_b(input: &str) -> u32 {
-    0
+fn solve_b(input: &str) -> usize {
+    let mut x = 0;
+    for (i, line) in input.lines().enumerate() {
+        let game_no = i + 1;
+        let rest = line
+            .strip_prefix(&format!("Game {}: ", game_no))
+            .expect("find prefix");
+        let mut game_min = [0, 0, 0];
+        for draw in rest.split("; ") {
+            dbg!(&draw);
+            for ccount in draw.split(", ") {
+                let (n, color) = ccount.split_once(' ').unwrap();
+                let n: usize = n.parse().expect("parse n");
+                let idx = match color {
+                    "red" => 0,
+                    "green" => 1,
+                    "blue" => 2,
+                    _ => panic!("{color:?} in {line:?}"),
+                };
+                game_min[idx] = std::cmp::max(game_min[idx], n);
+            }
+        }
+        x += game_min.iter().product::<usize>();
+    }
+    x
 }
 
 fn input() -> String {
