@@ -5,7 +5,8 @@ use aoclib::{point, Matrix, Point};
 
 fn main() {
     let input = &input();
-    println!("{}", solve_b(input))
+    println!("2023_03 a {}", solve_a(input));
+    println!("2023_03 b {}", solve_b(input));
 }
 
 fn input() -> String {
@@ -25,10 +26,12 @@ fn solve_a(input: &str) -> usize {
             let c = mat[p];
             if c.is_ascii_digit() {
                 num.push(c);
-                for (_np, nc) in mat.neighbors8(p) {
-                    if !nc.is_ascii_digit() && *nc != '.' {
-                        near_sym = true;
-                        break;
+                if !near_sym {
+                    for (_np, nc) in mat.neighbors8(p) {
+                        if !nc.is_ascii_digit() && *nc != '.' {
+                            near_sym = true;
+                            break;
+                        }
                     }
                 }
             } else if !num.is_empty() {
