@@ -5,6 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
+ascii = "1.1"
 bitvec = "1.0"
 indoc = "*"
 itertools = "0.10"
