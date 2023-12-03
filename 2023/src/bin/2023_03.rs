@@ -28,15 +28,15 @@ fn solve_a(input: &str) -> usize {
                 for (_np, nc) in mat.neighbors8(p) {
                     if !nc.is_ascii_digit() && *nc != '.' {
                         near_sym = true;
+                        break;
                     }
                 }
             } else if !num.is_empty() {
-                // end of this number
                 if near_sym {
                     tot += num.parse::<usize>().expect("num is decimal");
+                    near_sym = false;
                 }
                 num.clear();
-                near_sym = false;
             }
         }
         if !num.is_empty() && near_sym {
@@ -63,7 +63,6 @@ fn solve_b(input: &str) -> usize {
                     }
                 }
             } else if !num.is_empty() {
-                // end of this number
                 let val = num.parse::<usize>().expect("num is decimal");
                 for g in &near_gears {
                     gears.entry(*g).or_default().push(val);
@@ -79,14 +78,11 @@ fn solve_b(input: &str) -> usize {
             }
         }
     }
-    let mut tot = 0;
-    for (_g, vs) in gears {
-        assert!(!vs.is_empty());
-        if vs.len() == 2 {
-            tot += vs.iter().product::<usize>();
-        }
-    }
-    tot
+    gears
+        .values()
+        .filter(|vs| vs.len() == 2)
+        .map(|vs| vs.iter().product::<usize>())
+        .sum()
 }
 
 #[cfg(test)]
