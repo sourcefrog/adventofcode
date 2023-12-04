@@ -15,52 +15,42 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str) -> usize {
-    let mut tot = 0;
-    for l in input.lines() {
-        let l = l.split_once(": ").unwrap().1;
-        let (a, b) = l.split_once(" | ").unwrap();
-        let a = a
-            .split_ascii_whitespace()
-            .map(|x| x.parse::<usize>().unwrap())
-            .collect_vec();
-        let b = b
-            .split_ascii_whitespace()
-            .map(|x| x.parse::<usize>().unwrap())
-            .collect_vec();
-        let hits = b.iter().filter(|x| a.contains(x)).count();
-        if hits > 0 {
-            tot += 1 << (hits - 1);
-        }
-    }
-    tot
+    game_matches(input)
+        .map(|hits| if hits > 0 { 1 << (hits - 1) } else { 0 })
+        .sum()
 }
 
 fn solve_b(input: &str) -> usize {
-    let mut line_matches = vec![];
     let ncards = input.lines().count();
-    for l in input.lines() {
-        let l = l.split_once(": ").unwrap().1;
-        let (a, b) = l.split_once(" | ").unwrap();
-        let a = a
-            .split_ascii_whitespace()
-            .map(|x| x.parse::<usize>().unwrap())
-            .collect_vec();
-        let b = b
-            .split_ascii_whitespace()
-            .map(|x| x.parse::<usize>().unwrap())
-            .collect_vec();
-        let hits = b.iter().filter(|x| a.contains(x)).count();
-        line_matches.push(hits);
-    }
     let mut copies = vec![1; ncards];
-    for (i, n) in line_matches.iter().enumerate() {
-        for j in 1..(*n + 1) {
-            if (i + j) < ncards {
-                copies[i + j] += copies[i];
+    for (i, n) in game_matches(input).enumerate() {
+        for j in 0..n {
+            if (i + j + 1) < ncards {
+                copies[i + j + 1] += copies[i];
             }
         }
     }
     copies.iter().sum()
+}
+
+/// Given text input describing the games, return a list of the number of matches in
+/// each game.
+fn game_matches(input: &str) -> impl Iterator<Item = usize> + '_ {
+    input.lines().map(|l| {
+        let (win, have) = l
+            .split_once(": ")
+            .expect("Remove card prefix")
+            .1
+            .split(" | ")
+            .map(|a| {
+                a.split_ascii_whitespace()
+                    .map(|x| x.parse::<usize>().unwrap())
+                    .collect_vec()
+            })
+            .collect_tuple()
+            .expect("Collect 2 parts");
+        have.iter().filter(|x| win.contains(x)).count()
+    })
 }
 
 #[cfg(test)]
