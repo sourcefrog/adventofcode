@@ -141,6 +141,7 @@ impl Phase {
         for span in &self.spans {
             let mut still_unmatched = Vec::new();
             for a in unmatched {
+                // TODO: Split out to aoclib::range.
                 if a.end <= span.src_start || a.start >= span.src_end() {
                     still_unmatched.push(a);
                 } else {
