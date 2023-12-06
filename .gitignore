@@ -1,8 +1,9 @@
-perf.data
-perf.data.old
 **/*.rs.bk
-tags
-target
+*.crdownload
 .vscode/.ropeproject/objectdb
 callgrind.out.*
-*.crdownload
+mutants.out*
+perf.data
+perf.data.old
+tags
+target
