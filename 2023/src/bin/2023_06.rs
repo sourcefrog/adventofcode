@@ -8,7 +8,7 @@ static DAY: &str = "06";
 fn main() {
     let input = &input();
     println!("{YEAR}_{DAY} a {}", solve_a(input));
-    // println!("{YEAR}_{DAY} b {}", solve_b(input));
+    println!("{YEAR}_{DAY} b {}", solve_b(input));
 }
 
 fn input() -> String {
@@ -48,7 +48,36 @@ fn solve_a(input: &str) -> usize {
 }
 
 fn solve_b(input: &str) -> usize {
-    0
+    let (time, distance) = parse_b(input);
+    /* Distance travelled for any given speed is (time-speed) * speed, which is a
+     * 2nd order polynomial in speed, time*speed - speed, an inverted parabola
+     * above the goal distance.
+     *
+     * We could do something smarter with a bisection(?) search or a Newton-Raphson
+     * method, but it turns out that we can check all the values in less than a second
+     * by brute force!
+     */
+    let mut wins = 0;
+    for speed in 1..time {
+        if (time - speed) * speed > distance {
+            wins += 1;
+        }
+    }
+    wins
+}
+
+fn parse_b(input: &str) -> (usize, usize) {
+    input
+        .lines()
+        .map(|l| {
+            l.chars()
+                .filter(char::is_ascii_digit)
+                .collect::<String>()
+                .parse::<usize>()
+                .unwrap()
+        })
+        .collect_tuple()
+        .unwrap()
 }
 
 #[cfg(test)]
@@ -57,13 +86,14 @@ mod test {
 
     use super::*;
 
-    #[test]
-    fn example_1() {
-        let input = indoc! {"\
+    static EXAMPLE: &str = indoc! {"\
             Time:      7  15   30
             Distance:  9  40  200
             "};
-        assert_eq!(solve_a(input), 288);
+
+    #[test]
+    fn example_1() {
+        assert_eq!(solve_a(EXAMPLE), 288);
     }
 
     #[test]
@@ -72,7 +102,12 @@ mod test {
     }
 
     #[test]
+    fn test_parse_b() {
+        assert_eq!(parse_b(EXAMPLE), (71530, 940200));
+    }
+
+    #[test]
     fn solution_b() {
-        // assert_eq!(solve_b(&input()), 13114317);
+        assert_eq!(solve_b(&input()), 36992486);
     }
 }
