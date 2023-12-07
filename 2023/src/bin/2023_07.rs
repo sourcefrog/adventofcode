@@ -19,7 +19,7 @@ fn input() -> String {
 }
 
 fn solve_a(input: &str) -> usize {
-    let mut plays = input
+    input
         .lines()
         .map(|l| {
             l.split_ascii_whitespace()
@@ -32,10 +32,7 @@ fn solve_a(input: &str) -> usize {
                 bid.parse::<usize>().unwrap(),
             )
         })
-        .collect_vec();
-    plays.sort_by(|a, b| compare(&a.0, &b.0));
-    plays
-        .iter()
+        .sorted_by(|a, b| compare(&a.0, &b.0))
         .enumerate()
         .map(|(i, play)| (i + 1) * play.1)
         .sum()
@@ -50,14 +47,14 @@ fn categorize(cards: &[usize]) -> usize {
     for c in cards {
         counts[*c] += 1;
     }
-    assert_eq!(counts.iter().sum::<usize>(), 5);
+    debug_assert_eq!(counts.iter().sum::<usize>(), 5);
     let dist = counts
         .into_iter()
         .filter(|c| *c > 0)
         .sorted()
         .rev()
         .collect_vec();
-    assert_eq!(dist.iter().sum::<usize>(), 5);
+    debug_assert_eq!(dist.iter().sum::<usize>(), 5);
     if dist.len() == 1 {
         6 // 5 of a kind
     } else if dist == [4, 1] {
@@ -131,7 +128,7 @@ fn categorize_b(hand: &[usize]) -> usize {
         counts[*c] += 1;
     }
     let num_j = counts[1];
-    assert_eq!(counts.iter().sum::<usize>(), 5);
+    debug_assert_eq!(counts.iter().sum::<usize>(), 5);
     // distribution of cards excluding Js
     let dist = counts
         .into_iter()
@@ -140,7 +137,7 @@ fn categorize_b(hand: &[usize]) -> usize {
         .sorted()
         .rev()
         .collect_vec();
-    assert_eq!(dist.iter().sum::<usize>() + num_j, 5);
+    debug_assert_eq!(dist.iter().sum::<usize>() + num_j, 5);
     match &dist[..] {
         [] | [_] => 6,                    // 5 of a kind, or can be made with jokers
         [_, 1] => 5,                      // can make 4 of a kind
