@@ -24,7 +24,7 @@ fn solve_row_a(a: &[isize]) -> isize {
     let mut a = a.to_vec();
     let mut l = *a.last().unwrap();
     loop {
-        dbg!(&a, l);
+        // dbg!(&a, l);
         if a.iter().all(|x| *x == a[0]) {
             return l;
         } else {
@@ -45,14 +45,52 @@ fn solve_a(input: &str) -> isize {
 }
 
 fn solve_b(input: &str) -> isize {
-    0
+    parse(input).into_iter().map(|l| solve_row_b(&l)).sum()
+}
+
+fn solve_row_b(a: &[isize]) -> isize {
+    // l is the sum of the last element of every row on the way down.
+    /* In one row we have [a, b] and in the row below
+     * Really, we know all the b's and eventually want a[0].
+     *
+     * a[0] = b[0] - a[1]
+     * a[1] = b[1] - a[2]
+     * and so on down until we actually know a[k] on the row where the
+     * numbers are all the same.
+     *
+     * So a[0] = b[0] - (b[1] - a[2])
+     *  = b[0] - (b[1] - (b[2] - a[3]))
+     *  = b[0] - (b[1] - (b[2] - (b[3] - a[4])))
+     *
+     * So alternating add and subtract through each row and then finally
+     * the constant
+     */
+    let mut a = a.to_vec();
+    let mut l = a[0];
+    let mut invert = -1;
+    loop {
+        // dbg!(&a, l);
+        if a.iter().all(|x| *x == a[0]) {
+            return l;
+        } else {
+            let new_a = a
+                .iter()
+                .tuple_windows()
+                .map(|(a, b)| b.checked_sub(*a).unwrap())
+                .collect_vec();
+            assert_eq!(new_a.len(), a.len() - 1);
+            a = new_a;
+            l += invert * a[0];
+            invert = -invert;
+        }
+    }
 }
 
 fn parse(input: &str) -> Vec<Vec<isize>> {
     input
         .lines()
         .map(|l| {
-            dbg!(l);
+            // dbg!(l);
             l.split_ascii_whitespace()
                 .map(|w| w.parse::<isize>().expect("parse number"))
                 .collect_vec()
@@ -82,12 +120,22 @@ mod test {
     }
 
     #[test]
+    fn example_2() {
+        let rows = parse(EXAMPLE);
+        assert_eq!(
+            rows.iter().map(|l| solve_row_b(l)).collect_vec(),
+            [-3, 0, 5]
+        );
+        assert_eq!(solve_b(EXAMPLE), 2);
+    }
+
+    #[test]
     fn solution_a() {
         assert_eq!(solve_a(&input()), 1789635132);
     }
 
     #[test]
     fn solution_b() {
-        // assert_eq!(solve_b(&input()), 13114317);
+        assert_eq!(solve_b(&input()), 913);
     }
 }
