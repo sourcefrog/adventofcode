@@ -53,9 +53,13 @@ fn solve_b(input: &str) -> usize {
      * 2nd order polynomial in speed, time*speed - speed, an inverted parabola
      * above the goal distance.
      *
-     * We could do something smarter with a bisection(?) search or a Newton-Raphson
-     * method, but it turns out that we can check all the values in less than a second
-     * by brute force!
+     * This is already tolerably fast but we could do better:
+     *
+     * 1. closed-form solution for the roots of a quadratic equation, with some
+     *    adjustments for the roots being irrational but the solution working in
+     *    integers
+     *
+     * 2. binary search for the lowest and highest values
      */
     let mut wins = 0;
     for speed in 1..time {
