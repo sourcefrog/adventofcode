@@ -9,9 +9,9 @@ ascii = "1.1"
 bitvec = "1.0"
 indoc = "*"
 itertools = "0.10"
-# ndarray = "0.15"
+num-integer = "0.1"
+num-prime = "0.4"
 regex = "1.7"
-# similar = "2.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
