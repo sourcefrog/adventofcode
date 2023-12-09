@@ -2,18 +2,18 @@ use std::fs::read_to_string;
 
 use itertools::Itertools;
 
-static YEAR: &str = "2023";
-static DAY: &str = "";
+static PUZZLE: &str = env!("CARGO_BIN_NAME");
 
 fn main() {
     let input = &input();
-    println!("{YEAR}_{DAY} a {}", solve_a(input));
-    println!("{YEAR}_{DAY} b {}", solve_b(input));
+    println!("{PUZZLE} a {}", solve_a(input));
+    println!("{PUZZLE} b {}", solve_b(input));
 }
 
 fn input() -> String {
-    read_to_string(format!("{YEAR}/input/{DAY}.txt"))
-        .or_else(|_| read_to_string(format!("input/{DAY}.txt")))
+    let (year, day) = PUZZLE.split_once('_').unwrap();
+    read_to_string(format!("{year}/input/{day}.txt"))
+        .or_else(|_| read_to_string(format!("input/{day}.txt")))
         .unwrap()
 }
 
