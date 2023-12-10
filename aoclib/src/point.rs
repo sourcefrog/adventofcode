@@ -1,4 +1,5 @@
 // Copyright 2020 Google LLC
+// Copyright 2023 Martin Pool
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +16,8 @@
 //! Simple 2D integer-indexed point.
 use std::cmp::{max, min};
 use std::fmt;
+
+use strum_macros::EnumIter;
 
 #[derive(Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub struct Point {
@@ -94,6 +97,13 @@ impl Point {
     pub fn manhattan_distance(&self, other: &Point) -> isize {
         (other.x - self.x).abs() + (other.y - self.y).abs()
     }
+
+    /// Return the neighbor in a compass direction.
+    #[must_use]
+    pub fn step(&self, dir: Dir) -> Point {
+        let (dx, dy) = dir.xy_delta();
+        self.delta(dx, dy)
+    }
 }
 
 impl std::str::FromStr for Point {
@@ -121,5 +131,36 @@ pub fn line_between(p: Point, q: Point) -> Vec<Point> {
             .collect()
     } else {
         panic!("points are not in a horizontal or vertical line");
+    }
+}
+
+/// Compass directions
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, EnumIter)]
+pub enum Dir {
+    N,
+    S,
+    E,
+    W,
+}
+
+impl Dir {
+    /// Return the relative x, y for this direction on a map where y runs down.
+    pub fn xy_delta(&self) -> (isize, isize) {
+        match self {
+            Dir::N => (0, -1),
+            Dir::S => (0, 1),
+            Dir::W => (-1, 0),
+            Dir::E => (1, 0),
+        }
+    }
+
+    /// Return the opposite direction
+    pub fn invert(&self) -> Dir {
+        match self {
+            Dir::N => Dir::S,
+            Dir::S => Dir::N,
+            Dir::E => Dir::W,
+            Dir::W => Dir::E,
+        }
     }
 }
