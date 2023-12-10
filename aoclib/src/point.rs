@@ -163,4 +163,18 @@ impl Dir {
             Dir::W => Dir::E,
         }
     }
+
+    pub fn turn_right(&self) -> Dir {
+        use Dir::*;
+        match self {
+            N => E,
+            E => S,
+            S => W,
+            W => N,
+        }
+    }
+
+    pub fn turn_left(&self) -> Dir {
+        self.turn_right().invert()
+    }
 }
