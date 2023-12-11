@@ -2,7 +2,7 @@
 
 use std::fs::read_to_string;
 
-use itertools::Itertools;
+// use itertools::Itertools;
 
 use aoclib::Dir;
 use aoclib::Matrix;
@@ -91,65 +91,91 @@ fn solve_a(input: &str) -> usize {
     distance / 2
 }
 
+fn effective_s_char(map: &Matrix<char>, s_point: Point) -> char {
+    use Dir::*;
+    assert_eq!(map[s_point], 'S');
+    let mut connected_dirs = vec![];
+    for dir in Dir::iter() {
+        let np = s_point.step(dir);
+        if map.contains_point(np) && can_enter(map[np], dir) {
+            connected_dirs.push(dir);
+        }
+    }
+    assert_eq!(connected_dirs.len(), 2);
+    connected_dirs.sort();
+    match connected_dirs.as_slice() {
+        [N, E] => 'L',
+        [N, W] => 'J',
+        [S, E] => 'F',
+        [S, W] => '7',
+        [N, S] => '|',
+        [E, W] => '-',
+        _ => unreachable!("{connected_dirs:?}"),
+    }
+}
+
 fn solve_b(input: &str) -> usize {
     /* First, find the loop. */
     let map = Matrix::from_string_lines(input);
-    let trace = trace_loop(&map);
-    let loop_points = trace.iter().map(|(p, _dir)| *p).collect_vec();
+    let loop_points = trace_loop(&map);
     let mut pretty_map = map.map(|c| to_unicode_box(*c));
+    let mut loop_map = map.map(|_| false);
+    for p in &loop_points {
+        loop_map[*p] = true
+    }
     for point in pretty_map.points() {
         if !loop_points.contains(&point) {
             pretty_map[point] = '⋅';
         }
     }
-    let mut loop_map = map.map(|_| false);
-    for p in &loop_points {
-        loop_map[*p] = true
-    }
     println!("{}", pretty_map.to_string_lines());
 
-    /* Another idea:
+    /* Now we know this about the loop, since it _is_ a loop:
      *
-     * We can know, from tracing the loop, which orientation we're heading at any time,
-     * and we can collect any non-loop squares to either the left or the right side.
+     * There is only one loop on the map. It's closed. It does not cross itself.
      *
-     * We don't know, apriori, whether the loop will be counterclockwise or clockwise,
-     * but we could just try both. In one of them, at some point on the loop, tracing
-     * out to the side will reach the edge, and we can discard that option.
+     * We can find the enclosed points by starting at the top and walking down, keeping
+     * track of which columns are inside the loop.
+     *
+     * The structure of these characters means that different parts of one cell might be
+     * inside the loop while another is outside: in fact for tiles on the loop this must
+     * always be true. So, for containment, we track whether the top left corner of
+     * the cell is contained. All the other edges can be inferred from this, given the
+     * cell shape and the knowledge that it is part of the loop.
+     *
+     * The number of fully contained cells is then the number of cells that are not part
+     * of the loop and whose top-left is contained.
      */
-    for which_side in [true, false] {
-        let mut touched_side = false;
-        for (p, heading) in &trace {
-            let side_dir = if which_side {
-                heading.turn_right()
-            } else {
-                heading.turn_left()
-            };
-            let mut np = *p;
-            loop {
-                np = np.step(side_dir);
-                if !loop_map.contains_point(np) {
-                    touched_side = true;
-                    break;
-                } else if loop_map[np] {
-                    break;
-                } else {
-                    pretty_map[np] = if which_side { 'R' } else { 'L' };
+    let mut inside_cols = vec![false; map.width()];
+    let mut contained = 0;
+    for y in 0..map.height() {
+        #[allow(clippy::needless_range_loop)]
+        for x in 0..map.width() {
+            let p = point(x as isize, y as isize);
+            if loop_map[p] {
+                let mut c = map[p];
+                if c == 'S' {
+                    c = effective_s_char(&map, p);
                 }
+                match c {
+                    '-' | 'J' | '7' => inside_cols[x] ^= true,
+                    _ => (),
+                }
+            } else if inside_cols[x] {
+                pretty_map[p] = 'I';
+                contained += 1;
             }
         }
     }
-
     println!("{}", pretty_map.to_string_lines());
-    0
-    // 7262 is too high?
+    contained
 }
 
 /// Follow the loop from the starting point and return all the points on that loop,
-/// finishing at the start, along with the direction we travelled to get to that point.
-fn trace_loop(map: &Matrix<char>) -> Vec<(Point, Dir)> {
+/// finishing at the start.
+fn trace_loop(map: &Matrix<char>) -> Vec<Point> {
     let start_pos = map.find_single_value(&'S');
-    let mut trace = Vec::new();
+    let mut loop_points = Vec::new();
     let mut cursor = start_pos;
 
     /* Trace the loop from the starting point. Since we don't know
@@ -165,7 +191,7 @@ fn trace_loop(map: &Matrix<char>) -> Vec<(Point, Dir)> {
         if map.contains_point(np) && can_enter(map[np], dir) {
             heading = Some(dir);
             cursor = np;
-            trace.push((cursor, dir));
+            loop_points.push(np);
             break;
         }
     }
@@ -173,12 +199,11 @@ fn trace_loop(map: &Matrix<char>) -> Vec<(Point, Dir)> {
     dbg!(heading);
 
     while map[cursor] != 'S' {
-        trace.push((cursor, heading));
         heading = traverse(map[cursor], heading);
         cursor = cursor.step(heading);
+        loop_points.push(cursor);
     }
-    trace.push((cursor, heading));
-    trace
+    loop_points
 }
 
 #[cfg(test)]
@@ -188,20 +213,30 @@ mod test {
     use super::*;
 
     #[test]
-    fn example_2() {
-        let input = "\
-";
-        assert_eq!(solve_b(input), 0);
-    }
-
-    #[test]
     fn solution_a() {
         assert_eq!(solve_a(&input()), 6820);
     }
 
     #[test]
     fn solution_b() {
-        // assert_eq!(solve_b(&input()), 13114317);
+        assert_eq!(solve_b(&input()), 337);
+    }
+
+    #[test]
+    fn example_3() {
+        let input = indoc! {"\
+            .F----7F7F7F7F-7....
+            .|F--7||||||||FJ....
+            .||.FJ||||||||L7....
+            FJL7L7LJLJ||LJ.L-7..
+            L--J.L7...LJS7F-7L7.
+            ....F-J..F7FJ|L7L7L7
+            ....L7.F7||L7|.L7L7|
+            .....|FJLJ|FJ|F7|.LJ
+            ....FJL-7.||.||||...
+            ....L---J.LJ.LJLJ...
+        "};
+        assert_eq!(solve_b(input), 8);
     }
 
     #[test]
