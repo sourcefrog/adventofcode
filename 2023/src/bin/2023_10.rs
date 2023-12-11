@@ -119,12 +119,9 @@ fn solve_b(input: &str) -> usize {
     let map = Matrix::from_string_lines(input);
     let loop_points = trace_loop(&map);
     let mut pretty_map = map.map(|c| to_unicode_box(*c));
-    let mut loop_map = map.map(|_| false);
-    for p in &loop_points {
-        loop_map[*p] = true
-    }
+    let loop_map = Matrix::from_points_with_size(loop_points, map.width(), map.height());
     for point in pretty_map.points() {
-        if !loop_points.contains(&point) {
+        if !loop_map[point] {
             pretty_map[point] = '⋅';
         }
     }

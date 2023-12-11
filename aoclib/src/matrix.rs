@@ -219,8 +219,7 @@ impl<T> Matrix<T> {
 
     /// Iterate all present 8-way neighbors.
     pub fn neighbors8(&self, p: Point) -> impl Iterator<Item = (Point, &T)> {
-        self.neighbor8_points(p)
-            .map(move |p| (p, &self[p]))
+        self.neighbor8_points(p).map(move |p| (p, &self[p]))
     }
 
     /// Find the first point in the matrix where `pred` is true.
@@ -300,11 +299,12 @@ impl<T> Matrix<T> {
 }
 
 impl<T: Clone> Matrix<T> {
-    pub fn new(w: usize, h: usize, d: T) -> Matrix<T> {
+    /// Make a new matrix of the given size, all filled with the same value.
+    pub fn new(w: usize, h: usize, fill: T) -> Matrix<T> {
         Matrix {
             w,
             h,
-            d: vec![d; w * h],
+            d: vec![fill; w * h],
         }
     }
 
@@ -388,6 +388,19 @@ impl Matrix<bool> {
         let mut m = Matrix::bounding_box(&ps, false);
         for p in ps {
             m[p] = true;
+        }
+        m
+    }
+
+    /// Build a `Matrix::bool` of the given size from an iterator of points.
+    pub fn from_points_with_size<I, BP>(it: I, width: usize, height: usize) -> Self
+    where
+        I: IntoIterator<Item = BP>,
+        BP: Borrow<Point>,
+    {
+        let mut m = Matrix::new(width, height, false);
+        for p in it.into_iter() {
+            m[*p.borrow()] = true;
         }
         m
     }
