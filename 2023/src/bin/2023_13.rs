@@ -11,10 +11,8 @@ fn main() {
 }
 
 fn input() -> String {
-    let (year, day) = PUZZLE.split_once('_').unwrap();
-    read_to_string(format!("{year}/input/{day}.txt"))
-        .or_else(|_| read_to_string(format!("input/{day}.txt")))
-        .unwrap()
+    let path = format!("../input/{PUZZLE}.txt");
+    read_to_string(path).expect("Failed to read input")
 }
 
 fn solve_a(input: &str) -> usize {
