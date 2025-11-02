@@ -43,10 +43,7 @@ use aoclib::*;
 
 type Maps = BTreeMap<usize, Matrix<char>>;
 
-const MONSTER: &str = "                  # 
-#    ##    ##    ###
- #  #  #  #  #  #   
-";
+const MONSTER: &str = "                  # \n#    ##    ##    ###\n #  #  #  #  #  #   ";
 
 pub fn main() {
     println!("a: {}", solve_a());
