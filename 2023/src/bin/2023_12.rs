@@ -1,7 +1,5 @@
 use std::fs::read_to_string;
 
-use itertools::Itertools;
-
 static PUZZLE: &str = env!("CARGO_BIN_NAME");
 
 fn main() {
@@ -21,7 +19,7 @@ fn solve_a(input: &str) -> usize {
     /* We can definitely proceed one line at a time and then sum them up.
      *
      */
-    0
+    todo!()
 }
 
 fn solve_b(input: &str) -> usize {
