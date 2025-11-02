@@ -59,14 +59,13 @@ fn find_reflections(map: &Matrix<bool>) -> Vec<RowOrCol> {
     let w = map.width();
     let mut res = Vec::new();
 
-    // println!("{}", map.to_string_lines());
-
     'col: for xmirror in 1..w {
-        // TODO: Choose a range for x1 such that x2 will be valid, and similarly for y.
-        for x1 in 0..xmirror {
+        // See if columns 0..xmirror are a reflection of xmirror..w.
+        for x1 in (2 * xmirror).saturating_sub(w)..xmirror {
             let x2 = (xmirror - x1) + xmirror - 1;
+            assert!(x2 < w);
             // println!("{xmirror}: check col {x1} against {x2}");
-            if x2 < w && !map.column(x1).eq(map.column(x2)) {
+            if !map.column(x1).eq(map.column(x2)) {
                 // println!("   >mismatch");
                 continue 'col;
             }
@@ -76,10 +75,11 @@ fn find_reflections(map: &Matrix<bool>) -> Vec<RowOrCol> {
     }
 
     'row: for ymirror in 1..h {
-        for y in 0..=ymirror {
+        for y in (2 * ymirror).saturating_sub(h)..ymirror {
             let y2 = (ymirror - y) + (ymirror - 1);
+            debug_assert!(y2 < h);
             // println!("{ymirror}: check {y} against {y2}");
-            if y2 < h && !map.row(y).eq(map.row(y2)) {
+            if !map.row(y).eq(map.row(y2)) {
                 continue 'row;
             }
         }
