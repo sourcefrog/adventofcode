@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -185,7 +185,7 @@ impl Map {
     /// Get the new color for one currently-unknown square
     fn grow_one(&self, p: &Point) -> Color {
         let n = self.neighbors(p);
-        if n.iter().any(|&c| c == Color::Many) {
+        if n.contains(&Color::Many) {
             // If there's any neighbor that's equidistant from multiple landings,
             // then this is too.
             Color::Many

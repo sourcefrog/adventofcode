@@ -1,6 +1,6 @@
 //! https://adventofcode.com/2022/day/24
 
-use std::iter::repeat;
+use std::iter::repeat_n;
 
 use aoclib::shortest_path::ShortestPath;
 use itertools::Itertools;
@@ -127,7 +127,7 @@ impl Map {
         } else {
             s.push('.');
         }
-        s.extend(repeat('#').take(self.w));
+        s.extend(repeat_n('#', self.w));
         s.push('\n');
 
         for y in 0..self.h {
@@ -148,7 +148,7 @@ impl Map {
             s.push('\n');
         }
 
-        s.extend(repeat('#').take(self.w));
+        s.extend(repeat_n('#', self.w));
         if state.place == Place::End {
             s.push('E');
         } else {

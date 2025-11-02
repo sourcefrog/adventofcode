@@ -50,7 +50,7 @@ struct Map {
 
 impl Map {
     pub fn new(grid: i32) -> Map {
-        let mut p = Matrix::new(SIZE + 1, SIZE + 1, i32::min_value());
+        let mut p = Matrix::new(SIZE + 1, SIZE + 1, i32::MIN);
         for x in 0..SIZE {
             for y in 0..SIZE {
                 // Find the fuel cell's rack ID, which is its X coordinate
@@ -90,7 +90,7 @@ impl Map {
     }
 
     pub fn hottest(&self, sqsz: usize) -> ((usize, usize), i32) {
-        let mut best_power: i32 = i32::min_value();
+        let mut best_power: i32 = i32::MIN;
         let mut best_point: (usize, usize) = (0, 0);
 
         for x in 0..(SIZE - sqsz) {
@@ -136,7 +136,7 @@ impl Map {
         let mut vstr = Matrix::new(SIZE, SIZE, 0i32);
         let mut hstr = Matrix::new(SIZE, SIZE, 0i32);
         let mut best_p = point(0, 0);
-        let mut best_power = i32::min_value();
+        let mut best_power = i32::MIN;
         let mut best_size = 1;
 
         // Start at size 1: everything is simply the contents of that cell.

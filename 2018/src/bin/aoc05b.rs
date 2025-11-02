@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ pub fn main() {
         .collect::<Vec<_>>();
     assert_eq!(lines.len(), 1);
     let l = &lines[0];
-    let mut best_len = usize::max_value();
+    let mut best_len = usize::MAX;
     let mut best_char = 0u8;
     for t in b'a'..=b'z' {
         let c = collapse_without(l, t as char);
@@ -42,8 +42,7 @@ pub fn main() {
 }
 
 fn matches(c0: char, c1: char) -> bool {
-    c0.to_ascii_lowercase() == c1.to_ascii_lowercase()
-        && c0.is_ascii_uppercase() != c1.is_ascii_uppercase()
+    c0.eq_ignore_ascii_case(&c1)
 }
 
 /// Repeatedly remove matched letters from s; return the remnant. Ignore

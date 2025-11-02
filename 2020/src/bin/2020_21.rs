@@ -72,7 +72,7 @@ fn solve_on(s: &str) -> (usize, String) {
                     .entry(alg.clone())
                     .and_modify(|ei|
                         // Only ingredients common to the two foods remain possibilities.
-                        ei.retain(|i| ings.iter().any(|j| *j == *i)))
+                        ei.retain(|i| ings.contains(i)))
                     .or_insert_with(|| ings);
                 if en.len() == 1 {
                     let final_ing = &en[0];
@@ -92,12 +92,7 @@ fn solve_on(s: &str) -> (usize, String) {
     let answer_a = all_ingr
         .iter()
         .filter(|i| !ingr_to_alg.contains_key(*i))
-        .map(|i| {
-            foods
-                .iter()
-                .filter(|f| f.ingreds.iter().any(|fi| *i == *fi))
-                .count()
-        })
+        .map(|i| foods.iter().filter(|f| f.ingreds.contains(i)).count())
         .sum();
     let answer_b = alg_to_ingr
         .values()

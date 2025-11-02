@@ -48,7 +48,7 @@ struct Perm {
 /// Check this is a well-formed permutation: every element up to the length
 /// is represented once.
 #[allow(dead_code)]
-#[cfg(debug)]
+#[cfg(test)]
 fn check_perm(v: &[usize]) {
     let l = v.len();
     let mut seen = vec![false; l];
@@ -57,7 +57,7 @@ fn check_perm(v: &[usize]) {
 }
 
 #[allow(dead_code)]
-#[cfg(not(debug))]
+#[cfg(not(test))]
 fn check_perm(_: &[usize]) {}
 
 impl Perm {
@@ -69,7 +69,7 @@ impl Perm {
         }
     }
 
-    #[cfg(debug)]
+    #[cfg(test)]
     fn check(&self) {
         for i in 0..self.len() {
             assert_eq!(self.pos_input[self.input_pos[i]], i);
@@ -77,7 +77,7 @@ impl Perm {
         }
     }
 
-    #[cfg(not(debug))]
+    #[cfg(not(test))]
     fn check(&self) {}
 
     /// Map the input `x` by `s` elements to the right from its current position,

@@ -158,7 +158,7 @@ fn make_n_fuel(mut rs: RecipeMap, n_fuel: u64) -> u64 {
         // the active list. Otherwise, calculate the right amount to make.
         if let Some(needed_count) = needed.remove(&next_chemical) {
             let recipe_count = next_recipe.product.n;
-            let make = (needed_count + recipe_count - 1) / recipe_count;
+            let make = needed_count.div_ceil(recipe_count);
             for (chemical, n) in next_recipe.ingredients.into_iter() {
                 *needed.entry(chemical).or_default() += make * n;
             }

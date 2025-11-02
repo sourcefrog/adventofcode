@@ -101,7 +101,7 @@ impl Ring {
             let mut dest = current;
             loop {
                 dest = self.wrap_sub(dest, 1);
-                if !taken.iter().any(|x| *x == dest) {
+                if !taken.contains(&dest) {
                     break;
                 }
             }

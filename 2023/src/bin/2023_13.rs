@@ -1,7 +1,6 @@
 use std::fs::read_to_string;
 
 use aoclib::Matrix;
-use itertools::Itertools;
 
 static PUZZLE: &str = env!("CARGO_BIN_NAME");
 
@@ -61,8 +60,8 @@ fn find_reflections(map: &Matrix<bool>) -> usize {
     unreachable!("No reflection found in\n{}", map.to_string_lines());
 }
 
-fn solve_b(input: &str) -> usize {
-    0
+fn solve_b(_input: &str) -> usize {
+    todo!();
 }
 
 #[cfg(test)]

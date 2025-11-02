@@ -71,9 +71,8 @@ fn solve(input: &str) -> (usize, isize) {
         debug_assert!(!fixedpts[base].is_empty());
         for isc in unsolved.clone() {
             debug_assert!(scannerpos[isc].is_none());
-            for irot in 0..nrots {
+            for (irot, roted) in rotpts[isc].iter().enumerate() {
                 // println!("try scanner {isc:2} rot {irot:2}");
-                let roted: &[Pt] = &rotpts[isc][irot];
                 if let Some(offset) = overlap(&fixedpts[base], roted) {
                     println!(
                         "** found overlap: scanner {isc:2} rot {irot:3} matched against scanner {base:2} offset {:?}",

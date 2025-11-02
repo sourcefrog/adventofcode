@@ -132,7 +132,7 @@ fn solve_type_a(s: &str) -> usize {
     let n_keys = all_keys.len();
 
     // Best seen distance to collect all keys.
-    let mut best_overall: usize = std::usize::MAX;
+    let mut best_overall: usize = usize::MAX;
 
     // Process things in generations that discover all shortest paths of the same
     // length, going through any *gen* keys, and ending at each distinct key.
@@ -180,7 +180,7 @@ fn solve_type_b(s: &str) -> usize {
     let n_keys = all_keys.len();
 
     // Best seen distance to collect all keys.
-    let mut best_overall: usize = std::usize::MAX;
+    let mut best_overall: usize = usize::MAX;
 
     // Process things in generations that discover all shortest paths of the same
     // length, going through any *gen* keys, and ending at each distinct key.

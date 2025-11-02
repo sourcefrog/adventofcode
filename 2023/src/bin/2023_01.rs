@@ -25,7 +25,7 @@ fn solve_a(input: &str) -> u32 {
         .map(|l| {
             let digits = l.chars().filter_map(|c| c.to_digit(10));
             digits.clone().next().expect("Has a first digit") * 10
-                + digits.last().expect("Has a last digit")
+                + digits.clone().next_back().expect("Has a last digit")
         })
         .sum()
 }

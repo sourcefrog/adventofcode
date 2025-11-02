@@ -39,7 +39,7 @@ impl Item {
                 }
             }
         } else {
-            let end = s.find(|c| matches!(c, ',' | '[' | ']')).unwrap_or(s.len());
+            let end = s.find([',', '[', ']']).unwrap_or(s.len());
             let (n, r2) = s.split_at(end);
             (Item::N(n.parse().unwrap()), r2)
         }

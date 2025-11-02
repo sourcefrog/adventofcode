@@ -149,7 +149,7 @@ fn push_down(name: &str, mks: &Mkmap, val: isize, memo: &mut HashMap<&str, isize
     }
 }
 
-fn parse(input: &str) -> HashMap<&str, Mk> {
+fn parse(input: &'_ str) -> HashMap<&'_ str, Mk<'_>> {
     let mut mks: HashMap<&str, Mk> = HashMap::new();
     for l in input.lines() {
         let (name, rest) = l.split_once(": ").unwrap();

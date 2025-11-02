@@ -145,7 +145,7 @@ impl Num {
             match e {
                 &E::N(a) if a >= 10 => {
                     self.v[i] = E::Close;
-                    self.v.insert(i, E::N((a + 1) / 2));
+                    self.v.insert(i, E::N(a.div_ceil(2)));
                     self.v.insert(i, E::N((a) / 2));
                     self.v.insert(i, E::Open);
                     return true;

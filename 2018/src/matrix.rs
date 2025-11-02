@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -126,7 +126,10 @@ impl<T: Clone> FromRows<T> {
 
     pub fn finish(mut self) -> Matrix<T> {
         self.d.shrink_to_fit();
-        assert!(self.d.len() % self.w == 0, "Matrix isn't rectangular");
+        assert!(
+            self.d.len().is_multiple_of(self.w),
+            "Matrix isn't rectangular"
+        );
         Matrix {
             w: self.w,
             h: self.d.len() / self.w,

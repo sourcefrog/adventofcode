@@ -33,7 +33,7 @@ fn solve_a() -> usize {
     let mut best_bus = 0;
     let mut best_wait = usize::MAX;
     for &b in &buses {
-        if dt % b == 0 {
+        if dt.is_multiple_of(b) {
             return 0;
         }
         let earliest = (dt / b + 1) * b;

@@ -17,8 +17,8 @@ fn input() -> String {
 
 fn solve_a(input: &str) -> usize {
     /* We can definitely proceed one line at a time and then sum them up.
-     *
      */
+    let _ = input;
     todo!()
 }
 

@@ -119,7 +119,7 @@ fn check_name(s: &str) {
     );
 }
 
-fn parse(input: &str) -> (Vec<usize>, Map) {
+fn parse(input: &'_ str) -> (Vec<usize>, Map<'_>) {
     let mut lines = input.lines();
     let turns = lines
         .next()

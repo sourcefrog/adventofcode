@@ -46,13 +46,6 @@ fn load_input() -> String {
     std::fs::read_to_string("input/input03.txt").unwrap()
 }
 
-// x left-to-right, y top-to-bottom
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-struct Point {
-    x: isize,
-    y: isize,
-}
-
 #[derive(Debug)]
 enum Wire {
     Horz {

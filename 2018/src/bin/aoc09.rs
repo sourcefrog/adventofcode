@@ -1,11 +1,11 @@
 // Copyright 2018 Google LLC
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,7 +53,7 @@ struct Circle {
     player: usize,
 }
 
-const UNLINKED: (usize, usize) = (usize::max_value(), usize::max_value());
+const UNLINKED: (usize, usize) = (usize::MAX, usize::MAX);
 
 impl Circle {
     pub fn new(n_players: usize) -> Circle {
@@ -75,7 +75,7 @@ impl Circle {
     }
 
     pub fn pred(&self, i: usize) -> usize {
-        assert_ne!(i, usize::max_value());
+        assert_ne!(i, usize::MAX);
         assert_eq!(self.links[self.links[i].0].1, i);
         self.links[i].0
     }
@@ -110,7 +110,7 @@ impl Circle {
     /// Insert the next marble or do the special thing for modulo 23.
     pub fn step(&mut self) {
         let n = self.next_marble();
-        if n % 23 == 0 {
+        if n.is_multiple_of(23) {
             self.scores[self.player] += n + self.remove_7back();
             // Mark this marble as played, but not in the circle
             self.links.push(UNLINKED);

@@ -83,7 +83,7 @@ fn filter_b(i: usize) -> bool {
         c[di] += 1;
         prev = di;
     }
-    c.iter().any(|&j| j == 2)
+    c.contains(&2)
 }
 
 fn load_input() -> (usize, usize) {

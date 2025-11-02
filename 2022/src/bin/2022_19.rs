@@ -125,8 +125,8 @@ fn parse(input: &str) -> Vec<Blueprint> {
         .map(|l| match l.split_ascii_whitespace().collect::<Vec<&str>>().as_slice() {
            w @ [
                 "Blueprint", _,
-                "Each", "ore", "robot", "costs", _, "ore.", 
-                "Each", "clay", "robot", "costs", _, "ore.", 
+                "Each", "ore", "robot", "costs", _, "ore.",
+                "Each", "clay", "robot", "costs", _, "ore.",
                 "Each", "obsidian", "robot", "costs", _, "ore", "and", _, "clay.",
                 "Each", "geode", "robot", "costs", _, "ore", "and", _, "obsidian.",
             ] => {
@@ -305,7 +305,7 @@ fn find_best_path(blueprint: &Blueprint, start: &St, cycle_limit: usize) -> usiz
     let mut cycles = 0usize;
     let mut low_pot = 0usize;
     while let Some(st) = queue.pop() {
-        if cycles % 10000000 == 0 {
+        if cycles.is_multiple_of(10000000) {
             println!(
                 "cycle {cycles:>20} qlen {qlen:>10} low_pot {low_pot:>10}: look for best moves from {st:?}",
                 qlen = queue.len()

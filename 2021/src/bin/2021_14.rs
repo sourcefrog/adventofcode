@@ -47,7 +47,6 @@ fn solve(input: &str) -> (usize, usize) {
 
 /// Return the difference in frequency between the most common and least common
 /// characters.
-
 fn difference(s: &[char], pc: &BTreeMap<[char; 2], usize>) -> usize {
     let mut top = 0;
     let mut bot = usize::MAX;

@@ -183,7 +183,7 @@ impl Map {
     /// order.
     pub fn target(&mut self, ap: Point, attacker: &Thing) -> Option<Point> {
         let mut best_p: Option<Point> = None;
-        let mut best_hp: usize = usize::max_value();
+        let mut best_hp: usize = usize::MAX;
         for p in self.neighbors(ap).into_iter() {
             let thingp = self.thing_at(p);
             if let Some(hp) = thingp.creature_hp() {

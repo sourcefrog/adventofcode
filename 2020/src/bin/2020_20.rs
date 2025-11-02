@@ -236,7 +236,7 @@ impl Puzzle {
         for ori in Orientation::all() {
             let rotsv = rotated_side_values(&self.maps[&tile], &ori);
             println!("til {} ori {:?} rotsv {:?}", tile, ori, rotsv);
-            if left.map_or(true, |a| a == rotsv[3]) && above.map_or(true, |a| a == rotsv[0]) {
+            if left.is_none_or(|a| a == rotsv[3]) && above.is_none_or(|a| a == rotsv[0]) {
                 println!("found rotation {:?} for tile {}", ori, tile);
                 return ori;
             }

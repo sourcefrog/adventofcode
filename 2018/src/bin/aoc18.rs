@@ -149,7 +149,7 @@ fn solve18b() -> usize {
         println!("{j}");
         if m == mstab {
             println!("Found cycle: gen {j} == gen {STAB}");
-            break (j - STAB);
+            break j - STAB;
         }
         j += 1;
     };
