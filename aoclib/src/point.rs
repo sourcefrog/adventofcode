@@ -44,6 +44,10 @@ pub const fn point(x: isize, y: isize) -> Point {
 }
 
 impl Point {
+    pub fn new(x: isize, y: isize) -> Point {
+        Point { x, y }
+    }
+
     pub const DIRECTIONS_8: &'static [(isize, isize)] = &[
         (1, 0),
         (-1, 0),
