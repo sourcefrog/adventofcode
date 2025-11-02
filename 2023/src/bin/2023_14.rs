@@ -1,10 +1,11 @@
 use std::{fs::read_to_string, io::ErrorKind};
 
-use aoclib::{Matrix, point};
+use aoclib::{Dir, Matrix};
 
 fn main() {
     let input = &input();
     println!("{}", solve_one(input));
+    println!("{}", solve_two(input));
 }
 
 fn input() -> String {
@@ -26,32 +27,50 @@ fn input() -> String {
 
 fn solve_one(input: &str) -> usize {
     let mut map = Matrix::from_string_lines(input);
-    slide_north(&mut map);
-    println!("{}", map.to_string_lines());
+    slide(&mut map, Dir::N);
+    // println!("{}", map.to_string_lines());
     calc_load(&map)
 }
 
-/// Slide all round rocks north as far as they will go, until things stop moving.
-fn slide_north(map: &mut Matrix<char>) {
-    // Work one column at a time: move round rocks as far north as they will go,
-    // without moving square rocks.
-    for col in 0..(map.width() as isize) {
-        for r1 in 1..(map.height() as isize) {
-            if map[point(col, r1)] == 'O' {
-                let mut move_to = None;
-                for r2 in (0..r1).rev() {
-                    if map[point(col, r2)] == '.' {
-                        move_to = Some(r2);
-                    } else {
-                        break;
-                    }
-                }
-                if let Some(move_r) = move_to {
-                    assert!(move_r < r1);
-                    map[point(col, r1)] = '.';
-                    map[point(col, move_r)] = 'O';
-                }
+fn solve_two(input: &str) -> usize {
+    let mut map = Matrix::from_string_lines(input);
+    static MANY_CYCLES: usize = 1000000000;
+    // To calculate this many cycles let's try to find a recurring pattern in the map:
+    // once we find that meta-cycle we should be able to extrapolate where it will end up.
+    let mut history = Vec::new();
+    for i in 0..300 {
+        slide(&mut map, Dir::N);
+        slide(&mut map, Dir::W);
+        slide(&mut map, Dir::S);
+        slide(&mut map, Dir::E);
+        if let Some(recur) = history.iter().enumerate().rev().find(|(_i, v)| **v == map) {
+            let prev_i = recur.0;
+            // println!("found recurrence from {prev_i} to {i}");
+            let metacycle_len = i - prev_i;
+            let end_on = ((MANY_CYCLES - prev_i - 1) % metacycle_len) + prev_i;
+            return calc_load(&history[end_on]);
+        } else {
+            history.push(map.clone());
+            // println!("cycle {i}:\n{}", map.to_string_lines());
+        }
+    }
+    unreachable!()
+}
+
+/// Slide all round rocks in one direction as far as they will go.
+fn slide(map: &mut Matrix<char>, dir: Dir) {
+    loop {
+        let mut any_moved = false;
+        for p in map.points() {
+            let p2 = p.step(dir);
+            if map.contains_point(p2) && map[p] == 'O' && map[p2] == '.' {
+                map[p2] = 'O';
+                map[p] = '.';
+                any_moved = true;
             }
+        }
+        if !any_moved {
+            break;
         }
     }
 }
@@ -68,7 +87,7 @@ fn calc_load(map: &Matrix<char>) -> usize {
 mod test {
     use indoc::indoc;
 
-    use crate::{input, solve_one};
+    use crate::{input, solve_one, solve_two};
 
     static EXAMPLE: &str = indoc! { "\
         O....#....
@@ -92,5 +111,15 @@ mod test {
     #[test]
     fn solution_one() {
         assert_eq!(solve_one(&input()), 105003);
+    }
+
+    #[test]
+    fn example_two() {
+        assert_eq!(solve_two(EXAMPLE), 64);
+    }
+
+    #[test]
+    fn solution_two() {
+        assert_eq!(solve_two(&input()), 93742);
     }
 }
