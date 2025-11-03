@@ -48,6 +48,13 @@ impl Point {
         Point { x, y }
     }
 
+    pub fn from_usizes(x: usize, y: usize) -> Point {
+        Point {
+            x: x as isize,
+            y: y as isize,
+        }
+    }
+
     pub const DIRECTIONS_8: &'static [(isize, isize)] = &[
         (1, 0),
         (-1, 0),
