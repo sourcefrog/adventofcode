@@ -62,11 +62,13 @@ fn slide(map: &mut Matrix<char>, dir: Dir) {
     loop {
         let mut any_moved = false;
         for p in map.points() {
-            let p2 = p.step(dir);
-            if map.contains_point(p2) && map[p] == 'O' && map[p2] == '.' {
-                map[p2] = 'O';
-                map[p] = '.';
-                any_moved = true;
+            if map[p] == 'O' {
+                let p2 = p.step(dir);
+                if map.try_get(p2) == Some(&'.') {
+                    map[p2] = 'O';
+                    map[p] = '.';
+                    any_moved = true;
+                }
             }
         }
         if !any_moved {
