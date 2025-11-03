@@ -7,3 +7,4 @@ perf.data
 perf.data.old
 tags
 target
+profile.json.gz
