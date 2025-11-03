@@ -24,7 +24,7 @@ use std::iter::FromIterator;
 use std::ops::{Index, IndexMut};
 
 use crate::shortest_path::ShortestPath;
-use crate::{point, Point};
+use crate::{point, Dir, Point};
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Matrix<T> {
@@ -127,6 +127,20 @@ impl<T> Matrix<T> {
             .iter()
             .enumerate()
             .map(move |(i, p)| (self.offset_to_point(i), p))
+    }
+
+    /// Return all the points on the given face of the matrix.
+    pub fn edge_points(&self, dir: Dir) -> Vec<Point> {
+        match dir {
+            Dir::N => (0..self.w).map(|x| Point::from_usizes(x, 0)).collect(),
+            Dir::S => (0..self.w)
+                .map(|x| Point::from_usizes(x, self.h - 1))
+                .collect(),
+            Dir::E => (0..self.h)
+                .map(|y| Point::from_usizes(self.w - 1, y))
+                .collect(),
+            Dir::W => (0..self.w).map(|y| Point::from_usizes(0, y)).collect(),
+        }
     }
 
     /// Iterate the contents of all the cells in a given row
@@ -239,6 +253,16 @@ impl<T> Matrix<T> {
         } else {
             None
         }
+    }
+
+    /// Iterate all the points going in some direction from an included starting point.
+    pub fn points_from(&self, mut p: Point, dir: Dir) -> Vec<Point> {
+        let mut v = Vec::new();
+        while self.contains_point(p) {
+            v.push(p);
+            p = p.step(dir);
+        }
+        v
     }
 
     /// Iterate all the points to the left of some point, in order going left,
