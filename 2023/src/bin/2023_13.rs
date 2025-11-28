@@ -1,5 +1,3 @@
-use std::fs::read_to_string;
-
 use aoclib::Matrix;
 
 static PUZZLE: &str = env!("CARGO_BIN_NAME");
@@ -11,10 +9,7 @@ fn main() {
 }
 
 fn input() -> String {
-    let path = &format!("../input/{PUZZLE}.txt");
-    read_to_string(path)
-        .or_else(|_| read_to_string("..".to_owned() + path))
-        .expect("Failed to read input")
+    aoclib::input!()
 }
 
 fn split_inputs(input: &str) -> Vec<Matrix<bool>> {

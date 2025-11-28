@@ -1,28 +1,9 @@
-use std::{fs::read_to_string, io::ErrorKind};
-
-use aoclib::{Dir, Matrix};
+use aoclib::{Dir, Matrix, input};
 
 fn main() {
-    let input = &input();
+    let input = &input!();
     println!("{}", solve_one(input));
     println!("{}", solve_two(input));
-}
-
-fn input() -> String {
-    static PUZZLE: &str = env!("CARGO_BIN_NAME");
-    let filename = format!("input/{PUZZLE}.txt");
-    let mut path = filename;
-    for _ in 0..5 {
-        match read_to_string(&path) {
-            Ok(s) => return s,
-            Err(e) if e.kind() == ErrorKind::NotFound => {
-                path = "../".to_owned() + &path;
-                continue;
-            }
-            Err(e) => panic!("{e:?}"),
-        }
-    }
-    panic!("input not found in parents");
 }
 
 fn solve_one(input: &str) -> usize {
@@ -101,7 +82,7 @@ mod test {
         ..O..#O..O
         .......O..
         #....###..
-        #OO..#.... 
+        #OO..#....
         "};
 
     #[test]
@@ -112,7 +93,7 @@ mod test {
 
     #[test]
     fn solution_one() {
-        assert_eq!(solve_one(&input()), 105003);
+        assert_eq!(solve_one(&input!()), 105003);
     }
 
     #[test]
@@ -122,6 +103,6 @@ mod test {
 
     #[test]
     fn solution_two() {
-        assert_eq!(solve_two(&input()), 93742);
+        assert_eq!(solve_two(&input!()), 93742);
     }
 }

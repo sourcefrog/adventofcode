@@ -3,7 +3,6 @@
 //! <https://adventofcode.com/2023/day/11>
 
 use std::cmp::max;
-use std::fs::read_to_string;
 
 use aoclib::Matrix;
 use itertools::Itertools;
@@ -17,10 +16,7 @@ fn main() {
 }
 
 fn input() -> String {
-    let (year, day) = PUZZLE.split_once('_').unwrap();
-    read_to_string(format!("{year}/input/{day}.txt"))
-        .or_else(|_| read_to_string(format!("input/{day}.txt")))
-        .unwrap()
+    aoclib::input!()
 }
 
 fn solve_a(input: &str) -> isize {

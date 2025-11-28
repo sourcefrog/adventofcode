@@ -13,6 +13,7 @@
 // limitations under the License.
 
 mod heap;
+pub mod input;
 mod matrix;
 pub mod permute;
 mod point;
