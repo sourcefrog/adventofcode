@@ -271,14 +271,13 @@ fn solve_b(input: &str, rounds: usize) -> usize {
                 initial_rounds = Some(x);
             }
             cycle_hits += 1;
-            if cycle_rounds.is_none() {
-                cycle_rounds = Some(i_round - x);
-            } else {
-                assert_eq!(
-                    cycle_rounds.unwrap(),
-                    i_round - x,
-                    "cycle length is not stable"
-                );
+            match cycle_rounds {
+                None => {
+                    cycle_rounds = Some(i_round - x);
+                }
+                Some(rounds) => {
+                    assert_eq!(rounds, i_round - x, "cycle length is not stable");
+                }
             }
             // println!("{}", rr.map.to_string());
             // println!("previous moves\n{}", rrs[x].map.to_string());
