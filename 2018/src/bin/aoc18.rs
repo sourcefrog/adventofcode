@@ -164,7 +164,6 @@ fn solve18b() -> usize {
     );
     for _ in 0..more {
         m.step();
-        j += 1;
     }
     m.resource_value()
 }
