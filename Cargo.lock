@@ -381,6 +381,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "mbpaoc2025"
+version = "0.0.0"
+dependencies = [
+ "aoclib",
+ "ascii",
+ "bitvec",
+ "indoc",
+ "itertools",
+ "num-integer",
+ "num-prime",
+ "regex",
+ "strum",
+]
+
+[[package]]
 name = "md5"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
