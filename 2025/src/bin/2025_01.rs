@@ -56,7 +56,6 @@ fn solve2(input: &str) -> usize {
         };
         println!("{l}\t{clicks}\t{p}");
     }
-    // 6499 is too high
     clicks.try_into().unwrap()
 }
 
@@ -64,14 +63,13 @@ fn solve2(input: &str) -> usize {
 /// we pass 0, including ending on zero?
 fn clicks_left(p: isize, dist: isize) -> isize {
     assert!((0..SIZE).contains(&p));
-    let mut q = p - dist;
+    let q = p - dist;
     let mut clicks = 0;
     if p == 0 {
         clicks -= 1;
     }
-    while q <= 0 {
-        clicks += 1;
-        q += SIZE;
+    if q <= 0 {
+        clicks += (-q) / SIZE + 1;
     }
     clicks
 }
@@ -101,6 +99,8 @@ mod test {
         assert_eq!(clicks_left(0, 1), 0);
         assert_eq!(clicks_left(99, 99), 1);
         assert_eq!(clicks_left(14, 82), 1);
+
+        assert_eq!(clicks_left(50, 1000), 10); //multiple rotations
     }
 
     #[test]
