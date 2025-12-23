@@ -23,21 +23,6 @@ fn decimal_len(x: usize) -> usize {
     x.ilog10() as usize + 1
 }
 
-/// True if the decimal form of `x` contains `repeats` copies of its first digits.
-fn is_repeated_decimal(x: usize, repeats: usize) -> bool {
-    assert!(repeats >= 2);
-    if x == 0 {
-        return false;
-    }
-    let digits = decimal_len(x);
-    if !digits.is_multiple_of(repeats) {
-        return false;
-    }
-    let s = 10usize.pow((digits / repeats) as u32);
-    let v = x % s;
-    x == repeat(v, repeats)
-}
-
 /// True if repeated with any length
 fn is_repeat(x: usize) -> bool {
     assert!(x > 0);
@@ -58,27 +43,35 @@ fn is_repeat(x: usize) -> bool {
     false
 }
 
-/// Return the number that has `r` repeats of the digits in x.
-fn repeat(x: usize, r: usize) -> usize {
-    debug_assert!(r >= 2);
-    if x == 0 {
-        return 0;
-    }
-    let d = decimal_len(x);
-    let s = 10usize.pow(d as u32);
-    let mut a = x;
-    for i in 1..r {
-        a += s.pow(i as u32) * x;
-    }
-    a
-}
-
+/// Input is a list of ranges.
+///
+/// Return the sum of the integers composed of twice-repeated runs of digits that
+/// occur within any of the ranges.
 fn solve1(input: &str) -> usize {
-    parse(input)
-        .into_iter()
-        .flat_map(|(a, b)| a..=b)
-        .filter(|x| is_repeated_decimal(*x, 2))
-        .sum()
+    let ranges = parse(input);
+    let maxtop = ranges.iter().map(|a| a.1).max().unwrap().to_owned();
+    let mut shift = 10;
+    let mut sum = 0;
+    let mut mult = 11; // contains two 1s in decimal forms with some zeros between; produces repeats of the right length
+    let mut r = 0; // current value containing repeats
+    for i in 1.. {
+        if i >= shift {
+            shift *= 10; // at 10, step from 99 to 1010; at 1000 we step from 999999 to 10001000, etc.
+            mult = shift + 1;
+            r = mult * i;
+        } else {
+            r += mult;
+        }
+        if r > maxtop {
+            break;
+        }
+        for &(a, b) in &ranges {
+            if (a..=b).contains(&r) {
+                sum += r;
+            }
+        }
+    }
+    sum
 }
 
 fn solve2(input: &str) -> usize {
@@ -108,6 +101,11 @@ mod test {
     static EXAMPLE: &str = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,
     1698522-1698528,446443-446449,38593856-38593862,565653-565659,
     824824821-824824827,2121212118-2121212124";
+
+    #[test]
+    fn simple() {
+        assert_eq!(solve1("11-22"), 11 + 22);
+    }
 
     #[test]
     fn example1() {
