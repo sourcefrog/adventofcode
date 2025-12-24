@@ -20,7 +20,7 @@
 use std::borrow::Borrow;
 use std::cmp::max;
 use std::fmt;
-use std::iter::FromIterator;
+use std::iter::{repeat, FromIterator};
 use std::ops::{Index, IndexMut};
 
 use crate::shortest_path::ShortestPath;
@@ -375,12 +375,17 @@ impl Matrix<char> {
 
     /// Build a matrix from a string containing multiple lines.
     ///
-    /// All non-empty lines must be the same length.
+    /// This is robust against removal of trailing whitespace: it's assumed to be space characters.
+    ///
+    /// Empty lines are dropped (but this might be a bug.)
     pub fn from_string_lines(s: &str) -> Matrix<char> {
         let lines: Vec<&str> = s.lines().filter(|l| !l.is_empty()).collect();
-        let w = lines.iter().map(|s| s.len()).min().unwrap();
+        let w = lines.iter().map(|s| s.len()).max().unwrap();
         let h = lines.len();
-        let d: Vec<char> = lines.iter().flat_map(|s| s.chars()).collect();
+        let d: Vec<char> = lines
+            .iter()
+            .flat_map(|s| s.chars().chain(repeat(' ')).take(w))
+            .collect();
         Matrix { w, h, d }
     }
 
@@ -554,5 +559,25 @@ where
             m.d.append(&mut row);
         }
         m
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::Matrix;
+
+    #[test]
+    fn from_string_lines_lacking_trailing_whitespace() {
+        // From <https://adventofcode.com/2025/day/6#part2>
+        static EXAMPLE: &str = "\
+123 328  51 64
+ 45 64  387 23
+  6 98  215 314
+*   +   *   +
+";
+        let mat = Matrix::from_string_lines(EXAMPLE);
+        assert_eq!(mat.width(), 15);
+        assert_eq!(mat.height(), 4);
+        assert_eq!(mat[(12usize, 3usize)], '+');
     }
 }
