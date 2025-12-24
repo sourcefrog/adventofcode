@@ -1,3 +1,5 @@
+use std::mem::take;
+
 use itertools::Itertools;
 
 fn main() {
@@ -23,8 +25,8 @@ fn dist(p1: Point, p2: Point) -> usize {
         .sum()
 }
 
-fn solve1(input: &str, rounds: usize) -> usize {
-    let points: Vec<Point> = input
+fn parse(input: &str) -> Vec<Point> {
+    input
         .trim()
         .lines()
         .map(|l| {
@@ -35,10 +37,10 @@ fn solve1(input: &str, rounds: usize) -> usize {
                 .try_into()
                 .expect("3 elements")
         })
-        .collect();
-    // map from point number to circuit number: initially each point is in a distinct circuit
-    let mut circuits = (0..points.len()).collect::<Vec<usize>>();
-    // make a list of distances between distinct pairs of points
+        .collect()
+}
+
+fn cross_distances(points: &[Point]) -> Vec<(usize, usize, usize)> {
     let mut dists = Vec::new();
     for i in 0..points.len() {
         for j in (i + 1)..points.len() {
@@ -46,6 +48,15 @@ fn solve1(input: &str, rounds: usize) -> usize {
         }
     }
     dists.sort();
+    dists
+}
+
+fn solve1(input: &str, rounds: usize) -> usize {
+    let points: Vec<Point> = parse(input);
+    // map from point number to circuit number: initially each point is in a distinct circuit
+    let mut circuits = (0..points.len()).collect::<Vec<usize>>();
+    // make a list of distances between distinct pairs of points
+    let dists = cross_distances(&points);
     for (_distance, p1, p2) in dists.into_iter().take(rounds) {
         // println!("closest {i}: {:?}, {:?}", points[p1], points[p2]);
         let cct1 = circuits[p1];
@@ -67,7 +78,29 @@ fn solve1(input: &str, rounds: usize) -> usize {
 }
 
 fn solve2(input: &str) -> usize {
-    0
+    let points: Vec<Point> = parse(input);
+    let npoints = points.len();
+    // map from point number to circuit number: initially each point is in a distinct circuit
+    let mut circuits = (0..npoints).collect::<Vec<usize>>();
+    let mut circuitsizes = vec![1; npoints];
+    for (_distance, p1, p2) in cross_distances(&points) {
+        // println!("closest {i}: {:?}, {:?}", points[p1], points[p2]);
+        let cct1 = circuits[p1];
+        let cct2 = circuits[p2];
+        if cct1 != cct2 {
+            // println!("  join circuits");
+            circuits.iter_mut().for_each(|c| {
+                if *c == cct2 {
+                    *c = cct1
+                }
+            });
+            circuitsizes[cct1] += take(&mut circuitsizes[cct2]);
+            if circuitsizes[cct1] == npoints {
+                return points[p1][0] * points[p2][0];
+            }
+        }
+    }
+    unreachable!("Didn't merge all the points?");
 }
 
 #[cfg(test)]
@@ -105,7 +138,7 @@ mod test {
 
     #[test]
     fn example2() {
-        assert_eq!(solve2(EXAMPLE), 0);
+        assert_eq!(solve2(EXAMPLE), 25272);
     }
 
     #[test]
@@ -113,8 +146,8 @@ mod test {
         assert_eq!(solve1(&input(), 1000), 67488);
     }
 
-    // #[test]
-    // fn solution2() {
-    //     assert_eq!(solve2(&input()), 0);
-    // }
+    #[test]
+    fn solution2() {
+        assert_eq!(solve2(&input()), 3767453340);
+    }
 }

@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 fn main() {
     let input = input();
     println!("{}", solve1(&input));
@@ -11,10 +9,12 @@ fn input() -> String {
 }
 
 fn solve1(input: &str) -> usize {
+    let _ = input;
     0
 }
 
 fn solve2(input: &str) -> usize {
+    let _ = input;
     0
 }
 
