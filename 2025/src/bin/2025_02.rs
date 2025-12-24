@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 fn main() {
     let input = input();
     println!("{}", solve1(&input));
@@ -21,26 +23,6 @@ fn parse(input: &str) -> Vec<(usize, usize)> {
 
 fn decimal_len(x: usize) -> usize {
     x.ilog10() as usize + 1
-}
-
-/// True if repeated with any length
-fn is_repeat(x: usize) -> bool {
-    assert!(x > 0);
-    let digits = decimal_len(x);
-    let mut s = 1;
-    for d in 1..=(digits / 2) {
-        s *= 10;
-        if !digits.is_multiple_of(d) {
-            continue;
-        }
-        let r = digits / d;
-        let v = x % s;
-        let y = (0..r).map(|j| s.pow(j as u32) * v).sum();
-        if x == y {
-            return true;
-        }
-    }
-    false
 }
 
 /// Input is a list of ranges.
@@ -75,23 +57,37 @@ fn solve1(input: &str) -> usize {
 }
 
 fn solve2(input: &str) -> usize {
-    let input = parse(input);
-    let mut s = 0;
-    for (a, b) in input {
-        // We don't really need to check all of them: if we're at
-        // 12350000 then we really ought to be able to see that the next
-        // useful number to check is 12351235 (at least for 2 repeats).
-        // Although, it might get a bit complicated because we need
-        // to be careful not to double count e.g. 333333 as being a repeat
-        // of 3, 33 and 333 ...
-        'i: for i in a..=b {
-            if is_repeat(i) {
-                s += i;
-                continue 'i;
+    let ranges = parse(input);
+    let maxtop = ranges.iter().map(|a| a.1).max().unwrap().to_owned();
+    let ranges = ranges.into_iter().map(|(a, b)| a..=b).collect::<Vec<_>>();
+    let mut sum = 0;
+    let mut hits = HashSet::new(); // numbers produced twice don't count twice
+    for reps in 2..=decimal_len(maxtop) {
+        // dbg!(reps);
+        let mut shift = 1; // increases 1, 10, 100, etc, as the length of i increases
+        let mut r = 0; // current value containing repeats
+        let mut mult = 1; // contains `reps` decimal ones, spaced `shift` apart
+        for i in 1.. {
+            if i >= shift {
+                assert_eq!(i, shift);
+                shift *= 10; // at 10, step from 99 to 1010; at 1000 we step from 999999 to 10001000, etc.
+                mult = (1..reps).fold(1, |m, _| m * shift + 1); // produce 1001001001001 etc
+                r = mult * i;
+            } else {
+                r += mult;
+            }
+            if r > maxtop {
+                break;
+            }
+            // dbg!(r);
+            if ranges.iter().any(|range| range.contains(&r)) && hits.insert(r) {
+                // println!("hit on {r}");
+                sum += r;
             }
         }
     }
-    s
+    // println!("total hits {}", hits.len());
+    sum
 }
 
 #[cfg(test)]
@@ -105,6 +101,11 @@ mod test {
     #[test]
     fn simple() {
         assert_eq!(solve1("11-22"), 11 + 22);
+    }
+
+    #[test]
+    fn simple2() {
+        assert_eq!(solve2("83-225"), 88 + 99 + 111 + 222);
     }
 
     #[test]
@@ -125,11 +126,5 @@ mod test {
     #[test]
     fn solution2() {
         assert_eq!(solve2(&input()), 69553832684);
-    }
-
-    #[test]
-    fn test_is_repeat() {
-        assert!(is_repeat(11));
-        assert!(is_repeat(1010));
     }
 }
